@@ -5,7 +5,7 @@ pipeline {
         timeout(time: 1, unit: 'HOURS')
     }
 
-    stages(''){
+    stages{
 
         stage('Deliver for development') {
             when {
