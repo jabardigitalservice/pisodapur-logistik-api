@@ -6,8 +6,9 @@ pipeline {
         timeout(time: 1, unit: 'HOURS')
     }
 
-    properties([pipelineTriggers([githubPush()])])
-
+    triggers {
+        pollSCM('') //Empty quotes tells it to build on a push
+    }
 
     stages{
 
