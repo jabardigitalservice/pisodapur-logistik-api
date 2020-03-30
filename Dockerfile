@@ -9,7 +9,6 @@ ENV APACHE_LOCK_DIR /var/lock/apache2
 ENV APACHE_PID_FILE /var/run/apache2.pid
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 ENV MAX_UPLOAD_SIZE 10M
-RUN cp .env.example .env
 
 RUN chown -R www-data:www-data \
         /var/www/html/storage \
