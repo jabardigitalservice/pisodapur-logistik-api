@@ -6,6 +6,10 @@ pipeline {
         timeout(time: 1, unit: 'HOURS')
     }
 
+    triggers {
+        githubPush()
+    }
+
     stages{
 
         stage('Deliver for development') {
@@ -19,6 +23,8 @@ pipeline {
 
 
         stage('Deliver for production') {
+
+            
 
             when {
                 branch 'master'
