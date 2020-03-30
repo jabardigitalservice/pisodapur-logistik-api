@@ -1,0 +1,26 @@
+version: '3'
+services:
+
+  #PHP & APACHE
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-logistik-development
+    volumes:
+      - vendor_data:/var/www/html/vendor
+      - .env.production:/var/www/html/.env
+    ports:
+      - "8080:80"
+    networks:
+      - internal
+
+#Docker Networks
+networks:
+  internal:
+    driver: bridge
+
+#Volumes 
+volumes:
+  vendor_data:
+    driver: local
