@@ -6,9 +6,8 @@ pipeline {
         timeout(time: 1, unit: 'HOURS')
     }
 
-    triggers {
-        githubPush()
-    }
+    properties([pipelineTriggers([githubPush()])])
+
 
     stages{
 
