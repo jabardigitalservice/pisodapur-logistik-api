@@ -5,14 +5,13 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.local
     container_name: api_logistik
     depends_on:
       - database
-
     volumes:
-      - vendor_data:/var/www/html/vendor
-      - .env:/var/www/html/.env
+      - .:/var/www/html
+
     ports:
       - "8080:80"
     networks:
