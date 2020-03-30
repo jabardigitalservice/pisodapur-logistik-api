@@ -6,9 +6,6 @@ pipeline {
         timeout(time: 1, unit: 'HOURS')
     }
 
-    triggers {
-        pollSCM('') //Empty quotes tells it to build on a push
-    }
 
     stages{
 
@@ -23,8 +20,9 @@ pipeline {
 
 
         stage('Deliver for production') {
-
-            
+            triggers {
+                githubPush()
+            }
 
             when {
                 branch 'master'
