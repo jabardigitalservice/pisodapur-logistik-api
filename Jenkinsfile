@@ -29,6 +29,7 @@ pipeline {
             }
             steps {
                 sh 'echo "hello production"' 
+                sh 'echo "hello trigger"' 
             }
         }
 
