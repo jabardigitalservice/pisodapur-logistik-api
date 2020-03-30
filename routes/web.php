@@ -15,11 +15,11 @@
 Route::get('/', function () {
     return view('welcome');
 });
-// Login
-Route::post('login', 'UsersController@authenticate');
-Route::post('authenticate', 'UsersController@authenticate');
-// Register
-Route::post('register', 'UsersController@register');
+// // Login
+// Route::post('login', 'UsersController@authenticate');
+// Route::post('authenticate', 'UsersController@authenticate');
+// // Register
+// Route::post('register', 'UsersController@register');
 
 Route::get('posts', 'PostController@index');
 Route::get('posts/index', 'PostController@index');
