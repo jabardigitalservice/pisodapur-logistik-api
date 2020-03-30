@@ -1,6 +1,7 @@
+
 pipeline {
 
-
+    agent any
     options {
         timeout(time: 1, unit: 'HOURS')
     }
@@ -15,7 +16,9 @@ pipeline {
                sh 'echo "hello production"' 
             }
         }
-        stage('Deploy for production') {
+
+
+        stage('Deliver for production') {
 
             when {
                 branch 'master'
@@ -25,5 +28,6 @@ pipeline {
             }
         }
 
-    }
+    } 
+
 }
