@@ -91,8 +91,8 @@ pipeline {
                    sshagent (['64308515-2447-4273-b8f8-b1c06cff7c83']){
                         // ssh block
                        sh 'ssh -o StrictHostKeyChecking=no $STAGING_USER@$PRODUCTION_HOST_LOGISTIK "cd /data/app/pikobar-logistik-api && $SSH_COMMAND  \
-                                                                                        && docker-compose -f docker-compose-development.yml down \
-                                                                                        && docker-compose -f docker-compose-development.yml up -d"'
+                                                                                        && docker-compose -f docker-compose-production.yml down \
+                                                                                        && docker-compose -f docker-compose-production.yml up -d"'
                     }
             }  
         }
@@ -107,9 +107,9 @@ pipeline {
                    sshagent (['64308515-2447-4273-b8f8-b1c06cff7c83']){
                         // ssh block
                        sh 'ssh -o StrictHostKeyChecking=no $STAGING_USER@$PRODUCTION_HOST_LOGISTIK "cd /data/app/pikobar-logistik-api  \
-                                                                                        && docker exec -it $appNameProduction php composer.phar install \
-                                                                                        && docker exec -it $appNameProduction php composer.phar dump-autoload \
-                                                                                        && docker exec -it $appNameProduction php artisan optimize"'
+                                                                                        && docker exec $appNameProduction php composer.phar install \
+                                                                                        && docker exec $appNameProduction php composer.phar dump-autoload \
+                                                                                        && docker exec $appNameProduction php artisan optimize"'
                     }
             }    
         }
@@ -124,7 +124,7 @@ pipeline {
                    sshagent (['64308515-2447-4273-b8f8-b1c06cff7c83']){
                         // ssh block
                        sh 'ssh -o StrictHostKeyChecking=no $STAGING_USER@$PRODUCTION_HOST_LOGISTIK "cd /data/app/pikobar-logistik-api  \
-                                                                                        && docker exec -it $appNameProduction php artisan migrate"'
+                                                                                        && docker exec $appNameProduction php artisan migrate"'
                     }
             }    
         }
