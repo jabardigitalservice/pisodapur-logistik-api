@@ -64,7 +64,10 @@ pipeline {
             when {
                 branch 'development'
             }
-            input('Do you want to php artisan migrate?')
+
+            input{
+                message "Press Ok to continue to Action `php artisan migrate` ?"
+            }
 
             steps{
                    sshagent (['64308515-2447-4273-b8f8-b1c06cff7c83']){
