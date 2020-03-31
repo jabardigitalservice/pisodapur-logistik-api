@@ -73,7 +73,7 @@ pipeline {
                    sshagent (['64308515-2447-4273-b8f8-b1c06cff7c83']){
                         // ssh block
                        sh 'ssh -o StrictHostKeyChecking=no $STAGING_USER@$STAGING_HOST_LOGISTIK "cd /home/ubuntu/app/pikobar-logistik-api  \
-                                                                                        && docker exec -it $appNameDevelopment php artisan migrate"'
+                                                                                        && docker exec $appNameDevelopment php artisan migrate"'
                     }
             }     
         }
