@@ -20,7 +20,7 @@ services:
   #MySQL Service
   database:
     image: mysql:5.7
-    container_name: database_logistik
+    container_name: database-logistik-development
     restart: always
     ports:
       - "3306:3306"
