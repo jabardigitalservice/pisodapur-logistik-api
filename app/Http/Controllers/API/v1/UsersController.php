@@ -17,7 +17,7 @@ class UsersController extends ApiController {
 
     public function authenticate(Request $request) {
         // grab credentials from the request
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->only('username', 'password');
 
         try {
             // attempt to verify the credentials and create a token for the user
@@ -39,6 +39,7 @@ class UsersController extends ApiController {
     public function register(Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => 'required',
+            'username' => 'required | unique:users',
             'email' => 'required | email | unique:users',
             'password' => 'required',
             'roles' => 'required',
@@ -49,6 +50,7 @@ class UsersController extends ApiController {
             return response()->json(['status' => 'fail', 'message' => $validator->messages()->all()]);
         } else {
             $user = User::create([
+                'username' => $request->username,
                 'email' => $request->email,
                 'name' => $request->name,
                 'password' => bcrypt($request->password),
