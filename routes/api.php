@@ -24,9 +24,9 @@ Route::post('v1/authenticate', 'API\v1\UsersController@authenticate');
 
 
 Route::namespace('API\v1')->middleware('auth:api')->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+    // Route::get('/user', function (Request $request) {
+    //     return $request->user();
+    // });
 
     Route::prefix('v1/transaction')->group(function() {
         Route::get('/', 'TransactionController@index');
