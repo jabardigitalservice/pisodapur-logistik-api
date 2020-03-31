@@ -36,4 +36,5 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
         Route::delete('/{id}', 'TransactionController@destroy');
     });
 
+    Route::apiResource('v1/recipient', 'RecipientController');
 });
