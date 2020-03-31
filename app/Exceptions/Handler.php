@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Exception;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -49,22 +50,16 @@ class Handler extends ExceptionHandler
     public function render($request, Exception $e)
     {
         if ($e instanceof AuthenticationException) {
-            return self::response_error('Unauthenticated', 401);
+            return response()->format(401, 'Unauthenticated');
         } elseif ($e instanceof ModelNotFoundException) {
-            return self::response_error('Object Not Found', 404);
+            return response()->format(404, 'Object Not Found');
+        } elseif ($e instanceof NotFoundHttpException) {
+            return response()->format(404, 'Url Not Found');
         } else {
-            return self::response_error($e->getMessage(), 500);
+            // ref: https://stackoverflow.com/a/35319899
+            //return self::response_error($e->getMessage(), 500);
+            $request->headers->set('Accept', 'application/json');
+            return parent::render($request, $e);
         }
-    }
-
-    /* wrapper formatter function for error response */
-    static function response_error($message, $code) {
-        return response()->json(
-            [
-                'status' => $code,
-                'message' => $message,
-                'success' => false,
-            ], $code
-        );
     }
 }
