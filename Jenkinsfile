@@ -38,8 +38,8 @@ pipeline {
                    sshagent (['64308515-2447-4273-b8f8-b1c06cff7c83']){
                         // ssh block
                        sh 'ssh -o StrictHostKeyChecking=no $STAGING_USER@$STAGING_HOST_LOGISTIK "cd /home/ubuntu/app/pikobar-logistik-api && $SSH_COMMAND  \
-                                                                                        && docker-compose -f docker-compose-development.yaml down \
-                                                                                        && docker-compose -f docker-compose-development.yaml up -d"'
+                                                                                        && docker-compose -f docker-compose-development.yml down \
+                                                                                        && docker-compose -f docker-compose-development.yml up -d"'
                     }
             }     
         }
@@ -95,8 +95,8 @@ pipeline {
                    sshagent (['64308515-2447-4273-b8f8-b1c06cff7c83']){
                         // ssh block
                        sh 'ssh -o StrictHostKeyChecking=no $STAGING_USER@$PRODUCTION_HOST_LOGISTIK "cd /data/app/pikobar-logistik-api && $SSH_COMMAND  \
-                                                                                        && docker-compose -f docker-compose-development.yaml down \
-                                                                                        && docker-compose -f docker-compose-development.yaml up -d"'
+                                                                                        && docker-compose -f docker-compose-development.yml down \
+                                                                                        && docker-compose -f docker-compose-development.yml up -d"'
                     }
             }  
         }
