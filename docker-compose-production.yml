@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: api-logistik-development
+    container_name: api-logistik-production
     volumes:
       - vendor_data:/var/www/html/vendor
       - .env.production:/var/www/html/.env
@@ -18,7 +18,8 @@ services:
 #Docker Networks
 networks:
   internal:
-    driver: bridge
+    external:
+       name: gateway
 
 #Volumes 
 volumes:
