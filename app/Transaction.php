@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 /** Struktur tabel
  *
  *  id
- *  id_tipe                   integer
+ *  id_product                integer
  *  id_user                   integer
  *  id_category               integer
  *  name                      string
@@ -24,13 +24,13 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Transaction extends Model
 {
-  /* tipe item logistik. sementara ini di hardcode. kedepannya bisa dibuat jadi 
+  /* tipe item logistik. sementara ini di hardcode. kedepannya bisa dibuat jadi
    * model terpisah */
   const TIPE_LOGISTIK = [
     1 => 'RDT',
   ];
 
-  /* kategori pihak pemberi/penerima logistik. sementara ini di hardcode. 
+  /* kategori pihak pemberi/penerima logistik. sementara ini di hardcode.
    * kedepannya bisa dibuat jadi model terpisah */
   const CATEGORY = [
       1  => "KAB. BOGOR",
@@ -69,7 +69,7 @@ class Transaction extends Model
    * @var array
    */
   protected $fillable = [
-    'id_tipe',
+    'id_product',
     'id_user',
     'id_category',
     'name',
@@ -90,8 +90,8 @@ class Transaction extends Model
 	* @var array
 	*/
 	protected $attributes = [
-  	'id_tipe' => 1, //saat ini baru untuk tipe item RDT
+  	'id_product' => 1, //saat ini baru untuk tipe item RDT
     'location_province_code' => '32', // default provinsi adalah jawa barat
   ];
-    
+
 }
