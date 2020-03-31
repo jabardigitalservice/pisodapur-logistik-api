@@ -54,8 +54,8 @@ pipeline {
                         // ssh block
                        sh 'ssh -o StrictHostKeyChecking=no $STAGING_USER@$STAGING_HOST_LOGISTIK "cd /home/ubuntu/app/pikobar-logistik-api  \
                                                                                         && docker exec $appNameDevelopment php composer.phar install \
-                                                                                        && docker exec  $appNameDevelopment php composer.phar dump-autoload \
-                                                                                        && docker exec  $appNameDevelopment php artisan optimize"'
+                                                                                        && docker exec $appNameDevelopment php composer.phar dump-autoload \
+                                                                                        && docker exec $appNameDevelopment php artisan optimize"'
                     }
             }     
         }
@@ -63,10 +63,6 @@ pipeline {
         stage('Deliver for development migrate') {
             when {
                 branch 'development'
-            }
-
-            input{
-                message "Press Ok to continue to Action `php artisan migrate` ?"
             }
 
             steps{
@@ -114,6 +110,21 @@ pipeline {
                                                                                         && docker exec -it $appNameProduction php composer.phar install \
                                                                                         && docker exec -it $appNameProduction php composer.phar dump-autoload \
                                                                                         && docker exec -it $appNameProduction php artisan optimize"'
+                    }
+            }    
+        }
+
+        stage('Deliver for production migrate') {
+
+            when {
+                branch 'master'
+            }
+
+            steps{
+                   sshagent (['64308515-2447-4273-b8f8-b1c06cff7c83']){
+                        // ssh block
+                       sh 'ssh -o StrictHostKeyChecking=no $STAGING_USER@$PRODUCTION_HOST_LOGISTIK "cd /data/app/pikobar-logistik-api  \
+                                                                                        && docker exec -it $appNameProduction php artisan migrate"'
                     }
             }    
         }
