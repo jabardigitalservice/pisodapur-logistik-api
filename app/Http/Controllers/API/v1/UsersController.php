@@ -59,9 +59,17 @@ class UsersController extends ApiController {
                 'name_district_city' => $request->name_district_city,
             ]);
             return response()->format(200, true, [
-                'token' => JWTAuth::fromUser($user), 
+                'token' => JWTAuth::fromUser($user),
                 'user' => $user,
             ]);
         }
     }
+
+    public function me(Request $request) {
+
+        $currentUser = JWTAuth::user();
+        return response()->format(200, true, $currentUser);
+
+    }
+
 }

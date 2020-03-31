@@ -28,6 +28,9 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     //     return $request->user();
     // });
 
+    Route::get('v1/user/me', 'UsersController@me');
+
+
     Route::prefix('v1/transaction')->group(function() {
         Route::get('/', 'TransactionController@index');
         Route::post('/', 'TransactionController@store');
