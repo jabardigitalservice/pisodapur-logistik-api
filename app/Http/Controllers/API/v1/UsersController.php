@@ -28,9 +28,11 @@ class UsersController extends ApiController {
             // something went wrong whilst attempting to encode the token
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
-        $status = true;
+
+        $user = JWTAuth::user();
+        $status = 'success';
         // all good so return the token
-        return response()->json(compact('token', 'status'));
+        return response()->json(['data' => compact('token', 'user'), 'status' => $status], 200);
     }
 
 
