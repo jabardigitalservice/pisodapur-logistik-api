@@ -22,17 +22,17 @@ class UsersController extends ApiController {
         try {
             // attempt to verify the credentials and create a token for the user
             if (! $token = JWTAuth::attempt($credentials)) {
-                return response()->json(['error' => 'invalid_credentials'], 401);
+                return response()->json(['message' => 'invalid_credentials'], 401);
             }
         } catch (JWTException $e) {
             // something went wrong whilst attempting to encode the token
-            return response()->json(['error' => 'could_not_create_token'], 500);
+            return response()->json(['message' => 'could_not_create_token'], 500);
         }
 
         $user = JWTAuth::user();
         $status = 'success';
         // all good so return the token
-        return response()->json(['data' => compact('token', 'user'), 'status' => $status], 200);
+        return response()->json(['data' => compact('token', 'user'), 'message' => 'true', 'status' => 200], 200);
     }
 
 
@@ -46,7 +46,7 @@ class UsersController extends ApiController {
             'name_district_city' => 'required',
         ]);
         if ($validator->fails()) {
-            return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
+            return response()->json(['status' => 'fail', 'message' => $validator->messages()->all()]);
         } else {
             $user = User::create([
                 'email' => $request->email,
