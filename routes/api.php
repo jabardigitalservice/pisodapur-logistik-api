@@ -30,8 +30,9 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/areas/subdistricts', 'AreasController@getSubDistricts');
     Route::get('v1/areas/villages', 'AreasController@getVillages');
 
-
     // PRODUCTS
+    Route::get('v1/products', 'ProductsController@index');
+    Route::get('v1/products/{id}', 'ProductsController@show');
 
 
     // TRANSACTIONS
