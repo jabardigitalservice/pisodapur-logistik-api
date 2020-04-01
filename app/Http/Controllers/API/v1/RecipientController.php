@@ -16,7 +16,16 @@ class RecipientController extends Controller
      */
     public function index(Request $request)
     {
-        return Recipient::paginate($request->input('limit',20));
+        $chain = Recipient::query();
+
+        if ($request->query('search','') != '') 
+          $chain = $chain->where('name', 'like', '%'.$request->query('search').'%');
+
+        if ($request->query('sort','') != '') {
+          $order = ($request->query('sort') == 'desc')?'desc':'asc';
+          $chain = $chain->orderBy('name', $order);
+        }
+        return $chain->paginate($request->input('limit',20));
     }
 
     /**
