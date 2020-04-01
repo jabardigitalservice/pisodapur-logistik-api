@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\v1;
 
 use Illuminate\Http\Request;
+use JWTAuth;
 
 use App\Http\Controllers\Controller;
 use App\Transaction;
@@ -16,7 +17,8 @@ class TransactionController extends Controller
      */
     public function index(Request $request)
     {
-        return Transaction::paginate($request->input('limit',20));
+        return Transaction::with(['user','recipient'])
+                          ->paginate($request->input('limit',20));
     }
 
     /**
@@ -27,7 +29,12 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
-        return Transaction::create($request->input());
+        $model = new Transaction();
+        $model->fill($request->input());
+        $model->id_user = JWTAuth::user()->id;
+        if ($model->save()) 
+          if ($model->updateRecipient())
+            return $model;
     }
 
     /**
@@ -38,7 +45,7 @@ class TransactionController extends Controller
      */
     public function show($id)
     {
-        return Transaction::findOrFail($id);
+        return Transaction::with(['user','recipient'])->findOrFail($id);
     }
 
     /**
