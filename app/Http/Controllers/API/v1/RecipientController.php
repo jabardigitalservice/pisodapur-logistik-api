@@ -21,6 +21,9 @@ class RecipientController extends Controller
         if ($request->query('search','') != '') 
           $chain = $chain->where('name', 'like', '%'.$request->query('search').'%');
 
+        if ($request->query('kabkota_kode','') != '') 
+          $chain = $chain->where('district_code', $request->query('kabkota_kode'));
+
         if ($request->query('sort','') != '') {
           $order = ($request->query('sort') == 'desc')?'desc':'asc';
           $chain = $chain->orderBy('name', $order);
