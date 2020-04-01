@@ -17,8 +17,27 @@ class TransactionController extends Controller
      */
     public function index(Request $request)
     {
-        return Transaction::with(['user','recipient'])
-                          ->paginate($request->input('limit',20));
+        $chain = Transaction::with(['user','recipient']);
+
+        if ($request->query('search','') != '') 
+          $chain = $chain->where('recipient.name', 'like', 
+                                 '%'.$request->query('search').'%');
+
+        if ($request->query('time','') != '') 
+          $chain = $chain->whereDate('time', $request->query('time'));
+
+        if ($request->query('kabkota_kode','') != '') 
+          $chain = $chain->where('location_district_code', $request->query('kabkota_kode'));
+
+        if ($request->query('kec_kode','') != '') 
+          $chain = $chain->where('location_subdistrict_code', $request->query('kec_kode'));
+
+        if ($request->query('sort','') != '') {
+          $order = ($request->query('sort') == 'desc')?'desc':'asc';
+          $chain = $chain->orderBy('name', $order);
+        }
+
+        return $chain->paginate($request->input('limit',20));
     }
 
     /**

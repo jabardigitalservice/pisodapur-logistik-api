@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * id            primary key
  * name          string
+ * pic_name      string
  * description   string
  * district_code string
  * total_stock   integer
@@ -23,6 +24,7 @@ class Recipient extends Model
    */
   protected $fillable = [
     'name',
+    'pic_name',
     'description',
     'district_code',
     'location_province_code',
@@ -37,4 +39,13 @@ class Recipient extends Model
   */
   protected $attributes = [
   ];
+
+  // ======================= RELATIONSHIPS ============================
+  /**
+   * Get transactions related to this recipient
+   */
+  public function transactions()
+  {
+      return $this->hasMany('App\Transaction', 'id_recipient');
+  } 
 }
