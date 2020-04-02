@@ -20,7 +20,7 @@ class TransactionController extends Controller
         $chain = Transaction::with(['user','recipient']);
 
         if ($request->query('search','') != '') 
-          $chain = $chain->where('recipient.name', 'like', 
+          $chain = $chain->where('name', 'like', 
                                  '%'.$request->query('search').'%');
 
         if ($request->query('time','') != '') 
@@ -52,7 +52,7 @@ class TransactionController extends Controller
         $model->fill($request->input());
         $model->id_user = JWTAuth::user()->id;
         if ($model->save()) 
-          if ($model->updateRecipient())
+          //if ($model->updateRecipient())
             return $model;
     }
 
