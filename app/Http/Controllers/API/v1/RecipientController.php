@@ -48,7 +48,9 @@ class RecipientController extends Controller
             $query->orderBy('kemendagri_provinsi_nama', $order);
         }
 
-        return $query->paginate($request->input('limit',20));
+        $data = $query->paginate($request->input('limit',20));
+
+        return response()->format(200, 'success', $data);
     }
 
     /**

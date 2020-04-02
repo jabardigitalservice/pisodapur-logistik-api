@@ -17,7 +17,9 @@ class ProductsController extends Controller
      */
     public function index(Request $request)
     {
-        return Product::paginate($request->input('limit',20));
+        $query = Product::paginate($request->input('limit',20));
+
+        return response()->format(200, 'success', $query);
     }
 
     /**
