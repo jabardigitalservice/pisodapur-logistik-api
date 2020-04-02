@@ -38,11 +38,12 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     // TRANSACTIONS
     Route::prefix('v1/transaction')->group(function() {
         Route::get('/summary', 'TransactionController@summary');
-        Route::get('/', 'TransactionController@index');
-        Route::post('/', 'TransactionController@store');
+        Route::get('/export', 'TransactionController@export');
         Route::get('/{id}', 'TransactionController@show');
         Route::put('/{id}', 'TransactionController@update');
         Route::delete('/{id}', 'TransactionController@destroy');
+        Route::get('/', 'TransactionController@index');
+        Route::post('/', 'TransactionController@store');
     });
 
     Route::prefix('v1/recipient')->group(function() {
