@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\API\v1;
 
 use Illuminate\Http\Request;
-
 use App\Http\Controllers\Controller;
 use App\Recipient;
+use App\City;
+use GuzzleHttp;
+use DB;
 
 class RecipientController extends Controller
 {
@@ -16,19 +18,37 @@ class RecipientController extends Controller
      */
     public function index(Request $request)
     {
-        $chain = Recipient::query();
+        // Call external API
+        $client = new GuzzleHttp\Client();
+        $res = $client->get('https://pikobar-pelaporan-api.digitalservice.id/api/rdt/summary-by-cities');
+        if ($res->getStatusCode() != 200) {
+            return response()->format(404, 'Object Not Found');
+        }
 
-        if ($request->query('search','') != '') 
-          $chain = $chain->where('name', 'like', '%'.$request->query('search').'%');
+        // Extract the data
+        $obj = json_decode($res->getBody());
+        $queryCase = 'CASE WHEN kemendagri_kabupaten_kode = 1 THEN 1';
+        foreach ($obj->data as $key => $value) {
+            if ($value->_id != '') {
+                $queryCase .= " WHEN kemendagri_kabupaten_kode = $value->_id THEN $value->total ";
+            }
+        }
+        $queryCase .= 'ELSE 0 END as total_used';
 
-        if ($request->query('kabkota_kode','') != '') 
-          $chain = $chain->where('district_code', $request->query('kabkota_kode'));
+        // Query summary
+        $query = City::select('kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama', DB::raw("1000 as total_stock"), DB::raw($queryCase))
+                        ->where('kemendagri_provinsi_kode', '32');
+
+        if ($request->query('search')) {
+            $query->where('kemendagri_kabupaten_nama', 'like', '%'.$request->query('search').'%');
+        }
 
         if ($request->query('sort','') != '') {
-          $order = ($request->query('sort') == 'desc')?'desc':'asc';
-          $chain = $chain->orderBy('name', $order);
+            $order = ($request->query('sort') == 'desc')?'desc':'asc';
+            $query->orderBy('kemendagri_provinsi_nama', $order);
         }
-        return $chain->paginate($request->input('limit',20));
+
+        return $query->paginate($request->input('limit',20));
     }
 
     /**
