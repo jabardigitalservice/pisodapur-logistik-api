@@ -22,8 +22,8 @@ Route::post('v1/authenticate', 'API\v1\UsersController@authenticate');
 
 Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     // USER
-    Route::get('v1/user/me', 'UsersController@me');
-    Route::post('v1/user/register', 'UsersController@register');
+    Route::get('v1/users/me', 'UsersController@me');
+    Route::post('v1/users/register', 'UsersController@register');
 
     // AREAS
     Route::get('v1/areas/cities', 'AreasController@getCities');
@@ -36,7 +36,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
 
 
     // TRANSACTIONS
-    Route::prefix('v1/transaction')->group(function() {
+    Route::prefix('v1/transactions')->group(function() {
         Route::get('/summary', 'TransactionController@summary');
         Route::get('/export', 'TransactionController@export');
         Route::get('/{id}', 'TransactionController@show');
