@@ -46,7 +46,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
         Route::post('/', 'TransactionController@store');
     });
 
-    Route::prefix('v1/recipient')->group(function() {
+    Route::prefix('v1/recipients')->group(function() {
       Route::get('/summary', 'RecipientController@summary');
       Route::apiResource('/', 'RecipientController');
     });
