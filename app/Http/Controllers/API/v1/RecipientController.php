@@ -76,4 +76,19 @@ class RecipientController extends Controller
     {
         if ($recipient->delete()) return $model;
     }
+
+    /**
+     * Retrieve summary for statistical dashboard
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function summary()
+    {
+        $summary = [
+            "quantity_distributed"  => 1000,
+            "quantity_available"    => 0,
+            "quantity_used"         => 0,
+        ];
+        return response()->format(200, 'success', $summary);
+    }
 }

@@ -92,4 +92,21 @@ class TransactionController extends Controller
         $model = Transaction::findOrFail($id);
         if ($model->delete()) return $model;
     }
+
+    /**
+     * Retrieve summary for statistical dashboard
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function summary()
+    {
+        $total_in = (int)Transaction::selectRaw('SUM(quantity) as total')->where('quantity','>',0)->first()['total'];
+        $total_out = -1 * (int)Transaction::selectRaw('SUM(quantity) as total')->where('quantity','<',0)->first()['total'];
+        $summary = [
+            "quantity_original"     => $total_in,
+            "quantity_distributed"  => $total_out ,
+            "quantity_available"    => $total_in - $total_out,
+        ];
+        return response()->format(200, 'success', $summary);
+    }
 }

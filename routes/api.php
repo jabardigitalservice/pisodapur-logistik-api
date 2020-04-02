@@ -37,6 +37,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
 
     // TRANSACTIONS
     Route::prefix('v1/transaction')->group(function() {
+        Route::get('/summary', 'TransactionController@summary');
         Route::get('/', 'TransactionController@index');
         Route::post('/', 'TransactionController@store');
         Route::get('/{id}', 'TransactionController@show');
@@ -44,6 +45,8 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
         Route::delete('/{id}', 'TransactionController@destroy');
     });
 
-
-    Route::apiResource('v1/recipient', 'RecipientController');
+    Route::prefix('v1/recipient')->group(function() {
+      Route::get('/summary', 'RecipientController@summary');
+      Route::apiResource('/', 'RecipientController');
+    });
 });
