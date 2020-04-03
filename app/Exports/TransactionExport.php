@@ -16,7 +16,7 @@ class TransactionExport implements FromQuery, WithMapping, WithHeadings
     public function query()
     {
         // only display out transaction
-        return Transaction::where('quantity','<',0);
+        return Transaction::with(['city','subdistrict'])->where('quantity','<',0);
     }
 
     public function headings(): array
@@ -27,9 +27,9 @@ class TransactionExport implements FromQuery, WithMapping, WithHeadings
             'Nama Pemohon/PIC',
             'Nomor Telepon',
             'Alamat',
-            'Kode Kecamatan Alamat',
-            'Kode Kabupaten/Kota Alamat',
-            'Kode Provinsi Alamat',
+            'Kecamatan Alamat',
+            'Kabupaten/Kota Alamat',
+            'Provinsi Alamat',
             'Jumlah',
             'Waktu',
             'Catatan',
@@ -49,9 +49,12 @@ class TransactionExport implements FromQuery, WithMapping, WithHeadings
             $transaction->contact_person,
             $transaction->phone_number,
             $transaction->location_address,
-            $transaction->location_subdistrict_code,
-            $transaction->location_district_code,
-            $transaction->location_province_code,
+            //$transaction->location_subdistrict_code,
+            $transaction->location_subdistrict_name,
+            //$transaction->location_district_code,
+            $transaction->location_district_name,
+            //$transaction->location_province_code,
+            $transaction->location_province_name,
             abs($transaction->quantity),
             ($transaction->time != null)?$transaction->time->format('Y-m-d'):'',
             $transaction->note,

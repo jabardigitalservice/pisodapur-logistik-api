@@ -93,4 +93,44 @@ class Transaction extends Model
         return $this->belongsTo('App\User', 'id_user');
     } 
 
+    /**
+     * Get address city of this transaction
+     */
+    public function city()
+    {
+        return $this->belongsTo('App\City', 'location_district_code', 'kemendagri_kabupaten_kode');
+    } 
+
+    /**
+     * Get address city name of this transaction
+     */
+    public function getLocationDistrictNameAttribute()
+    {
+        return ($this->city!=null)?$this->city->kemendagri_kabupaten_nama:"";
+    } 
+
+    /**
+     * Get address subdistrict of this transaction
+     */
+    public function subdistrict()
+    {
+        return $this->belongsTo('App\Subdistrict', 'location_subdistrict_code', 'kemendagri_kecamatan_kode');
+    } 
+
+    /**
+     * Get address subdistrict name of this transaction
+     */
+    public function getLocationSubdistrictNameAttribute()
+    {
+        return ($this->subdistrict!=null)?$this->subdistrict->kemendagri_kecamatan_nama:"";
+    } 
+
+    /**
+     * Get address province name of this transaction
+     */
+    public function getLocationProvinceNameAttribute()
+    {
+        return ($this->location_province_code == '32')?'JAWA BARAT':'';
+    } 
+
 }
