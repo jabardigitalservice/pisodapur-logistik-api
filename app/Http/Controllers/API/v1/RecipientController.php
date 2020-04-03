@@ -22,7 +22,7 @@ class RecipientController extends Controller
         // Call external API
         $client = new GuzzleHttp\Client();
         $url = env('PELAPORAN_CITY_SUMMARY_API_URL');
-        $res = $client->get($url);
+        $res = $client->get($url,  ['verify' => false]);
 
         if ($res->getStatusCode() != 200) {
             error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
