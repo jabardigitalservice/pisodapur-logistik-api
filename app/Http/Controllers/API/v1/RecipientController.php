@@ -43,6 +43,10 @@ class RecipientController extends Controller
             $query->where('kemendagri_kabupaten_nama', 'like', '%'.$request->query('search').'%');
         }
 
+        if ($request->query('city_code')) {
+            $query->where('kemendagri_kabupaten_kode', '=', $request->query('city_code'));
+        }
+
         if ($request->query('sort','') != '') {
             $order = ($request->query('sort') == 'desc')?'desc':'asc';
             $query->orderBy('kemendagri_provinsi_nama', $order);
