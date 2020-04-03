@@ -129,7 +129,6 @@ class RecipientController extends Controller
      */
     public function summary()
     {
-        return  env('PELAPORAN_CITY_SUMMARY_API_URL','');
         list($err, $obj) = $this->getPelaporanCitySummary();
         if ($err != null) { //error
             return $err;
