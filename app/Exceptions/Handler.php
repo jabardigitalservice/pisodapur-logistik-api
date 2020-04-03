@@ -56,10 +56,13 @@ class Handler extends ExceptionHandler
         } elseif ($e instanceof NotFoundHttpException) {
             return response()->format(404, 'Url Not Found');
         } else {
-            // ref: https://stackoverflow.com/a/35319899
-            //return self::response_error($e->getMessage(), 500);
-            $request->headers->set('Accept', 'application/json');
-            return parent::render($request, $e);
+            if (env('APP_DEBUG')) {
+                $request->headers->set('Accept', 'application/json');
+                return parent::render($request, $e);
+            } else {
+                // ref: https://stackoverflow.com/a/35319899
+                return self::response_error($e->getMessage(), 500);
+            }
         }
     }
 }
