@@ -54,8 +54,8 @@ pipeline {
                         // ssh block
                        sh 'ssh -o StrictHostKeyChecking=no $STAGING_USER@$STAGING_HOST_LOGISTIK "cd /home/ubuntu/app/pikobar-logistik-api  \
                                                                                         && docker exec $appNameDevelopment php composer.phar install \
-                                                                                        && docker exec $appNameDevelopment php composer.phar dump-autoload \
-                                                                                        && docker exec $appNameDevelopment php artisan optimize"'
+                                                                                        && docker exec $appNameDevelopment php composer.phar dump-autoload"'
+                                                                                        
                     }
             }     
         }
