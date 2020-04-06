@@ -49,7 +49,7 @@ class TransactionController extends Controller
           $chain = $chain->orderBy('name', $order);
         }
 
-        return TransactionResource::collection($chain->paginate($request->input('limit',20)));
+        return $chain->paginate($request->input('limit',20));
     }
 
     /**
@@ -77,7 +77,8 @@ class TransactionController extends Controller
      */
     public function show($id)
     {
-        return Transaction::with(['user','recipient'])->findOrFail($id);
+        $res = Transaction::with(['user','recipient'])->findOrFail($id);
+        return response()->format(200, 'success', new TransactionResource($res));
     }
 
     /**
