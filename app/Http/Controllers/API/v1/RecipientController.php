@@ -49,7 +49,7 @@ class RecipientController extends Controller
     {
         // Call external API
         $client = new GuzzleHttp\Client();
-        $url = env('PELAPORAN_CITY_SUMMARY_API_URL');
+        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-by-cities';
         $res = $client->get($url,  ['verify' => false]);
 
         if ($res->getStatusCode() != 200) {
