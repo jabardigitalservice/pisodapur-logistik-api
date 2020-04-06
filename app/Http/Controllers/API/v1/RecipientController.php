@@ -22,7 +22,7 @@ class RecipientController extends Controller
     public function __construct()
     {
         // anonymous middlewares to validate user's role
-      
+
         $this->middleware(function($request, $next) {
             if (JWTAuth::user()->roles != 'dinkesprov') {
                 return response()->format(404, 'You cannot access this page', null);
@@ -84,8 +84,12 @@ class RecipientController extends Controller
         $queryCase .= 'ELSE 0 END as total_used';
 
         // Query summary
-        $query = City::select('kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama', DB::raw("1000 as total_stock"), DB::raw($queryCase))
-                        ->where('kemendagri_provinsi_kode', '32');
+        $query = City::select(
+                    'kemendagri_kabupaten_kode',
+                    'kemendagri_kabupaten_nama',
+                    DB::raw('(select ifnull(abs(sum(quantity)), 0) from transactions t where t.location_district_code = kemendagri_kabupaten_kode and quantity < 0 ) as total_stock'),
+                    DB::raw($queryCase))
+                    ->where('kemendagri_provinsi_kode', '32');
 
         if ($request->query('search')) {
             $query->where('kemendagri_kabupaten_nama', 'like', '%'.$request->query('search').'%');
