@@ -7,8 +7,9 @@ use Carbon\Carbon;
 use JWTAuth;
 
 use App\Http\Controllers\Controller;
-use App\Transaction;
+use App\Http\Resources\Transaction as TransactionResource;
 use App\Exports\TransactionExport;
+use App\Transaction;
 
 class TransactionController extends Controller
 {
@@ -19,8 +20,12 @@ class TransactionController extends Controller
      */
     public function index(Request $request)
     {
-        $chain = Transaction::with(['user','recipient']);
+        $chain = Transaction::with(['user','recipient', 'city','subdistrict']);
         $chain = $chain->where('quantity','<',0); // only display outgoing transaction
+
+        if (JWTAuth::user()->role == 'dinkeskota') {
+            $chain = $chain->where('location_district_code', JWTAuth::user()->code_district_city);
+        }
 
         if ($request->query('search','') != '')  {
           $chain = $chain->where('name', 'like', 
@@ -44,7 +49,7 @@ class TransactionController extends Controller
           $chain = $chain->orderBy('name', $order);
         }
 
-        return $chain->paginate($request->input('limit',20));
+        return TransactionResource::collection($chain->paginate($request->input('limit',20)));
     }
 
     /**
