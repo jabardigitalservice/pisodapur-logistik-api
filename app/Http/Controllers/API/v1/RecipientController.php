@@ -3,15 +3,43 @@
 namespace App\Http\Controllers\API\v1;
 
 use Illuminate\Http\Request;
+use GuzzleHttp;
+use JWTAuth;
+use DB;
+
 use App\Http\Controllers\Controller;
 use App\Recipient;
 use App\Transaction;
 use App\City;
-use GuzzleHttp;
-use DB;
 
 class RecipientController extends Controller
 {
+    /**
+     * Instantiate a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        // anonymous middlewares to validate user's role
+      
+        $this->middleware(function($request, $next) {
+            if (JWTAuth::user()->roles != 'dinkesprov') {
+                return response()->format(404, 'You cannot access this page', null);
+            }
+
+            return $next($request);
+        })->except('index_faskes', 'summary_faskes');
+
+        $this->middleware(function($request, $next) {
+            if (JWTAuth::user()->roles != 'dinkeskota' ) {
+                return response()->format(404, 'You cannot access this page', null);
+            }
+
+            return $next($request);
+        })->only('index_faskes', 'summary_faskes');
+    }
+
     /**
      * Request used rdt stock data from pelaporan dinkes API
      *
@@ -32,6 +60,7 @@ class RecipientController extends Controller
             return [ null,  json_decode($res->getBody())->data ];
         }
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -72,6 +101,45 @@ class RecipientController extends Controller
         }
 
         $data = $query->paginate($request->input('limit',20));
+
+        return response()->format(200, 'success', $data);
+    }
+
+    /**
+     * Display a listing of the faskes monitoring data
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index_faskes(Request $request)
+    {
+        // sementara dummy data
+        $kabkota_user = JWTAuth::user()->code_district_city;
+        $dummy_data = [
+            [
+                "faskes_name" => "RSUD abc",
+                "total_stock" => 1000,
+                "total_used" => 0,
+            ],
+            [
+                "faskes_name" => "RSUD def",
+                "total_stock" => 1000,
+                "total_used" => 100,
+            ],
+            [
+                "faskes_name" => "RSUD ghi",
+                "total_stock" => 300,
+                "total_used" => 300,
+            ],
+        ];
+
+        // paginator untuk data dummy. untuk data asli silahkan hilangkan kode2 berikut
+        // ref : https://arjunphp.com/laravel-5-pagination-array/
+        $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+        $itemCollection = collect($dummy_data); // Create a new Laravel collection from the array data
+        $perPage = $request->input('limit',1); // Define how many items we want to be visible in each page
+        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all(); // Slice the collection to get the items to display in current page
+        $data = new \Illuminate\Pagination\LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage); // Create our paginator and pass it to the view
+        $data->setPath($request->url()); // set url path for generted links
 
         return response()->format(200, 'success', $data);
     }
@@ -146,6 +214,20 @@ class RecipientController extends Controller
             "quantity_distributed"  => $total_distributed,
             "quantity_available"    => $total_distributed-$total_used,
             "quantity_used"         => $total_used,
+        ];
+        return response()->format(200, 'success', $summary);
+    }
+    /**
+     * Retrieve summary for statistical dashboard (ONLY FOR FASKES DATA)
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function summary_faskes()
+    {
+        $summary = [
+            "quantity_distributed"  => '~',
+            "quantity_available"    => '~',
+            "quantity_used"         => '~',
         ];
         return response()->format(200, 'success', $summary);
     }

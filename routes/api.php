@@ -50,4 +50,9 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
       Route::get('/summary', 'RecipientController@summary');
       Route::apiResource('/', 'RecipientController');
     });
+
+    Route::prefix('v1/recipients-faskes')->group(function() {
+      Route::get('/summary', 'RecipientController@summary_faskes');
+      Route::get('/', 'RecipientController@index_faskes');
+    });
 });
