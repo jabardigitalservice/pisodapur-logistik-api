@@ -200,10 +200,34 @@ class RecipientController extends Controller
      */
     public function index_faskes(Request $request)
     {
-        list($err, $faskes_list) = $this->getPelaporanFaskesSummary();
+        list($err, $raw_list) = $this->getPelaporanFaskesSummary();
         if ($err != null) { //error
             return $err;
         }
+
+        // compose output list format
+        $faskes_list = [];
+        foreach ($raw_list as $row) {
+            $faskes_list[] = [
+                "faskes_name" => $row->_id,
+                "total_stock" => null,
+                "total_used" => $row->total,
+            ];
+        }
+
+        if ($request->query('search')) {
+            $word = $request->query('search');
+            $faskes_list = array_filter($faskes_list, function($val) {
+              return stripos($val->faskes_name, $word);
+            });
+        }
+
+        $order = ($request->query('sort') == 'desc') ? 
+                  -1 : //desc
+                  1 ; //asc
+        usort($faskes_list, function($a,$b) use ($order) {
+            return $order * strcmp($a['faskes_name'], $b['faskes_name']);
+        });
 
         // paginator untuk data berupa array
         // ref : https://arjunphp.com/laravel-5-pagination-array/
@@ -214,7 +238,7 @@ class RecipientController extends Controller
         $data = new \Illuminate\Pagination\LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage); // Create our paginator and pass it to the view
         $data->setPath($request->url()); // set url path for generted links
 
-        return response()->format(200, 'success', $data);
+        return response()->json($data);
     }
 
     /**
@@ -337,19 +361,20 @@ class RecipientController extends Controller
      */
     public function summary_faskes()
     {
-        list($err, $faskes_list) = $this->getPelaporanFaskesSummary();
+        $district_code = JWTAuth::user()->code_district_city;
+
+        list($err, $faskes_list) = $this->getPelaporanCitySummary();
         if ($err != null) { //error
             return $err;
         }
 
         $total_used = 0;
         foreach ($faskes_list as $key => $value) {
-            if ($value->_id != '') {
-                $total_used += $value->total;
+            if ($value->_id == $district_code) {
+                $total_used = $value->total;
             }
         }
 
-        $district_code = JWTAuth::user()->code_district_city;
         $total_distributed = abs( Transaction::selectRaw('SUM(quantity) as t')
             ->where('quantity','<',0)
             ->where('location_district_code', $district_code)
