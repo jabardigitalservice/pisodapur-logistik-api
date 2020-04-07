@@ -48,6 +48,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
 
     Route::prefix('v1/recipients')->group(function() {
       Route::get('/', 'RecipientController@index');
+      Route::get('/rdt-result-summary', 'RecipientController@getRdtResult');
       Route::get('/{city_code}', 'RecipientController@show');
       Route::get('/summary', 'RecipientController@summary');
     });

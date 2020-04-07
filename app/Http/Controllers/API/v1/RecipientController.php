@@ -91,7 +91,32 @@ class RecipientController extends Controller
     }
 
     /**
-     * Request used rdt stock data (grouped by faskes, filter only from the same 
+     * Request used RDT result status
+     *
+     * @return Array [ error, result_array ]
+     */
+    public function getRdtResult(Request $request)
+    {
+        $token = $this->getPelaporanAuthToken();
+        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-result-by-cities?city_code=' . $request->query('city_code');
+        $res = $this->client->get($url, [
+            'verify' => false,
+            'headers' => [
+                'Authorization' => "Bearer $token",
+            ],
+        ]);
+
+        if ($res->getStatusCode() != 200) {
+            error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
+            return [ response()->format(500, 'Internal server error'), null ];
+        } else {
+            // Extract the data
+            return response()->format(200, 'success', json_decode($res->getBody())->data);
+        }
+    }
+
+    /**
+     * Request used rdt stock data (grouped by faskes, filter only from the same
      * kob/kota) from pelaporan dinkes API
      *
      * @return Array [ error, result_array ]
@@ -209,9 +234,48 @@ class RecipientController extends Controller
      * @param  \App\Recipient  $recipient
      * @return \Illuminate\Http\Response
      */
-    public function show($cityCode)
+    public function show($cityCode, Request $request)
     {
-        $data = [];
+        $token = $this->getPelaporanAuthToken();
+        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-result-list-by-cities?city_code=' . $cityCode;
+        $res = $this->client->get($url, [
+            'verify' => false,
+            'headers' => [
+                'Authorization' => "Bearer $token",
+            ],
+        ]);
+
+        if ($res->getStatusCode() != 200) {
+            error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
+            return [ response()->format(500, 'Internal server error'), null ];
+        }
+
+        // Reformat data
+        $res = json_decode($res->getBody())->data[0];
+        $collections = [];
+        foreach ($res->total_used_list as $key => $value) {
+            $collections[$key]['name'] = $value->_id ;
+            $collections[$key]['total_used'] = $value->total_used;
+
+            $totalPositif = isset($res->total_positif_list[$key]->_id) ? $res->total_positif_list[$key]->total_positif : 0;
+            $collections[$key]['total_positif'] = $totalPositif;
+
+            $totalNegatif = isset($res->total_negatif_list[$key]->_id) ? $res->total_negatif_list[$key]->total_negatif : 0;
+            $collections[$key]['total_negatif'] = $totalNegatif;
+
+            $totalInvalid = isset($res->total_invalid_list[$key]->_id) ? $res->total_invalid_list[$key]->total_invalid : 0;
+            $collections[$key]['total_invalid'] = $totalInvalid;
+        }
+
+        // Make pagination
+        $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+        $itemCollection = collect($collections);
+        $perPage = 20;
+        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all(); // Slice the collection to get the items to display in current page
+        $data = new \Illuminate\Pagination\LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage); // Create our paginator and pass it to the view
+        $data->setPath($request->url()); // set url path for generted links
+
+
         return response()->format(200, 'success', $data);
     }
 
