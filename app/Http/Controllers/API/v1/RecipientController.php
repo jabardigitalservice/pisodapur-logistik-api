@@ -49,8 +49,8 @@ class RecipientController extends Controller
     {
         // Call external API
         $client = new GuzzleHttp\Client();
-        $url = 'https://pikobar-pelaporan-api.digitalservice.id' . '/api/rdt/summary-by-cities';
-        $res = $client->get($url,  ['verify' => false]);
+        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-by-cities';
+        $res = $client->get($url, ['verify' => false]);
 
         if ($res->getStatusCode() != 200) {
             error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
