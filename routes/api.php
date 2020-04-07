@@ -47,8 +47,9 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     });
 
     Route::prefix('v1/recipients')->group(function() {
-      Route::get('/summary', 'RecipientController@summary');
       Route::get('/', 'RecipientController@index');
+      Route::get('/{city_code}', 'RecipientController@show');
+      Route::get('/summary', 'RecipientController@summary');
     });
 
     Route::prefix('v1/recipients-faskes')->group(function() {

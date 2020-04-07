@@ -49,7 +49,7 @@ class RecipientController extends Controller
     {
         // Call external API
         $client = new GuzzleHttp\Client();
-        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-by-cities';
+        $url = 'https://pikobar-pelaporan-api.digitalservice.id' . '/api/rdt/summary-by-cities';
         $res = $client->get($url,  ['verify' => false]);
 
         if ($res->getStatusCode() != 200) {
@@ -165,9 +165,10 @@ class RecipientController extends Controller
      * @param  \App\Recipient  $recipient
      * @return \Illuminate\Http\Response
      */
-    public function show(Recipient $recipient)
+    public function show($cityCode)
     {
-        return $recipient;
+        $data = [];
+        return response()->format(200, 'success', $data);
     }
 
     /**
