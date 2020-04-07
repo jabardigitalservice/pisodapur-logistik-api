@@ -180,6 +180,19 @@ class RecipientController extends Controller
             return $err;
         }
 
+        if ($request->query('search')) {
+            $word = $request->query('search');
+            $faskes_list = array_filter($faskes_list, function($val) {
+              return stripos($val->name, $word);
+            });
+        }
+
+        $order = ($request->query('sort') == 'desc') ? 'desc':'asc';
+        usort($faskes_list, function($a,$b) {
+          if ($order == 'desc') return ($b-$a);
+          else return ($a-$b);
+        });
+
         // paginator untuk data berupa array
         // ref : https://arjunphp.com/laravel-5-pagination-array/
         $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
@@ -273,19 +286,20 @@ class RecipientController extends Controller
      */
     public function summary_faskes()
     {
-        list($err, $faskes_list) = $this->getPelaporanFaskesSummary();
+        $district_code = JWTAuth::user()->code_district_city;
+
+        list($err, $obj) = $this->getPelaporanCitySummary();
         if ($err != null) { //error
             return $err;
         }
 
         $total_used = 0;
         foreach ($faskes_list as $key => $value) {
-            if ($value->_id != '') {
-                $total_used += $value->total;
+            if ($value->_id == $district_code) {
+                $total_used = $value->total;
             }
         }
 
-        $district_code = JWTAuth::user()->code_district_city;
         $total_distributed = abs( Transaction::selectRaw('SUM(quantity) as t')
             ->where('quantity','<',0)
             ->where('location_district_code', $district_code)
