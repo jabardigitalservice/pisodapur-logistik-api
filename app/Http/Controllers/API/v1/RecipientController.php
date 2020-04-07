@@ -38,6 +38,30 @@ class RecipientController extends Controller
 
             return $next($request);
         })->only('index_faskes', 'summary_faskes');
+
+        $this->client = new GuzzleHttp\Client();
+    }
+
+    /**
+     * Request authorization token from pelaporan API
+     *
+     * @return Array [ error, result_array ]
+     */
+    public function getPelaporanAuthToken()
+    {
+        // login first
+        $login_url = env('PELAPORAN_API_BASE_URL') . '/api/login';
+        $res = $this->client->post($login_url, [
+            'json'   => [
+                'username' => env('PELAPORAN_AUTH_USER'),
+                'password' => env('PELAPORAN_AUTH_PASSWORD'),
+            ],
+            'verify' => false,
+        ]);
+        if ($res->getStatusCode() != 200) {
+            return [ response()->format(500, 'Internal server error'), null ];
+        }
+        return json_decode($res->getBody())->data->token;
     }
 
     /**
@@ -47,10 +71,45 @@ class RecipientController extends Controller
      */
     public function getPelaporanCitySummary()
     {
-        // Call external API
-        $client = new GuzzleHttp\Client();
+        // retrieving summary by cities endpont
+        $token = $this->getPelaporanAuthToken();
         $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-by-cities';
-        $res = $client->get($url, ['verify' => false]);
+        $res = $this->client->get($url, [
+            'verify' => false,
+            'headers' => [
+                'Authorization' => "Bearer $token",
+            ],
+        ]);
+
+        if ($res->getStatusCode() != 200) {
+            error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
+            return [ response()->format(500, 'Internal server error'), null ];
+        } else {
+            // Extract the data
+            return [ null,  json_decode($res->getBody())->data ];
+        }
+    }
+
+    /**
+     * Request used rdt stock data (grouped by faskes, filter only from the same 
+     * kob/kota) from pelaporan dinkes API
+     *
+     * @return Array [ error, result_array ]
+     */
+    public function getPelaporanFaskesSummary()
+    {
+        // retrieving summary by cities endpont
+        $token = $this->getPelaporanAuthToken();
+        $district_code = JWTAuth::user()->code_district_city;
+        $url  = env('PELAPORAN_API_BASE_URL') . '/api/rdt/faskes-summary-by-cities';
+        $url .= "?district_code=$district_code";
+
+        $res = $this->client->get($url, [
+            'verify' => false,
+            'headers' => [
+                'Authorization' => "Bearer $token",
+            ],
+        ]);
 
         if ($res->getStatusCode() != 200) {
             error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
@@ -116,31 +175,16 @@ class RecipientController extends Controller
      */
     public function index_faskes(Request $request)
     {
-        // sementara dummy data
-        $kabkota_user = JWTAuth::user()->code_district_city;
-        $dummy_data = [
-            [
-                "faskes_name" => "RSUD abc",
-                "total_stock" => 1000,
-                "total_used" => 0,
-            ],
-            [
-                "faskes_name" => "RSUD def",
-                "total_stock" => 1000,
-                "total_used" => 100,
-            ],
-            [
-                "faskes_name" => "RSUD ghi",
-                "total_stock" => 300,
-                "total_used" => 300,
-            ],
-        ];
+        list($err, $faskes_list) = $this->getPelaporanFaskesSummary();
+        if ($err != null) { //error
+            return $err;
+        }
 
-        // paginator untuk data dummy. untuk data asli silahkan hilangkan kode2 berikut
+        // paginator untuk data berupa array
         // ref : https://arjunphp.com/laravel-5-pagination-array/
         $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
-        $itemCollection = collect($dummy_data); // Create a new Laravel collection from the array data
-        $perPage = $request->input('limit',1); // Define how many items we want to be visible in each page
+        $itemCollection = collect($faskes_list); // Create a new Laravel collection from the array data
+        $perPage = $request->input('limit',20); // Define how many items we want to be visible in each page
         $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all(); // Slice the collection to get the items to display in current page
         $data = new \Illuminate\Pagination\LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage); // Create our paginator and pass it to the view
         $data->setPath($request->url()); // set url path for generted links
@@ -229,10 +273,28 @@ class RecipientController extends Controller
      */
     public function summary_faskes()
     {
+        list($err, $faskes_list) = $this->getPelaporanFaskesSummary();
+        if ($err != null) { //error
+            return $err;
+        }
+
+        $total_used = 0;
+        foreach ($faskes_list as $key => $value) {
+            if ($value->_id != '') {
+                $total_used += $value->total;
+            }
+        }
+
+        $district_code = JWTAuth::user()->code_district_city;
+        $total_distributed = abs( Transaction::selectRaw('SUM(quantity) as t')
+            ->where('quantity','<',0)
+            ->where('location_district_code', $district_code)
+            ->first()['t'] );
+
         $summary = [
-            "quantity_distributed"  => '~',
-            "quantity_available"    => '~',
-            "quantity_used"         => '~',
+            "quantity_distributed"  => $total_distributed,
+            "quantity_used"         => $total_used,
+            "quantity_available"    => $total_distributed-$total_used,
         ];
         return response()->format(200, 'success', $summary);
     }
