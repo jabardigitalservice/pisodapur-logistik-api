@@ -44,10 +44,8 @@ class TransactionController extends Controller
           $chain = $chain->where('location_subdistrict_code', $request->query('kec_kode'));
         }
 
-        if ($request->query('sort','') != '') {
-          $order = ($request->query('sort') == 'desc')?'desc':'asc';
-          $chain = $chain->orderBy('name', $order);
-        }
+        $order = ($request->query('sort') == 'asc')?'asc':'desc';
+        $chain = $chain->orderBy('created_at', $order);
 
         return $chain->paginate($request->input('limit',20));
     }
