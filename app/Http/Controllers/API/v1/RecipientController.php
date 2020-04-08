@@ -222,7 +222,7 @@ class RecipientController extends Controller
             });
         }
 
-        $order = ($request->query('sort') == 'desc') ? 
+        $order = ($request->query('sort') == 'desc') ?
                   -1 : //desc
                   1 ; //asc
         usort($faskes_list, function($a,$b) use ($order) {
@@ -281,15 +281,31 @@ class RecipientController extends Controller
             $collections[$key]['name'] = $value->_id ;
             $collections[$key]['total_used'] = $value->total_used;
 
-            $totalPositif = isset($res->total_positif_list[$key]->_id) ? $res->total_positif_list[$key]->total_positif : 0;
+            $totalPositif = 0;
+            foreach ($res->total_positif_list as $valPositif) {
+                if ($valPositif->_id == $value->_id) {
+                    $totalPositif = $valPositif->total_positif;
+                }
+            }
             $collections[$key]['total_positif'] = $totalPositif;
 
-            $totalNegatif = isset($res->total_negatif_list[$key]->_id) ? $res->total_negatif_list[$key]->total_negatif : 0;
+            $totalNegatif = 0;
+            foreach ($res->total_negatif_list as $valNegatif) {
+                if ($valNegatif->_id == $value->_id) {
+                    $totalNegatif = $valNegatif->total_negatif;
+                }
+            }
             $collections[$key]['total_negatif'] = $totalNegatif;
 
-            $totalInvalid = isset($res->total_invalid_list[$key]->_id) ? $res->total_invalid_list[$key]->total_invalid : 0;
+            $totalInvalid = 0;
+            foreach ($res->total_invalid_list as $valInvalid) {
+                if ($valInvalid->_id == $value->_id) {
+                    $totalInvalid = $valInvalid->total_invalid;
+                }
+            }
             $collections[$key]['total_invalid'] = $totalInvalid;
         }
+
 
         // Make pagination
         $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
