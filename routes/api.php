@@ -55,7 +55,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     });
 
     Route::prefix('v1/recipients-faskes')->group(function() {
-      Route::get('/summary', 'RecipientController@summary_faskes');
-      Route::get('/', 'RecipientController@index_faskes');
+      Route::get('/summary', 'RecipientFaskesController@summary');
+      Route::get('/', 'RecipientFaskesController@index');
     });
 });
