@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Recipient;
 use App\Transaction;
 use App\City;
+use App\Usage;
 
 class RecipientController extends Controller
 {
@@ -38,111 +39,6 @@ class RecipientController extends Controller
 
             return $next($request);
         })->only('index_faskes', 'summary_faskes');
-
-        $this->client = new GuzzleHttp\Client();
-    }
-
-    /**
-     * Request authorization token from pelaporan API
-     *
-     * @return Array [ error, result_array ]
-     */
-    public function getPelaporanAuthToken()
-    {
-        // login first
-        $login_url = env('PELAPORAN_API_BASE_URL') . '/api/login';
-        $res = $this->client->post($login_url, [
-            'json'   => [
-                'username' => env('PELAPORAN_AUTH_USER'),
-                'password' => env('PELAPORAN_AUTH_PASSWORD'),
-            ],
-            'verify' => false,
-        ]);
-        if ($res->getStatusCode() != 200) {
-            return [ response()->format(500, 'Internal server error'), null ];
-        }
-        return json_decode($res->getBody())->data->token;
-    }
-
-    /**
-     * Request used rdt stock data from pelaporan dinkes API
-     *
-     * @return Array [ error, result_array ]
-     */
-    public function getPelaporanCitySummary()
-    {
-        // retrieving summary by cities endpont
-        $token = $this->getPelaporanAuthToken();
-        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-by-cities';
-        $res = $this->client->get($url, [
-            'verify' => false,
-            'headers' => [
-                'Authorization' => "Bearer $token",
-            ],
-        ]);
-
-        if ($res->getStatusCode() != 200) {
-            error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
-            return [ response()->format(500, 'Internal server error'), null ];
-        } else {
-            // Extract the data
-            return [ null,  json_decode($res->getBody())->data ];
-        }
-    }
-
-    /**
-     * Request used RDT result status
-     *
-     * @return Array [ error, result_array ]
-     */
-    public function getRdtResult(Request $request)
-    {
-        $token = $this->getPelaporanAuthToken();
-        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-result-by-cities?city_code=' . $request->query('city_code');
-        $res = $this->client->get($url, [
-            'verify' => false,
-            'headers' => [
-                'Authorization' => "Bearer $token",
-            ],
-        ]);
-
-        if ($res->getStatusCode() != 200) {
-            error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
-            return [ response()->format(500, 'Internal server error'), null ];
-        } else {
-            // Extract the data
-            return response()->format(200, 'success', json_decode($res->getBody())->data);
-        }
-    }
-
-    /**
-     * Request used rdt stock data (grouped by faskes, filter only from the same
-     * kob/kota) from pelaporan dinkes API
-     *
-     * @return Array [ error, result_array ]
-     */
-    public function getPelaporanFaskesSummary()
-    {
-        // retrieving summary by cities endpont
-        $token = $this->getPelaporanAuthToken();
-        $district_code = JWTAuth::user()->code_district_city;
-        $url  = env('PELAPORAN_API_BASE_URL') . '/api/rdt/faskes-summary-by-cities';
-        $url .= "?district_code=$district_code";
-
-        $res = $this->client->get($url, [
-            'verify' => false,
-            'headers' => [
-                'Authorization' => "Bearer $token",
-            ],
-        ]);
-
-        if ($res->getStatusCode() != 200) {
-            error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
-            return [ response()->format(500, 'Internal server error'), null ];
-        } else {
-            // Extract the data
-            return [ null,  json_decode($res->getBody())->data ];
-        }
     }
 
     /**
@@ -152,7 +48,7 @@ class RecipientController extends Controller
      */
     public function index(Request $request)
     {
-        list($err, $obj) = $this->getPelaporanCitySummary();
+        list($err, $obj) = Usage::getPelaporanCitySummary();
 
         if ($err != null) { //error
             return $err;
@@ -200,7 +96,7 @@ class RecipientController extends Controller
      */
     public function index_faskes(Request $request)
     {
-        list($err, $raw_list) = $this->getPelaporanFaskesSummary();
+        list($err, $raw_list) = Usage::getPelaporanFaskesSummary();
         if ($err != null) { //error
             return $err;
         }
@@ -229,14 +125,7 @@ class RecipientController extends Controller
             return $order * strcmp($a['faskes_name'], $b['faskes_name']);
         });
 
-        // paginator untuk data berupa array
-        // ref : https://arjunphp.com/laravel-5-pagination-array/
-        $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
-        $itemCollection = collect($faskes_list); // Create a new Laravel collection from the array data
-        $perPage = $request->input('limit',20); // Define how many items we want to be visible in each page
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all(); // Slice the collection to get the items to display in current page
-        $data = new \Illuminate\Pagination\LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage); // Create our paginator and pass it to the view
-        $data->setPath($request->url()); // set url path for generted links
+        $data = $this->paginateArray($faskes_list, $request);
 
         return response()->format(200, 'success', $data);
     }
@@ -260,22 +149,13 @@ class RecipientController extends Controller
      */
     public function show($cityCode, Request $request)
     {
-        $token = $this->getPelaporanAuthToken();
-        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-result-list-by-cities?city_code=' . $cityCode;
-        $res = $this->client->get($url, [
-            'verify' => false,
-            'headers' => [
-                'Authorization' => "Bearer $token",
-            ],
-        ]);
-
-        if ($res->getStatusCode() != 200) {
-            error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
-            return [ response()->format(500, 'Internal server error'), null ];
+        list($err, $res) = Usage::getRdtResultList($cityCode);
+        if ($err != null) { //error
+            return $err;
         }
 
         // Reformat data
-        $res = json_decode($res->getBody())->data[0];
+        $res = $res[0];
         $collections = [];
         foreach ($res->total_used_list as $key => $value) {
             $collections[$key]['name'] = $value->_id ;
@@ -306,15 +186,8 @@ class RecipientController extends Controller
             $collections[$key]['total_invalid'] = $totalInvalid;
         }
 
-
         // Make pagination
-        $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
-        $itemCollection = collect($collections);
-        $perPage = 20;
-        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all(); // Slice the collection to get the items to display in current page
-        $data = new \Illuminate\Pagination\LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage); // Create our paginator and pass it to the view
-        $data->setPath($request->url()); // set url path for generted links
-
+        $data = $this->paginateArray($collections, $request);
 
         return response()->format(200, 'success', $data);
     }
@@ -350,10 +223,11 @@ class RecipientController extends Controller
      */
     public function summary()
     {
-        list($err, $obj) = $this->getPelaporanCitySummary();
+        list($err, $obj) = Usage::getPelaporanCitySummary();
         if ($err != null) { //error
             return $err;
         }
+
         $total_used = 0;
         foreach ($obj as $key => $value) {
             if ($value->_id != '') {
@@ -370,6 +244,23 @@ class RecipientController extends Controller
         ];
         return response()->format(200, 'success', $summary);
     }
+
+    /**
+     * Request used RDT result status
+     *
+     * @return \Illuminate\Http\Response
+     */
+    static function summary_rdt_result(Request $request)
+    {
+        $city_code = $request->query('city_code');
+        list($err, $result) = Usage::getRdtResultSummary($city_code);
+        if ($err != null) { //error
+            return $err;
+        }
+        
+        return response()->format(200, 'success', $result);
+    }
+
     /**
      * Retrieve summary for statistical dashboard (ONLY FOR FASKES DATA)
      *
@@ -379,7 +270,7 @@ class RecipientController extends Controller
     {
         $district_code = JWTAuth::user()->code_district_city;
 
-        list($err, $faskes_list) = $this->getPelaporanCitySummary();
+        list($err, $faskes_list) = Usage::getPelaporanCitySummary();
         if ($err != null) { //error
             return $err;
         }

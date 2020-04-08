@@ -48,9 +48,10 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
 
     Route::prefix('v1/recipients')->group(function() {
       Route::get('/', 'RecipientController@index');
-      Route::get('/rdt-result-summary', 'RecipientController@getRdtResult');
-      Route::get('/{city_code}', 'RecipientController@show');
+      Route::get('/rdt-result-summary', 'RecipientController@summary_rdt_result');
       Route::get('/summary', 'RecipientController@summary');
+      // need to be last so /summary wont be treated as city_code=summary
+      Route::get('/{city_code}', 'RecipientController@show');
     });
 
     Route::prefix('v1/recipients-faskes')->group(function() {
