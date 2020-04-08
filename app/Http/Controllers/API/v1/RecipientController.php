@@ -238,7 +238,7 @@ class RecipientController extends Controller
         $data = new \Illuminate\Pagination\LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage); // Create our paginator and pass it to the view
         $data->setPath($request->url()); // set url path for generted links
 
-        return response()->json($data);
+        return response()->format(200, 'success', $data);
     }
 
     /**
