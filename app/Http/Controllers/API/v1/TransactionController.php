@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Transaction as TransactionResource;
 use App\Exports\TransactionExport;
 use App\Transaction;
+use App\Usage;
 
 class TransactionController extends Controller
 {
@@ -112,12 +113,25 @@ class TransactionController extends Controller
      */
     public function summary()
     {
+        list($err, $obj) = Usage::getPelaporanCitySummary();
+        if ($err != null) { //error
+            return $err;
+        }
+
+        $total_used = 0;
+        foreach ($obj as $key => $value) {
+            if ($value->_id != '') {
+                $total_used += $value->total;
+            }
+        }
+
         $total_in = (int)Transaction::selectRaw('SUM(quantity) as total')->where('quantity','>',0)->first()['total'];
         $total_out = abs(Transaction::selectRaw('SUM(quantity) as total')->where('quantity','<',0)->first()['total']);
         $summary = [
             "quantity_original"     => $total_in,
             "quantity_distributed"  => $total_out ,
             "quantity_available"    => $total_in - $total_out,
+            "quantity_used"         => $total_used ,
         ];
         return response()->format(200, 'success', $summary);
     }
