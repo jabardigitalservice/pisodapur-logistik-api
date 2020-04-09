@@ -71,7 +71,7 @@ class RecipientController extends Controller
 
         if ($request->query('sort')) {
             $order = ($request->query('sort') == 'desc') ? 'desc':'asc';
-            $query->orderBy('kemendagri_kabupaten_kode', $order);
+            $query->orderBy('kemendagri_kabupaten_nama', $order);
         }
 
         $data = $query->paginate($request->input('limit',20));
@@ -206,7 +206,7 @@ class RecipientController extends Controller
         if ($err != null) { //error
             return $err;
         }
-        
+
         return response()->format(200, 'success', $result);
     }
 }
