@@ -146,7 +146,19 @@ class Usage
             return [ response()->format(500, 'Internal server error'), null ];
         } else {
             // Extract the data
-            return [ null,  json_decode($res->getBody())->data ];
+            $raw_list = json_decode($res->getBody())->data;
+
+            // format data
+            $faskes_list = [];
+            foreach ($raw_list as $row) {
+                $faskes_list[] = [
+                    "faskes_name" => $row->_id,
+                    "total_stock" => null,
+                    "total_used" => $row->total,
+                ];
+            }
+
+            return [ null,  $faskes_list ];
         }
     }
 

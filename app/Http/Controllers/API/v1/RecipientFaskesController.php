@@ -4,8 +4,10 @@ namespace App\Http\Controllers\API\v1;
 
 use Illuminate\Http\Request;
 use JWTAuth;
+use Carbon\Carbon;
 
 use App\Http\Controllers\Controller;
+use App\Exports\RecipientFaskesExport;
 use App\Transaction;
 use App\Usage;
 
@@ -35,19 +37,9 @@ class RecipientFaskesController extends Controller
      */
     public function index(Request $request)
     {
-        list($err, $raw_list) = Usage::getPelaporanFaskesSummary();
+        list($err, $faskes_list) = Usage::getPelaporanFaskesSummary();
         if ($err != null) { //error
             return $err;
-        }
-
-        // compose output list format
-        $faskes_list = [];
-        foreach ($raw_list as $row) {
-            $faskes_list[] = [
-                "faskes_name" => $row->_id,
-                "total_stock" => null,
-                "total_used" => $row->total,
-            ];
         }
 
         if ($request->query('search')) {
@@ -101,5 +93,17 @@ class RecipientFaskesController extends Controller
             "quantity_available"    => $total_distributed-$total_used,
         ];
         return response()->format(200, 'success', $summary);
+    }
+
+    /**
+     * Export RecipientFaskes list as excel
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function export()
+    {
+      $export_filename = Carbon::now()->format('Y-m-d_h-i');
+      $export_filename = 'export-faskes-recipients_'.$export_filename.'.xlsx';
+      return (new RecipientFaskesExport)->download($export_filename);
     }
 }
