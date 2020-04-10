@@ -44,8 +44,8 @@ class RecipientFaskesController extends Controller
 
         if ($request->query('search')) {
             $word = $request->query('search');
-            $faskes_list = array_filter($faskes_list, function($val) {
-              return stripos($val->faskes_name, $word);
+            $faskes_list = array_filter($faskes_list, function($val) use ($word) {
+              return stripos($val['faskes_name'], $word);
             });
         }
 
