@@ -15,13 +15,13 @@ class CreateAgencyTable extends Migration
     {
         Schema::create('agency', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('agency_type')->nullable();
-            $table->string('agency_name')->nullable();
-            $table->string('phone_number')->nullable();
-            $table->string('location_district_code')->nullable();
-            $table->string('location_subdistrict_code')->nullable();
-            $table->string('location_village_code')->nullable();
-            $table->string('location_address')->nullable();
+            $table->string('agency_type');
+            $table->string('agency_name');
+            $table->string('phone_number');
+            $table->string('location_district_code');
+            $table->string('location_subdistrict_code');
+            $table->string('location_village_code');
+            $table->string('location_address');
             $table->timestamps();
         });
     }
