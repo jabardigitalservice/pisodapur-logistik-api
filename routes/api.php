@@ -20,6 +20,13 @@ Route::post('v1/login', 'API\v1\UsersController@authenticate');
 Route::post('v1/authenticate', 'API\v1\UsersController@authenticate');
 
 
+// Landing Page Registration
+Route::namespace('API\v1')->group(function() {
+  Route::prefix('v1/registration')->group(function() {
+    Route::post('/agency', 'AgencyController@store');
+  });
+});
+
 Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     // USER
     Route::get('v1/users/me', 'UsersController@me');
