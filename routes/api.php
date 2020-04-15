@@ -23,10 +23,13 @@ Route::post('v1/authenticate', 'API\v1\UsersController@authenticate');
 // Landing Page Registration
 Route::namespace('API\v1')->group(function() {
   Route::prefix('v1/landing-page-registration')->group(function() {
+    //Landing Page Registration
     Route::post('/agency', 'AgencyController@store');
     Route::post('/aplicant', 'AplicantController@store');
+    Route::post('/needs', 'NeedsController@store');
+    Route::post('/letter', 'LetterController@store');
 
-    // AREAS tanpa login untuk kebutuhan registrasi
+    // AREAS tanpa login, untuk kebutuhan registrasi
     Route::get('/areas/cities', 'AreasController@getCities');
     Route::get('/areas/subdistricts', 'AreasController@getSubDistricts');
     Route::get('/areas/villages', 'AreasController@getVillages');

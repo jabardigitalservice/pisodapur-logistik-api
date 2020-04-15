@@ -17,7 +17,7 @@ class AplicantController extends Controller
             'agency_id' => 'required',
             'aplicant_name' => 'required|string',
             'aplicants_office' => 'required|string',
-            'file' => 'mimes:jpeg,jpg,png,pdf',
+            'file' => 'mimes:jpeg, jpg, png, pdf',
             'email' => 'required|email',
             'primary_phone_number' => 'required|numeric',
             'secondary_phone_number' => 'required|numeric'
