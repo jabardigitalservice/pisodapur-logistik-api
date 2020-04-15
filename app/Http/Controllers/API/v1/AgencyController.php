@@ -14,7 +14,7 @@ class AgencyController extends Controller
         $validator = Validator::make($request->all(), [
             'agency_type' => 'required|string',
             'agency_name' => 'required',
-            'phone_number' => 'required|numeric',
+            'phone_number' => 'numeric',
             'location_district_code' => 'required|string',
             'location_subdistrict_code' => 'required|string',
             'location_village_code' => 'required|string',
