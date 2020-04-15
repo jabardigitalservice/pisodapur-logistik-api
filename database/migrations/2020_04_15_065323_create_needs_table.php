@@ -16,7 +16,7 @@ class CreateNeedsTable extends Migration
         Schema::create('needs', function (Blueprint $table) {
             $table->increments('id');
             $table->string('agency_id');
-            $table->string('aplicant_id');
+            $table->string('applicant_id');
             $table->string('item')->nullable();
             $table->string('brand')->nullable();
             $table->string('quantity')->nullable();

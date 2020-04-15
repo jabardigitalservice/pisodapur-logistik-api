@@ -15,7 +15,7 @@ class LetterController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'agency_id' => 'required|numeric',
-            'aplicant_id' => 'required|numeric',
+            'applicant_id' => 'required|numeric',
             'letter' => 'required|mimes:jpeg, jpg, png, pdf|max:10240'
         ]);
         if ($validator->fails()) {

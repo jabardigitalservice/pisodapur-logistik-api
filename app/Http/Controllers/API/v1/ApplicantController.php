@@ -5,18 +5,18 @@ namespace App\Http\Controllers\API\v1;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator;
-use App\Aplicant;
+use App\Applicant;
 use App\Fileupload;
 use Illuminate\Support\Facades\Storage;
 
-class AplicantController extends Controller
+class ApplicantController extends Controller
 {
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'agency_id' => 'required',
-            'aplicant_name' => 'required|string',
-            'aplicants_office' => 'required|string',
+            'applicant_name' => 'required|string',
+            'applicants_office' => 'required|string',
             'file' => 'mimes:jpeg, jpg, png, pdf',
             'email' => 'required|email',
             'primary_phone_number' => 'required|numeric',
@@ -26,7 +26,7 @@ class AplicantController extends Controller
             return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
         } else {
 
-            $path = 'uploads/registration/aplicant_identity';
+            $path = 'uploads/registration/applicant_identity';
             $fileName = (string)time() . '-' . preg_replace('/\s+/', '_', $request->file->getClientOriginalName());
 
             if ($request->has('file')) {
@@ -35,7 +35,7 @@ class AplicantController extends Controller
 
             $fileUpload = Fileupload::create(['name' => $path."/".$fileName]);
 
-            $model = new Aplicant();
+            $model = new Applicant();
             $model->fill($request->input());
             $model->file = $fileUpload->id;
             if ($model->save()) {

@@ -16,7 +16,7 @@ class CreateLetterTable extends Migration
         Schema::create('letter', function (Blueprint $table) {
             $table->increments('id');
             $table->string('agency_id');
-            $table->string('aplicant_id');
+            $table->string('applicant_id');
             $table->string('letter');
             $table->timestamps();
         });

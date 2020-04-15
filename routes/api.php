@@ -25,7 +25,7 @@ Route::namespace('API\v1')->group(function() {
   Route::prefix('v1/landing-page-registration')->group(function() {
     //Landing Page Registration
     Route::post('/agency', 'AgencyController@store');
-    Route::post('/aplicant', 'AplicantController@store');
+    Route::post('/applicant', 'ApplicantController@store');
     Route::post('/needs', 'NeedsController@store');
     Route::post('/letter', 'LetterController@store');
 

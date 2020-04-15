@@ -4,12 +4,12 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Aplicant extends Model
+class Applicant extends Model
 {
     protected $fillable = [
         'agency_id',
-        'aplicant_name',
-        'aplicants_office',
+        'applicant_name',
+        'applicants_office',
         'file',
         'email',
         'primary_phone_number',

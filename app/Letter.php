@@ -10,7 +10,7 @@ class Letter extends Model
 
     protected $fillable = [
         'agency_id',
-        'aplicant_id',
+        'applicant_id',
         'letter'
     ];
 }

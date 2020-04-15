@@ -8,7 +8,7 @@ class Needs extends Model
 {
     protected $fillable = [
         'agency_id',
-        'aplicant_id',
+        'applicant_id',
         'item',
         'brand',
         'quantity',

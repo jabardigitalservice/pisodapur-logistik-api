@@ -13,7 +13,7 @@ class NeedsController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'agency_id' => 'required|numeric',
-            'aplicant_id' => 'required|numeric',
+            'applicant_id' => 'required|numeric',
             'item' => 'string',
             'brand' => 'string',
             'quantity' => 'numeric',
