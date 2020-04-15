@@ -29,7 +29,7 @@ Route::namespace('API\v1')->group(function() {
     Route::post('/needs', 'NeedsController@store');
     Route::post('/letter', 'LetterController@store');
 
-    // AREAS tanpa login, untuk kebutuhan registrasi
+    // AREAS, for public
     Route::get('/areas/cities', 'AreasController@getCities');
     Route::get('/areas/subdistricts', 'AreasController@getSubDistricts');
     Route::get('/areas/villages', 'AreasController@getVillages');
