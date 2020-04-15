@@ -25,6 +25,11 @@ Route::namespace('API\v1')->group(function() {
   Route::prefix('v1/landing-page-registration')->group(function() {
     Route::post('/agency', 'AgencyController@store');
     Route::post('/aplicant', 'AplicantController@store');
+
+    // AREAS tanpa login untuk kebutuhan registrasi
+    Route::get('/areas/cities', 'AreasController@getCities');
+    Route::get('/areas/subdistricts', 'AreasController@getSubDistricts');
+    Route::get('/areas/villages', 'AreasController@getVillages');
   });
 });
 

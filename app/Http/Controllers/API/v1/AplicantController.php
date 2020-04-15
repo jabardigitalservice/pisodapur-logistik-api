@@ -14,6 +14,7 @@ class AplicantController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'agency_id' => 'required',
             'aplicant_name' => 'required|string',
             'aplicants_office' => 'required|string',
             'file' => 'mimes:jpeg,jpg,png,pdf',

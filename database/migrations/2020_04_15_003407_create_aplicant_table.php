@@ -15,6 +15,7 @@ class CreateAplicantTable extends Migration
     {
         Schema::create('aplicants', function (Blueprint $table) {
             $table->increments('id');
+            $table->string('agency_id');
             $table->string('aplicant_name');
             $table->string('aplicants_office');
             $table->string('file')->nullable();
