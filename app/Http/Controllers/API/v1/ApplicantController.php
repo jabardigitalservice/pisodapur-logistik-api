@@ -26,14 +26,11 @@ class ApplicantController extends Controller
             return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
         } else {
 
-            $path = 'registration/applicant_identity';
-            $fileName = (string)time() . '-' . preg_replace('/\s+/', '_', $request->file->getClientOriginalName());
-
             if ($request->has('file')) {
-                $request->file->storeAs($path, $fileName, ['disk' => 'public']);
+                $path = Storage::disk('s3')->put('registration/applicant_identity', $request->file);
             }
 
-            $fileUpload = Fileupload::create(['name' => $path."/".$fileName]);
+            $fileUpload = Fileupload::create(['name' => $path]);
 
             $model = new Applicant();
             $model->fill($request->input());

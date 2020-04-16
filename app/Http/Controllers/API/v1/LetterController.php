@@ -22,14 +22,11 @@ class LetterController extends Controller
             return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
         } else {
 
-            $path = 'registration/letter';
-            $fileName = (string)time() . '-' . preg_replace('/\s+/', '_', $request->letter->getClientOriginalName());
-
             if ($request->has('letter')) {
-                $request->letter->storeAs($path, $fileName, ['disk' => 'public']);
+                $path = Storage::disk('s3')->put('registration/letter', $request->letter);
             }
-
-            $fileUpload = Fileupload::create(['name' => $path."/".$fileName]);
+            
+            $fileUpload = Fileupload::create(['name' => $path]);
 
             $model = new Letter();
             $model->fill($request->input());
