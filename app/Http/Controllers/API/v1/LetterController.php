@@ -16,13 +16,13 @@ class LetterController extends Controller
         $validator = Validator::make($request->all(), [
             'agency_id' => 'required|numeric',
             'applicant_id' => 'required|numeric',
-            'letter' => 'required|mimes:jpeg, jpg, png, pdf|max:10240'
+            'letter' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
         ]);
         if ($validator->fails()) {
             return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
         } else {
 
-            $path = 'uploads/registration/letter';
+            $path = 'registration/letter';
             $fileName = (string)time() . '-' . preg_replace('/\s+/', '_', $request->letter->getClientOriginalName());
 
             if ($request->has('letter')) {

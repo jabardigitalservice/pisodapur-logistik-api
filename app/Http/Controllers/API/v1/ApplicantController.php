@@ -17,7 +17,7 @@ class ApplicantController extends Controller
             'agency_id' => 'required',
             'applicant_name' => 'required|string',
             'applicants_office' => 'required|string',
-            'file' => 'mimes:jpeg, jpg, png, pdf',
+            'file' => 'mimes:jpeg,jpg,png,pdf|max:10240',
             'email' => 'required|email',
             'primary_phone_number' => 'required|numeric',
             'secondary_phone_number' => 'required|numeric'
@@ -26,7 +26,7 @@ class ApplicantController extends Controller
             return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
         } else {
 
-            $path = 'uploads/registration/applicant_identity';
+            $path = 'registration/applicant_identity';
             $fileName = (string)time() . '-' . preg_replace('/\s+/', '_', $request->file->getClientOriginalName());
 
             if ($request->has('file')) {
