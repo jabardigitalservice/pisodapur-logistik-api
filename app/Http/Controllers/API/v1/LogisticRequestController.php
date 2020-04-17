@@ -110,7 +110,7 @@ class LogisticRequestController extends Controller
 
             $applicant->file_path = Storage::disk('s3')->url($fileUpload->name);
         } catch (\Exception $exception) {
-            return response()->json(['error' => $exception->getMessage()], 400);
+            return response()->format(400, $exception->getMessage());
         }
 
         return $applicant;
@@ -135,7 +135,7 @@ class LogisticRequestController extends Controller
                 $response[] = $need;
             }
         } catch (\Exception $exception) {
-            return response()->json(['error' => $exception->getMessage()], 400);
+            return response()->format(400, $exception->getMessage());
         }
 
         return $response;
@@ -160,7 +160,7 @@ class LogisticRequestController extends Controller
 
             $letter->file_path = Storage::disk('s3')->url($fileUpload->name);
         } catch (\Exception $exception) {
-            return response()->json(['error' => $exception->getMessage()], 400);
+            return response()->format(400, $exception->getMessage());
         }
 
         return $letter;
