@@ -36,6 +36,7 @@ class ApplicantController extends Controller
             $model->fill($request->input());
             $model->file = $fileUpload->id;
             if ($model->save()) {
+                $model->file = Storage::disk('s3')->url($fileUpload->name);
                 return ($model);
             }
         }

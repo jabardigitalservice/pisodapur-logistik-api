@@ -25,13 +25,13 @@ class LetterController extends Controller
             if ($request->has('letter')) {
                 $path = Storage::disk('s3')->put('registration/letter', $request->letter);
             }
-            
             $fileUpload = Fileupload::create(['name' => $path]);
 
             $model = new Letter();
             $model->fill($request->input());
             $model->letter = $fileUpload->id;
             if ($model->save()) {
+                $model->letter = Storage::disk('s3')->url($fileUpload->name);
                 return ($model);
             }
         }
