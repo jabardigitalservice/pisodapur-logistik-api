@@ -11,6 +11,8 @@ use App\Agency;
 use App\Applicant;
 use App\Fileupload;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\LogisticRequestResource;
+use App\Letter;
 
 class LogisticRequestController extends Controller
 {
@@ -20,7 +22,6 @@ class LogisticRequestController extends Controller
             $request->all(),
             array_merge(
                 [
-                    //param for agency
                     'agency_type' => 'required|string',
                     'agency_name' => 'required',
                     'phone_number' => 'numeric',
@@ -28,23 +29,20 @@ class LogisticRequestController extends Controller
                     'location_subdistrict_code' => 'required|string',
                     'location_village_code' => 'required|string',
                     'location_address' => 'required|string',
-
-                    //pram for applicant
                     'applicant_name' => 'required|string',
                     'applicant_office' => 'required|string',
-                    'applicant_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
+                    'applicant_file' => 'required|mimes:jpeg,jpg,png,pdf|max:5000',
                     'email' => 'required|email',
                     'primary_phone_number' => 'required|numeric',
                     'secondary_phone_number' => 'required|numeric',
-
-                    // param for need
-                    'logistic_request' => 'required|array'
+                    'logistic_request' => 'required|array',
+                    'letter' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
                 ]
             )
         );
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->format(422, $validator->errors());
         } else {
             try {
                 $agency = $this->agencyStore($request);
@@ -54,10 +52,20 @@ class LogisticRequestController extends Controller
                 $request->request->add(['applicant_id' => $applicant->id]);
 
                 $need = $this->needStore($request);
+                $letter = $this->letterStore($request);
+
+                $response = array(
+                    'agency' => $agency,
+                    'applicant' => $applicant,
+                    'need' => $need,
+                    'letter' => $letter
+                );
             } catch (\Exception $exception) {
-                return response()->json(['error' => $exception->getMessage()], 400);
+                return response()->format(400, $exception->getMessage());
             }
         }
+
+        return response()->format(200, 'success', new LogisticRequestResource($response));
     }
 
     public function agencyStore($request)
@@ -73,7 +81,7 @@ class LogisticRequestController extends Controller
                 'location_address' => $request->input('location_address'),
             ]);
         } catch (\Exception $exception) {
-            return response()->json(['error' => $exception->getMessage()], 400);
+            return response()->format(400, $exception->getMessage());
         }
 
         return $agency;
@@ -81,35 +89,26 @@ class LogisticRequestController extends Controller
 
     public function applicantStore($request)
     {
-
+        $fileUploadId = null;
         try {
 
             if ($request->hasFile('applicant_file')) {
-
-                $file = $request->file('applicant_file');
-                if ($file->getSize() > 5000000) {
-                    return response()->json(['errors' => 'Gambar yang diupload maximal 5MB!'], 422);
-                }
-
-                if (!in_array($file->getClientOriginalExtension(), ['jpeg', 'png', 'jpg', 'pdf'])) {
-                    return response()->json(['errors' => 'Gambar yang diupload harus format pdf, jpeg, jpg dan png!'], 422);
-                }
-
-                $fileName = 'applicant_identity_' . uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
-
-                $path = Storage::disk('s3')->put('registration/applicant_identity', $fileName);
+                $path = Storage::disk('s3')->put('registration/applicant_identity', $request->applicant_file);
                 $fileUpload = FileUpload::create(['name' => $path]);
-
-                $applicant = Applicant::create([
-                    'agency_id' => $request->input('agency_id'),
-                    'applicant_name' => $request->input('applicant_name'),
-                    'applicants_office' => $request->input('applicant_office'),
-                    'file' => $fileUpload->id,
-                    'email' => $request->input('email'),
-                    'primary_phone_number' => $request->input('primary_phone_number'),
-                    'secondary_phone_number' => $request->input('secondary_phone_number'),
-                ]);
+                $fileUploadId = $fileUpload->id;
             }
+
+            $applicant = Applicant::create([
+                'agency_id' => $request->input('agency_id'),
+                'applicant_name' => $request->input('applicant_name'),
+                'applicants_office' => $request->input('applicant_office'),
+                'file' => $fileUploadId,
+                'email' => $request->input('email'),
+                'primary_phone_number' => $request->input('primary_phone_number'),
+                'secondary_phone_number' => $request->input('secondary_phone_number'),
+            ]);
+
+            $applicant->file_path = Storage::disk('s3')->url($fileUpload->name);
         } catch (\Exception $exception) {
             return response()->json(['error' => $exception->getMessage()], 400);
         }
@@ -119,23 +118,51 @@ class LogisticRequestController extends Controller
 
     public function needStore($request)
     {
+        $response = [];
         try {
             foreach ($request->input('logistic_request') as $key => $value) {
                 $need = Needs::create([
                     'agency_id' => $request->input('agency_id'),
                     'applicant_id' => $request->input('applicant_id'),
-                    'item' => $value['item'],
+                    'product_id' => $value['product_id'],
                     'brand' => $value['brand'],
                     'quantity' => $value['quantity'],
                     'unit' => $value['unit'],
                     'usage' => $value['usage'],
                     'priority' => $value['priority']
                 ]);
+
+                $response[] = $need;
             }
         } catch (\Exception $exception) {
             return response()->json(['error' => $exception->getMessage()], 400);
         }
 
-        return true;
+        return $response;
+    }
+
+    public function letterStore($request)
+    {
+        $fileUploadId = null;
+        try {
+
+            if ($request->hasFile('letter')) {
+                $path = Storage::disk('s3')->put('registration/letter', $request->letter);
+                $fileUpload = FileUpload::create(['name' => $path]);
+                $fileUploadId = $fileUpload->id;
+            }
+
+            $letter = Letter::create([
+                'agency_id' => $request->input('agency_id'),
+                'applicant_id' => $request->input('applicant_id'),
+                'letter' => $fileUploadId,
+            ]);
+
+            $letter->file_path = Storage::disk('s3')->url($fileUpload->name);
+        } catch (\Exception $exception) {
+            return response()->json(['error' => $exception->getMessage()], 400);
+        }
+
+        return $letter;
     }
 }
