@@ -5,7 +5,7 @@ namespace App\Http\Controllers\API\v1;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator;
-use App\Fileupload;
+use App\FileUpload;
 use App\Letter;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,7 +25,7 @@ class LetterController extends Controller
             if ($request->has('letter')) {
                 $path = Storage::disk('s3')->put('registration/letter', $request->letter);
             }
-            $fileUpload = Fileupload::create(['name' => $path]);
+            $fileUpload = FileUpload::create(['name' => $path]);
 
             $model = new Letter();
             $model->fill($request->input());

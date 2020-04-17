@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator;
 use App\Applicant;
-use App\Fileupload;
+use App\FileUpload;
 use Illuminate\Support\Facades\Storage;
 
 class ApplicantController extends Controller
@@ -30,7 +30,7 @@ class ApplicantController extends Controller
                 $path = Storage::disk('s3')->put('registration/applicant_identity', $request->file);
             }
 
-            $fileUpload = Fileupload::create(['name' => $path]);
+            $fileUpload = FileUpload::create(['name' => $path]);
 
             $model = new Applicant();
             $model->fill($request->input());
