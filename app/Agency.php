@@ -16,4 +16,9 @@ class Agency extends Model
         'location_village_code',
         'location_address'
     ];
+
+    public function applicant()
+    {
+        return $this->hasOne('App\Applicant', 'agency_id', 'id');
+    }
 }
