@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class FileUpload extends Model
 {
+    protected $table = 'fileuploads';
+    
     protected $fillable = [
-        'name'
+        'id', 'name', 'created_at', 'updated_at'
     ];
 
 }
