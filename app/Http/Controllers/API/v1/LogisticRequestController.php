@@ -31,7 +31,7 @@ class LogisticRequestController extends Controller
                     'location_village_code' => 'required|string',
                     'location_address' => 'required|string',
                     'applicant_name' => 'required|string',
-                    'applicant_office' => 'required|string',
+                    'applicants_office' => 'required|string',
                     'applicant_file' => 'required|mimes:jpeg,jpg,png,pdf|max:5000',
                     'email' => 'required|email',
                     'primary_phone_number' => 'required|numeric',
@@ -72,16 +72,7 @@ class LogisticRequestController extends Controller
     public function agencyStore($request)
     {
         try {
-            $agency = Agency::create([
-                'master_faskes_id' => $request->input('master_faskes_id'),
-                'agency_type' => $request->input('agency_type'),
-                'agency_name' => $request->input('agency_name'),
-                'phone_number' => $request->input('phone_number'),
-                'location_district_code' => $request->input('location_district_code'),
-                'location_subdistrict_code' => $request->input('location_subdistrict_code'),
-                'location_village_code' => $request->input('location_village_code'),
-                'location_address' => $request->input('location_address'),
-            ]);
+            $agency = Agency::create($request->all());
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -100,15 +91,7 @@ class LogisticRequestController extends Controller
                 $fileUploadId = $fileUpload->id;
             }
 
-            $applicant = Applicant::create([
-                'agency_id' => $request->input('agency_id'),
-                'applicant_name' => $request->input('applicant_name'),
-                'applicants_office' => $request->input('applicant_office'),
-                'file' => $fileUploadId,
-                'email' => $request->input('email'),
-                'primary_phone_number' => $request->input('primary_phone_number'),
-                'secondary_phone_number' => $request->input('secondary_phone_number'),
-            ]);
+            $applicant = Applicant::create($request->all());
 
             $applicant->file_path = Storage::disk('s3')->url($fileUpload->name);
         } catch (\Exception $exception) {
@@ -123,17 +106,18 @@ class LogisticRequestController extends Controller
         $response = [];
         try {
             foreach ($request->input('logistic_request') as $key => $value) {
-                $need = Needs::create([
-                    'agency_id' => $request->input('agency_id'),
-                    'applicant_id' => $request->input('applicant_id'),
-                    'product_id' => $value['product_id'],
-                    'brand' => $value['brand'],
-                    'quantity' => $value['quantity'],
-                    'unit' => $value['unit'],
-                    'usage' => $value['usage'],
-                    'priority' => $value['priority']
-                ]);
-
+                $need = Needs::create(
+                    [
+                        'agency_id' => $request->input('agency_id'),
+                        'applicant_id' => $request->input('applicant_id'),
+                        'product_id' => $value['product_id'],
+                        'brand' => $value['brand'],
+                        'quantity' => $value['quantity'],
+                        'unit' => $value['unit'],
+                        'usage' => $value['usage'],
+                        'priority' => $value['priority']
+                    ]
+                );
                 $response[] = $need;
             }
         } catch (\Exception $exception) {
@@ -154,11 +138,7 @@ class LogisticRequestController extends Controller
                 $fileUploadId = $fileUpload->id;
             }
 
-            $letter = Letter::create([
-                'agency_id' => $request->input('agency_id'),
-                'applicant_id' => $request->input('applicant_id'),
-                'letter' => $fileUploadId,
-            ]);
+            $letter = Letter::create($request->all());
 
             $letter->file_path = Storage::disk('s3')->url($fileUpload->name);
         } catch (\Exception $exception) {
