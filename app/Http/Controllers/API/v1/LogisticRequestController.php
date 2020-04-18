@@ -22,6 +22,7 @@ class LogisticRequestController extends Controller
             $request->all(),
             array_merge(
                 [
+                    'master_faskes_id' => 'required|numeric',
                     'agency_type' => 'required|string',
                     'agency_name' => 'required',
                     'phone_number' => 'numeric',
@@ -72,6 +73,7 @@ class LogisticRequestController extends Controller
     {
         try {
             $agency = Agency::create([
+                'master_faskes_id' => $request->input('master_faskes_id'),
                 'agency_type' => $request->input('agency_type'),
                 'agency_name' => $request->input('agency_name'),
                 'phone_number' => $request->input('phone_number'),
