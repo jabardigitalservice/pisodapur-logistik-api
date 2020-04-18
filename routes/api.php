@@ -33,6 +33,9 @@ Route::namespace('API\v1')->group(function() {
     Route::get('/areas/cities', 'AreasController@getCities');
     Route::get('/areas/subdistricts', 'AreasController@getSubDistricts');
     Route::get('/areas/villages', 'AreasController@getVillages');
+
+    Route::get('/products', 'ProductsController@index');
+    Route::get('/product-unit/{id}', 'ProductsController@productUnit');
   });
 });
 
