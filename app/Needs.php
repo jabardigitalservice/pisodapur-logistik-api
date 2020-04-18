@@ -9,6 +9,7 @@ class Needs extends Model
     protected $fillable = [
         'agency_id',
         'applicant_id',
+        'product_id',
         'item',
         'brand',
         'quantity',

@@ -19,7 +19,6 @@ Route::get('v1/welcome', 'API\v1\WelcomeController@index');
 Route::post('v1/login', 'API\v1\UsersController@authenticate');
 Route::post('v1/authenticate', 'API\v1\UsersController@authenticate');
 
-
 // Landing Page Registration
 Route::namespace('API\v1')->group(function() {
   Route::prefix('v1/landing-page-registration')->group(function() {
@@ -37,6 +36,10 @@ Route::namespace('API\v1')->group(function() {
     Route::get('/products', 'ProductsController@index');
     Route::get('/product-unit/{id}', 'ProductsController@productUnit');
   });
+  
+    Route::apiResource('v1/logistic-request', 'LogisticRequestController');
+    Route::apiResource('v1/master-faskes', 'MasterFaskesController');
+    Route::apiResource('v1/master-faskes-type', 'MasterFaskesTypeController');
 });
 
 Route::namespace('API\v1')->middleware('auth:api')->group(function () {
@@ -52,7 +55,6 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     // PRODUCTS
     Route::get('v1/products', 'ProductsController@index');
     Route::get('v1/products/{id}', 'ProductsController@show');
-
 
     // TRANSACTIONS
     Route::prefix('v1/transactions')->group(function() {

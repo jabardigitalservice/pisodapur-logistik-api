@@ -15,4 +15,9 @@ class Applicant extends Model
         'primary_phone_number',
         'secondary_phone_number'
     ];
+
+    public function agency()
+    {
+        return $this->belongsToOne('App\Agency', 'id', 'agency_id');
+    }
 }
