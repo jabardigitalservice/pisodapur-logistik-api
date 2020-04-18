@@ -21,6 +21,7 @@ services:
   database:
     image: mysql:5.7
     container_name: database-logistik-development
+    command: --max_allowed_packet=32505856
     restart: always
     ports:
       - "3306:3306"
