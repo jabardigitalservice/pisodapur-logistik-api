@@ -37,7 +37,7 @@ class LogisticRequestController extends Controller
                     'primary_phone_number' => 'required|numeric',
                     'secondary_phone_number' => 'required|numeric',
                     'logistic_request' => 'required|array',
-                    'letter' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+                    'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
                 ]
             )
         );
@@ -91,6 +91,7 @@ class LogisticRequestController extends Controller
                 $fileUploadId = $fileUpload->id;
             }
 
+            $request->request->add(['file' => $fileUploadId]);
             $applicant = Applicant::create($request->all());
 
             $applicant->file_path = Storage::disk('s3')->url($fileUpload->name);
@@ -132,12 +133,13 @@ class LogisticRequestController extends Controller
         $fileUploadId = null;
         try {
 
-            if ($request->hasFile('letter')) {
-                $path = Storage::disk('s3')->put('registration/letter', $request->letter);
+            if ($request->hasFile('letter_file')) {
+                $path = Storage::disk('s3')->put('registration/letter', $request->letter_file);
                 $fileUpload = FileUpload::create(['name' => $path]);
                 $fileUploadId = $fileUpload->id;
             }
 
+            $request->request->add(['letter' => $fileUploadId]);
             $letter = Letter::create($request->all());
 
             $letter->file_path = Storage::disk('s3')->url($fileUpload->name);
