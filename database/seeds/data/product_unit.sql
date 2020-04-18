@@ -8,4 +8,5 @@ INSERT INTO `product_unit` (`id`, `product_id`, `unit`) VALUES
 (7, 7, 'PCS'),
 (8, 8, 'PCS'),
 (9, 9, 'PCS'),
-(10, 10, 'PCS');
+(10, 10, 'PCS'),
+(11, 11, 'PCS');

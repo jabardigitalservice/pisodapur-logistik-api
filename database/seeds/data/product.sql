@@ -1,11 +1,9 @@
 INSERT INTO `products` (`id`, `name`) VALUES
-(1, 'MASKER BEDAH'),
-(2, 'RDT'),
-(3, 'APD'),
-(4, 'SWAB KIT'),
-(5, 'VTM'),
-(6, 'MASKER N95'),
-(7, 'MASKER KN95'),
-(8, 'MEDICAL GLOVES'),
-(9, 'DISPOSABLE CAP'),
-(10, 'DISPOSABLE SHOES COVER');
+(4, 'MASKER BEDAH'),
+(5, 'SWAB KIT'),
+(6, 'VTM'),
+(7, 'MASKER N95'),
+(8, 'MASKER KN95'),
+(9, 'MEDICAL GLOVES'),
+(10, 'DISPOSABLE CAP'),
+(11, 'DISPOSABLE SHOES COVER');
