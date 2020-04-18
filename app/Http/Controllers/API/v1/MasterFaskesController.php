@@ -47,4 +47,14 @@ class MasterFaskesController extends Controller
 
         return response()->format(200, 'success', $data);
     }
+
+    public function show($id)
+    {
+        try {
+            $data =  MasterFaskes::findOrFail($id);
+            return response()->format(200, 'success', $data);
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+    }
 }
