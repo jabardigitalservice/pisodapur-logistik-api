@@ -14,5 +14,6 @@ class DatabaseSeeder extends Seeder
         $this->call(DistrictCitiesSeeder::class);
         $this->call(SubdistrictSeeder::class);
         $this->call(MasterFaskesTypeSeeder::class);
+        $this->call(MasterFaskesSeeder::class);
     }
 }
