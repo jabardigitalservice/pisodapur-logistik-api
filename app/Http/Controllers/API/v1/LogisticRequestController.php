@@ -9,7 +9,7 @@ use Validator;
 use App\Needs;
 use App\Agency;
 use App\Applicant;
-use App\Fileupload;
+use App\FileUpload;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\LogisticRequestResource;
 use App\Letter;
