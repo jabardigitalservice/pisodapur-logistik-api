@@ -36,7 +36,7 @@ class LogisticRequestController extends Controller
                     'email' => 'required|email',
                     'primary_phone_number' => 'required|numeric',
                     'secondary_phone_number' => 'required|numeric',
-                    'logistic_request' => 'required|array',
+                    'logistic_request' => 'required',
                     'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
                 ]
             )
@@ -106,7 +106,7 @@ class LogisticRequestController extends Controller
     {
         $response = [];
         try {
-            foreach ($request->input('logistic_request') as $key => $value) {
+            foreach (json_decode($request->input('logistic_request'), true) as $key => $value) {
                 $need = Needs::create(
                     [
                         'agency_id' => $request->input('agency_id'),
