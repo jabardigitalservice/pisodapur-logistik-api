@@ -14,9 +14,22 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\LogisticRequestResource;
 use App\Letter;
 use DB;
+use JWTAuth;
 
 class LogisticRequestController extends Controller
 {
+    public function index(Request $request)
+    {
+        if (JWTAuth::user()->roles != 'dinkesprov') {
+            return response()->format(404, 'You cannot access this page', null);
+        }
+        $limit = $request->filled('limit') ? $request->input('limit') : 10;
+        $data = Agency::with('applicant')
+            ->paginate($limit);
+
+        return response()->format(200, 'success', $data);
+    }
+
     public function store(Request $request)
     {
         $validator = Validator::make(

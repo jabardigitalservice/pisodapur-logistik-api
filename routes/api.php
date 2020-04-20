@@ -37,7 +37,7 @@ Route::namespace('API\v1')->group(function () {
     Route::get('/product-unit/{id}', 'ProductsController@productUnit');
   });
   
-    Route::apiResource('v1/logistic-request', 'LogisticRequestController');
+    Route::post('v1/logistic-request', 'LogisticRequestController@store');
     Route::apiResource('v1/master-faskes', 'MasterFaskesController');
     Route::apiResource('v1/master-faskes-type', 'MasterFaskesTypeController');
 });
@@ -81,5 +81,5 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
       Route::get('/', 'RecipientFaskesController@index');
     });
 
-    Route::apiResource('v1/logistic-submission', 'LogisticSubmissionController');
+    Route::get('v1/logistic-request', 'LogisticRequestController@index');
 });
