@@ -13,6 +13,7 @@ use App\FileUpload;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\LogisticRequestResource;
 use App\Letter;
+use DB;
 
 class LogisticRequestController extends Controller
 {
@@ -45,6 +46,7 @@ class LogisticRequestController extends Controller
         if ($validator->fails()) {
             return response()->format(422, $validator->errors());
         } else {
+            DB::beginTransaction();
             try {
                 $agency = $this->agencyStore($request);
                 $request->request->add(['agency_id' => $agency->id]);
@@ -61,7 +63,9 @@ class LogisticRequestController extends Controller
                     'need' => $need,
                     'letter' => $letter
                 );
+                DB::commit();
             } catch (\Exception $exception) {
+                DB::rollBack();
                 return response()->format(400, $exception->getMessage());
             }
         }
@@ -71,11 +75,7 @@ class LogisticRequestController extends Controller
 
     public function agencyStore($request)
     {
-        try {
-            $agency = Agency::create($request->all());
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
-        }
+        $agency = Agency::create($request->all());
 
         return $agency;
     }
@@ -83,21 +83,17 @@ class LogisticRequestController extends Controller
     public function applicantStore($request)
     {
         $fileUploadId = null;
-        try {
 
-            if ($request->hasFile('applicant_file')) {
-                $path = Storage::disk('s3')->put('registration/applicant_identity', $request->applicant_file);
-                $fileUpload = FileUpload::create(['name' => $path]);
-                $fileUploadId = $fileUpload->id;
-            }
-
-            $request->request->add(['file' => $fileUploadId]);
-            $applicant = Applicant::create($request->all());
-
-            $applicant->file_path = Storage::disk('s3')->url($fileUpload->name);
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
+        if ($request->hasFile('applicant_file')) {
+            $path = Storage::disk('s3')->put('registration/applicant_identity', $request->applicant_file);
+            $fileUpload = FileUpload::create(['name' => $path]);
+            $fileUploadId = $fileUpload->id;
         }
+
+        $request->request->add(['file' => $fileUploadId]);
+        $applicant = Applicant::create($request->all());
+
+        $applicant->file_path = Storage::disk('s3')->url($fileUpload->name);
 
         return $applicant;
     }
@@ -105,24 +101,20 @@ class LogisticRequestController extends Controller
     public function needStore($request)
     {
         $response = [];
-        try {
-            foreach (json_decode($request->input('logistic_request'), true) as $key => $value) {
-                $need = Needs::create(
-                    [
-                        'agency_id' => $request->input('agency_id'),
-                        'applicant_id' => $request->input('applicant_id'),
-                        'product_id' => $value['product_id'],
-                        'brand' => $value['brand'],
-                        'quantity' => $value['quantity'],
-                        'unit' => $value['unit'],
-                        'usage' => $value['usage'],
-                        'priority' => $value['priority']
-                    ]
-                );
-                $response[] = $need;
-            }
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
+        foreach (json_decode($request->input('logistic_request'), true) as $key => $value) {
+            $need = Needs::create(
+                [
+                    'agency_id' => $request->input('agency_id'),
+                    'applicant_id' => $request->input('applicant_id'),
+                    'product_id' => $value['product_id'],
+                    'brand' => $value['brand'],
+                    'quantity' => $value['quantity'],
+                    'unit' => $value['unit'],
+                    'usage' => $value['usage'],
+                    'priority' => $value['priority']
+                ]
+            );
+            $response[] = $need;
         }
 
         return $response;
@@ -131,21 +123,16 @@ class LogisticRequestController extends Controller
     public function letterStore($request)
     {
         $fileUploadId = null;
-        try {
-
-            if ($request->hasFile('letter_file')) {
-                $path = Storage::disk('s3')->put('registration/letter', $request->letter_file);
-                $fileUpload = FileUpload::create(['name' => $path]);
-                $fileUploadId = $fileUpload->id;
-            }
-
-            $request->request->add(['letter' => $fileUploadId]);
-            $letter = Letter::create($request->all());
-
-            $letter->file_path = Storage::disk('s3')->url($fileUpload->name);
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
+        if ($request->hasFile('letter_file')) {
+            $path = Storage::disk('s3')->put('registration/letter', $request->letter_file);
+            $fileUpload = FileUpload::create(['name' => $path]);
+            $fileUploadId = $fileUpload->id;
         }
+
+        $request->request->add(['letter' => $fileUploadId]);
+        $letter = Letter::create($request->all());
+
+        $letter->file_path = Storage::disk('s3')->url($fileUpload->name);
 
         return $letter;
     }
