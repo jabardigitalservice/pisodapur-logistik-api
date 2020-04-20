@@ -90,7 +90,7 @@ class LogisticRequestController extends Controller
             $fileUploadId = $fileUpload->id;
         }
 
-        $request->request->add(['file' => $fileUploadId]);
+        $request->request->add(['file' => $fileUploadId, 'verification_status' => Applicant::STATUS_NOT_VERIFIED]);
         $applicant = Applicant::create($request->all());
 
         $applicant->file_path = Storage::disk('s3')->url($fileUpload->name);

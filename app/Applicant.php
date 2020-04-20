@@ -4,8 +4,12 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
+
 class Applicant extends Model
 {
+    const STATUS_NOT_VERIFIED = 'not_verified';
+    const STATUS_VERIFIED = 'verified';
+
     protected $fillable = [
         'agency_id',
         'applicant_name',
@@ -13,7 +17,8 @@ class Applicant extends Model
         'file',
         'email',
         'primary_phone_number',
-        'secondary_phone_number'
+        'secondary_phone_number',
+        'verification_status'
     ];
 
     public function agency()
