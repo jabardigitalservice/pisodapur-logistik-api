@@ -25,4 +25,10 @@ class Applicant extends Model
     {
         return $this->belongsToOne('App\Agency', 'id', 'agency_id');
     }
+
+    public function getVerificationStatusAttribute($value)
+    {
+        $status = $value === self::STATUS_NOT_VERIFIED ? 'Belum Terverifikasi' : ($value === self::STATUS_VERIFIED ? 'Terverifikasi' : '');
+        return $status;
+    }
 }
