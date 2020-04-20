@@ -35,7 +35,12 @@ class ProductsController extends Controller
 
     public function productUnit($id)
     {
-        return Product::findOrFail($id)->productUnit;
+        return Product::select('products.id', 'products.name', 'product_unit.unit_id', 'master_unit.unit')
+                        ->join('product_unit', 'product_unit.product_id', '=', 'products.id')
+                        ->join('master_unit', 'product_unit.unit_id', '=', 'master_unit.id')
+                        ->where('products.id', $id)
+                        ->get();
+        
     }
 
 }

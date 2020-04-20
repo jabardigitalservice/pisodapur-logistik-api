@@ -11,6 +11,7 @@ class ProductSeeder extends Seeder
      */
     public function run()
     {
+        \App\Product::truncate();
         $filepath = base_path('database/seeds/data/product.sql');
         DB::unprepared(file_get_contents($filepath));
     }
