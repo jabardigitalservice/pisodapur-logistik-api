@@ -8,6 +8,7 @@ class Agency extends Model
 {
     protected $table = 'agency';
     protected $fillable = [
+        'master_faskes_id',
         'agency_type',
         'agency_name',
         'phone_number',

@@ -33,4 +33,9 @@ class ProductsController extends Controller
         return Product::findOrFail($id);
     }
 
+    public function productUnit($id)
+    {
+        return Product::findOrFail($id)->productUnit;
+    }
+
 }

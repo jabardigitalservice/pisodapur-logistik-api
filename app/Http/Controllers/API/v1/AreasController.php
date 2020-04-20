@@ -63,7 +63,7 @@ class AreasController extends Controller
      */
     public function getVillages(Request $request)
     {
-        $subdistrictCode = '32.01';
+        $subdistrictCode = '32.01.01';
 
         $query = Village::select('*')
                      ->orderBy('kemendagri_desa_nama', 'asc');
