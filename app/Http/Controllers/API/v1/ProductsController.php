@@ -17,9 +17,20 @@ class ProductsController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::paginate($request->input('limit',20));
+        try {
+            $query = Product::orderBy('products.name', 'ASC');
+            if ($request->filled('limit')) {
+                $query->paginate($request->input('limit'));
+            } 
+            
+            if ($request->filled('name')) {
+                $query->where('products.name', 'LIKE', "%{$request->input('name')}%");
+            }
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
 
-        return response()->format(200, 'success', $query);
+        return response()->format(200, 'success', $query->get());
     }
 
     /**
