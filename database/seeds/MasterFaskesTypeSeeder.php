@@ -20,10 +20,17 @@ class MasterFaskesTypeSeeder extends Seeder
             [
                 'id' => 2,
                 'name' => 'Puskesmas'
+            ],
+            [
+                'id' => 3,
+                'name' => 'Klinik'
             ]
         ];
         foreach ($data as $key => $value) {
-            MasterFaskesType::create($value);
+            $masterFaskesType = MasterFaskesType::find($value['id']);
+            if (!$masterFaskesType) {
+                MasterFaskesType::create($value);
+            }
         }
     }
 }
