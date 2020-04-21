@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\v1;
 use App\MasterFaskes;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Validator;
 
 class MasterFaskesController extends Controller
 {
@@ -55,6 +56,32 @@ class MasterFaskesController extends Controller
             return response()->format(200, 'success', $data);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
+        }
+    }
+
+    public function store(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'nomor_registrasi' => 'required',
+                'nama_faskes' => 'required',
+                'id_tipe_faskes' => 'required',
+                'nama_atasan' => 'required',
+                'longitude' => 'required',
+                'latitude' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
+            } else {
+                $model = new MasterFaskes();
+                $model->fill($request->input());
+                if ($model->save()) {
+                    return $model;
+                }
+                return response()->json(array('status' => true, 'msg' => 'Successfully Created'), 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json(array('message' => 'could_not_create_faskes'), 500);
         }
     }
 }

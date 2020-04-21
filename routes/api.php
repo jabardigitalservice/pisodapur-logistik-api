@@ -40,6 +40,8 @@ Route::namespace('API\v1')->group(function() {
     Route::apiResource('v1/logistic-request', 'LogisticRequestController');
     Route::apiResource('v1/master-faskes', 'MasterFaskesController');
     Route::apiResource('v1/master-faskes-type', 'MasterFaskesTypeController');
+    Route::post('v1/master-faskes', 'MasterFaskesController@store');
+
 });
 
 Route::namespace('API\v1')->middleware('auth:api')->group(function () {
