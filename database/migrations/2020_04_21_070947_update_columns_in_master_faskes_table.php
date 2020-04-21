@@ -16,8 +16,8 @@ class UpdateColumnsInMasterFaskesTable extends Migration
         Schema::table('master_faskes', function (Blueprint $table) {
             $table->increments('id')->change();
             $table->integer('faskes_origin_id')->nullable()->after('id');
-            $table->string('nama_atasan')->nullable()->after('alamat');
-            $table->string('nomor_registrasi')->nullable()->after('alamat');
+            $table->string('nama_atasan')->after('alamat');
+            $table->string('nomor_registrasi')->after('alamat');
         });
     }
 
