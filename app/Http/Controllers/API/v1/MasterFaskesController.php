@@ -76,9 +76,8 @@ class MasterFaskesController extends Controller
                 $model = new MasterFaskes();
                 $model->fill($request->input());
                 if ($model->save()) {
-                    return $model;
+                    return response()->format(200, 'success', $model);
                 }
-                return response()->json(array('status' => true, 'msg' => 'Successfully Created'), 200);
             }
         } catch (\Exception $e) {
             return response()->json(array('message' => 'could_not_create_faskes'), 500);
