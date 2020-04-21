@@ -38,6 +38,6 @@ class Applicant extends Model
     public function getFileAttribute($value)
     {
         $data = FileUpload::find($value);
-        return $file = env('AWS_CLOUDFRONT_URL') . $data->name;
+        return env('AWS_CLOUDFRONT_URL') . $data->name;
     }
 }

@@ -23,6 +23,6 @@ class Letter extends Model
     public function getLetterAttribute($value)
     {
         $data = FileUpload::find($value);
-        return $file = env('AWS_CLOUDFRONT_URL') . $data->name;
+        return env('AWS_CLOUDFRONT_URL') . $data->name;
     }
 }
