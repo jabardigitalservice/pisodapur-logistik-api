@@ -28,7 +28,7 @@ class Agency extends Model
         return $this->belongsTo('App\City', 'location_district_code', 'kemendagri_kabupaten_kode');
     }
 
-    public function subdistrict()
+    public function subDistrict()
     {
         return $this->belongsTo('App\Subdistrict', 'location_subdistrict_code', 'kemendagri_kecamatan_kode');
     }
