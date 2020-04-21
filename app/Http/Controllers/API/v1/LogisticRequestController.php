@@ -198,17 +198,43 @@ class LogisticRequestController extends Controller
             },
             'village' => function ($query) {
                 return $query->select(['id', 'kemendagri_desa_kode', 'kemendagri_desa_nama']);
-            },
-            'need' => function ($query) {
-                return $query->select(['id', 'agency_id', 'applicant_id', 'product_id', 'brand', 'quantity', 'usage', 'priority', 'unit']);
-            },
-            'need.product' => function ($query) {
-                return $query->select(['id', 'name']);
-            },
-            'need.unit' => function ($query) {
-                return $query->select(['id', 'unit']);
             }
         ])->findOrFail($id);
+
+        return response()->format(200, 'success', $data);
+    }
+
+    public function verification(Request $request)
+    {
+        $applicant = Applicant::findOrFail($request->applicant_id);
+        $applicant->verification_status = $request->verification_status;
+        $applicant->save();
+
+        return response()->format(200, 'success', $applicant);
+    }
+
+    public function listNeed(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            array_merge(
+                ['agency_id' => 'required']
+            )
+        );
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        } else {
+            $limit = $request->filled('limit') ? $request->input('limit') : 10;
+            $data = Needs::with([
+                'product' => function ($query) {
+                    return $query->select(['id', 'name']);
+                },
+                'unit' => function ($query) {
+                    return $query->select(['id', 'unit']);
+                }
+            ])->where('agency_id', $request->agency_id)->paginate($limit);
+        }
 
         return response()->format(200, 'success', $data);
     }
