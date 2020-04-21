@@ -14,9 +14,48 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\LogisticRequestResource;
 use App\Letter;
 use DB;
+use JWTAuth;
 
 class LogisticRequestController extends Controller
 {
+    public function index(Request $request)
+    {
+        if (JWTAuth::user()->roles != 'dinkesprov') {
+            return response()->format(404, 'You cannot access this page', null);
+        }
+
+        $limit = $request->filled('limit') ? $request->input('limit') : 20;
+        $sort = $request->filled('sort') ? $request->input('sort') : 'asc';
+
+        try {
+            $data = Agency::with('applicant', 'city', 'subDistrict')
+                ->whereHas('applicant', function ($query) use ($request) {
+                    if ($request->filled('verification_status')) {
+                        $query->where('verification_status', '=', $request->input('verification_status'));
+                    }
+
+                    if ($request->filled('date')) {
+                        $query->whereRaw("DATE(created_at) = '" . $request->input('date') . "'");
+                    }
+                })
+                ->where(function ($query) use ($request) {
+                    if ($request->filled('agency_name')) {
+                        $query->where('agency_name', 'LIKE', "%{$request->input('agency_name')}%");
+                    }
+
+                    if ($request->filled('city_code')) {
+                        $query->where('location_district_code', '=', $request->input('city_code'));
+                    }
+                })
+                ->orderBy('agency_name', $sort)
+                ->paginate($limit);
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+
+        return response()->format(200, 'success', $data);
+    }
+
     public function store(Request $request)
     {
         $validator = Validator::make(
