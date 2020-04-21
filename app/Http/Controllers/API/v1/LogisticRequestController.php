@@ -175,4 +175,41 @@ class LogisticRequestController extends Controller
 
         return $letter;
     }
+
+    public function show($id)
+    {
+        $data = Agency::with([
+            'masterFaskesType' => function ($query) {
+                return $query->select(['id', 'name']);
+            },
+            'applicant' => function ($query) {
+                return $query->select([
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
+                ]);
+            },
+            'letter' => function ($query) {
+                return $query->select(['id', 'agency_id', 'letter']);
+            },
+            'city' => function ($query) {
+                return $query->select(['id', 'kemendagri_provinsi_nama', 'kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
+            },
+            'subDistrict' => function ($query) {
+                return $query->select(['id', 'kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
+            },
+            'village' => function ($query) {
+                return $query->select(['id', 'kemendagri_desa_kode', 'kemendagri_desa_nama']);
+            },
+            'need' => function ($query) {
+                return $query->select(['id', 'agency_id', 'applicant_id', 'product_id', 'brand', 'quantity', 'usage', 'priority', 'unit']);
+            },
+            'need.product' => function ($query) {
+                return $query->select(['id', 'name']);
+            },
+            'need.unit' => function ($query) {
+                return $query->select(['id', 'unit']);
+            }
+        ])->findOrFail($id);
+
+        return response()->format(200, 'success', $data);
+    }
 }
