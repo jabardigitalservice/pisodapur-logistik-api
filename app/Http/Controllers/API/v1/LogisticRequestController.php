@@ -28,7 +28,7 @@ class LogisticRequestController extends Controller
         $sort = $request->filled('sort') ? $request->input('sort') : 'asc';
 
         try {
-            $data = Agency::with('applicant', 'city', 'subDistrict')
+            $data = Agency::with('masterFaskesType', 'applicant', 'city', 'subDistrict')
                 ->whereHas('applicant', function ($query) use ($request) {
                     if ($request->filled('verification_status')) {
                         $query->where('verification_status', '=', $request->input('verification_status'));
@@ -174,5 +174,68 @@ class LogisticRequestController extends Controller
         $letter->file_path = Storage::disk('s3')->url($fileUpload->name);
 
         return $letter;
+    }
+
+    public function show($id)
+    {
+        $data = Agency::with([
+            'masterFaskesType' => function ($query) {
+                return $query->select(['id', 'name']);
+            },
+            'applicant' => function ($query) {
+                return $query->select([
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
+                ]);
+            },
+            'letter' => function ($query) {
+                return $query->select(['id', 'agency_id', 'letter']);
+            },
+            'city' => function ($query) {
+                return $query->select(['id', 'kemendagri_provinsi_nama', 'kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
+            },
+            'subDistrict' => function ($query) {
+                return $query->select(['id', 'kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
+            },
+            'village' => function ($query) {
+                return $query->select(['id', 'kemendagri_desa_kode', 'kemendagri_desa_nama']);
+            }
+        ])->findOrFail($id);
+
+        return response()->format(200, 'success', $data);
+    }
+
+    public function verification(Request $request)
+    {
+        $applicant = Applicant::findOrFail($request->applicant_id);
+        $applicant->verification_status = $request->verification_status;
+        $applicant->save();
+
+        return response()->format(200, 'success', $applicant);
+    }
+
+    public function listNeed(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            array_merge(
+                ['agency_id' => 'required']
+            )
+        );
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        } else {
+            $limit = $request->filled('limit') ? $request->input('limit') : 10;
+            $data = Needs::with([
+                'product' => function ($query) {
+                    return $query->select(['id', 'name']);
+                },
+                'unit' => function ($query) {
+                    return $query->select(['id', 'unit']);
+                }
+            ])->where('agency_id', $request->agency_id)->paginate($limit);
+        }
+
+        return response()->format(200, 'success', $data);
     }
 }
