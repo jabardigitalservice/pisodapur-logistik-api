@@ -28,7 +28,7 @@ class LogisticRequestController extends Controller
         $sort = $request->filled('sort') ? $request->input('sort') : 'asc';
 
         try {
-            $data = Agency::with('applicant', 'city', 'subDistrict')
+            $data = Agency::with('masterFaskesType', 'applicant', 'city', 'subDistrict')
                 ->whereHas('applicant', function ($query) use ($request) {
                     if ($request->filled('verification_status')) {
                         $query->where('verification_status', '=', $request->input('verification_status'));
