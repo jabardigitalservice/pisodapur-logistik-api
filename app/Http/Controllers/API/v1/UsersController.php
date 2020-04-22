@@ -22,17 +22,17 @@ class UsersController extends ApiController {
         try {
             // attempt to verify the credentials and create a token for the user
             if (! $token = JWTAuth::attempt($credentials)) {
-                return response()->json(['message' => 'invalid_credentials'], 401);
+                return response()->format(401, 'invalid_credentials');
             }
         } catch (JWTException $e) {
             // something went wrong whilst attempting to encode the token
-            return response()->json(['message' => 'could_not_create_token'], 500);
+            return response()->format(500, 'could_not_create_token');
         }
 
         $user = JWTAuth::user();
         $status = 'success';
         // all good so return the token
-        return response()->json(['data' => compact('token', 'user'), 'message' => 'true', 'status' => 200], 200);
+        return response()->format(200, true, compact('token', 'user'));
     }
 
 
@@ -47,7 +47,7 @@ class UsersController extends ApiController {
             'name_district_city' => 'required',
         ]);
         if ($validator->fails()) {
-            return response()->json(['status' => 'fail', 'message' => $validator->messages()->all()]);
+            return response()->format(422,  $validator->messages()->all());
         } else {
             $user = User::create([
                 'username' => $request->username,
@@ -58,7 +58,18 @@ class UsersController extends ApiController {
                 'code_district_city' => $request->code_district_city,
                 'name_district_city' => $request->name_district_city,
             ]);
-            return response()->json(array('status' => true, 'token' => JWTAuth::fromUser($user), 'data' => $user), 200);
+            return response()->format(200, true, [
+                'token' => JWTAuth::fromUser($user),
+                'user' => $user,
+            ]);
         }
     }
+
+    public function me(Request $request) {
+
+        $currentUser = JWTAuth::user();
+        return response()->format(200, true, $currentUser);
+
+    }
+
 }

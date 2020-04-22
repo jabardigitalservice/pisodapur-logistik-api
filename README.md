@@ -2,20 +2,26 @@
 ## PIKOBAR LOGISTIK API
 Build with laravel 6 + MySql
 
-## How to Running
+## Installation
 
-- git clone [REP0]
-- cd pikobar-logistik-api
-- Setup your .env
-- Running with docker compose "docker-compose up -d"
-- Go to bash "docker exec -it app bash"
-- Install dependencies "composer install"
-- Generate key "php artisan key:generate"
-- Generate key "php artisan jwt:generate"
-- Running migrate database "php artisan migrate"
-- Test your app [http://localhost/](http://localhost/)
+```sh
+$ git clone git@github.com:jabardigitalservice/pikobar-logistik-api.git
+$ cd pikobar-logistik-api
+$ cp .env.example .env
+$ docker-compose up -d
+$ docker exec -it api_logistik bash
+$ php composer.phar install
+$ php artisan key:generate
+$ php artisan jwt:generate
+$ php artisan migrate
+```
 
+
+## Coding Style
+- Naming conventions :
+https://github.com/alexeymezenin/laravel-best-practices#follow-laravel-naming-conventions
+- PSR standards :
+https://www.php-fig.org/psr/psr-2/
 
 ## License
-
 Pikobar Logistik API is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

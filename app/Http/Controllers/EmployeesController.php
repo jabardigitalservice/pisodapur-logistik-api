@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Employee;
-use App\Fileupload;
+use App\FileUpload;
 use Validator;
 use Illuminate\Http\Request;
 use App\Http\Controllers\FileUploadController;
@@ -116,22 +116,22 @@ class EmployeesController extends Controller {
                 unset($data['file']);
                 $data['name'] = FileUploadController::fileUpload($file, 'uploads/students');
             }
-            Fileupload::create($data);
+            FileUpload::create($data);
             return response()->json(array('status' => true, 'msg' => 'Successfully created'), 200);
         }
     }
 
     public function filelist(){
-        $data['files'] = Fileupload::all();
+        $data['files'] = FileUpload::all();
         return response()->json(compact( 'data'));
     }
 
     public function filedelete($id)
     {
         try {
-            $employee = Fileupload::where('id', $id)->first();
+            $employee = FileUpload::where('id', $id)->first();
             if ($employee != null) {
-                Fileupload::where('id', $id)->delete();
+                FileUpload::where('id', $id)->delete();
             } else {
                 return response()->json(array('message' => 'file_not_found'), 200);
             }

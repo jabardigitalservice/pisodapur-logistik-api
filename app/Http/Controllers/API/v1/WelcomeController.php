@@ -9,11 +9,6 @@ class WelcomeController extends Controller
 {
     public function index()
     {
-        $response = [
-            'success' => true,
-            'message' => "Welcome to API version 1",
-        ];
-
-        return response()->json($response, 200);
+        return response()->format(200, "Welcome to API version 1");
     }
 }
