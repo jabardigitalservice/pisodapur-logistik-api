@@ -8,4 +8,8 @@ class MasterUnit extends Model
 {
     protected $table = 'master_unit';
 
+    public function need()
+    {
+        return $this->belongsToOne('App\Needs', 'unit', 'id');
+    }
 }
