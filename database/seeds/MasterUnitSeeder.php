@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Seeder;
 
-class ProductUnitSeeder extends Seeder
+class MasterUnitSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -11,8 +11,7 @@ class ProductUnitSeeder extends Seeder
      */
     public function run()
     {
-        \App\ProductUnit::truncate();
-        $filepath = base_path('database/seeds/data/product_unit.sql');
+        $filepath = base_path('database/seeds/data/master_unit.sql');
         DB::unprepared(file_get_contents($filepath));
     }
 }

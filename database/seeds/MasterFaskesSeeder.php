@@ -11,6 +11,7 @@ class MasterFaskesSeeder extends Seeder
      */
     public function run()
     {
+        \App\MasterFaskes::truncate();
         $filepath = base_path('database/seeds/data/master-faskes.sql');
         DB::unprepared(file_get_contents($filepath));
     }
