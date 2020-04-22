@@ -112,9 +112,9 @@ pipeline {
                        sh 'ssh -o StrictHostKeyChecking=no $STAGING_USER@$PRODUCTION_HOST_LOGISTIK "cd /data/app/pikobar-logistik-api  \
                                                                                         && docker exec $appNameProduction php composer.phar install \
                                                                                         && docker exec $appNameProduction php composer.phar dump-autoload \
-                                                                                        && docker exec $appNameDevelopment php artisan config:clear \
-                                                                                        && docker exec $appNameDevelopment php artisan cache:clear \
-                                                                                        && docker exec $appNameDevelopment php artisan route:clear"'
+                                                                                        && docker exec $appNameProduction php artisan config:clear \
+                                                                                        && docker exec $appNameProduction php artisan cache:clear \
+                                                                                        && docker exec $appNameProduction php artisan route:clear"'
                     }
             }    
         }
