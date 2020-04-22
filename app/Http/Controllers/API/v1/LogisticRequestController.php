@@ -206,9 +206,21 @@ class LogisticRequestController extends Controller
 
     public function verification(Request $request)
     {
-        $applicant = Applicant::findOrFail($request->applicant_id);
-        $applicant->verification_status = $request->verification_status;
-        $applicant->save();
+        $validator = Validator::make(
+            $request->all(),
+            array_merge(
+                ['applicant_id' => 'required|numeric', 'verification_status' => 'required|string']
+            )
+        );
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        } else {
+
+            $applicant = Applicant::findOrFail($request->applicant_id);
+            $applicant->verification_status = $request->verification_status;
+            $applicant->save();
+        }
 
         return response()->format(200, 'success', $applicant);
     }
