@@ -49,7 +49,7 @@ class CreateAreasTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('areas');
+        Schema::dropIfExists('provinces');
         Schema::dropIfExists('districtcities');
         Schema::dropIfExists('villages');
     }

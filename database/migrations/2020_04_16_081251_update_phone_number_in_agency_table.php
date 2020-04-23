@@ -26,7 +26,7 @@ class UpdatePhoneNumberInAgencyTable extends Migration
     public function down()
     {
         Schema::table('agency', function (Blueprint $table) {
-            $table->string('phone_number');
+            $table->dropColumn('phone_number');
         });
     }
 }

@@ -87,6 +87,7 @@ class MasterFaskesController extends Controller
             } else {
                 $model = new MasterFaskes();
                 $model->fill($request->input());
+                $model->verification_status = 'not_verified';
                 if ($model->save()) {
                     return response()->format(200, 'success', $model);
                 }
@@ -94,5 +95,29 @@ class MasterFaskesController extends Controller
         } catch (\Exception $e) {
             return response()->json(array('message' => 'could_not_create_faskes'), 500);
         }
+    }
+    public function verify(Request $request, $id)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'verification_status' => 'required'
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
+            } else {
+                $model =  MasterFaskes::findOrFail($id);
+                $model->verification_status = 'verified';
+                if ($model->save()) {
+                    return response()->format(200, 'success', $model);
+                } else {
+                    return response()->json(array('message' => 'could_not_update_faskes'), 500);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(array('message' => 'could_not_verify_faskes'), 500);
+        }
+        $model = MasterFaskes::findOrFail($id);
+        $model->fill($request->input());
+        if ($model->save()) return $model;
     }
 }

@@ -41,6 +41,8 @@ Route::namespace('API\v1')->group(function () {
     Route::apiResource('v1/master-faskes', 'MasterFaskesController');
     Route::apiResource('v1/master-faskes-type', 'MasterFaskesTypeController');
     Route::post('v1/master-faskes', 'MasterFaskesController@store');
+    Route::get('v1/master-faskes/{id}', 'MasterFaskesController@show');
+    Route::post('v1/verify-master-faskes/{id}', 'MasterFaskesController@verify');
 });
 
 Route::namespace('API\v1')->middleware('auth:api')->group(function () {
