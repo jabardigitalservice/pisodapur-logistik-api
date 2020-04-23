@@ -12,15 +12,7 @@ class MasterFaskesController extends Controller
     public function index(Request $request)
     {
         $limit = $request->filled('limit') ? $request->filled('limit') : 10;
-
-        $conditions = [];
-        if ($request->filled('nama_faskes')) {
-            $conditions[] = ['master_faskes.nama_faskes', 'LIKE', "%{$request->input('nama_faskes')}%"];
-        }
-
-        if ($request->filled('id_tipe_faskes')) {
-            $conditions[] = ['master_faskes.id_tipe_faskes', '=', $request->input('id_tipe_faskes')];
-        }
+        $sort = $request->filled('sort') ? $request->input('sort') : 'asc';
 
         try {
             $data = MasterFaskes::with('masterFaskesType')
@@ -38,9 +30,29 @@ class MasterFaskesController extends Controller
                     'nama_kec',
                     'nama_kel',
                     'alamat',
-                    'nomor_telepon'
+                    'nomor_telepon',
+                    'nama_atasan',
+                    'nomor_registrasi',
+                    'verification_status',
+                    'latitude',
+                    'longitude'
                 )
-                ->where($conditions)
+                ->where(function ($query) use ($request) {
+                    if ($request->filled('nama_faskes')) {
+                        $query->where('master_faskes.nama_faskes', 'LIKE', "%{$request->input('nama_faskes')}%");
+                    }
+
+                    if ($request->filled('id_tipe_faskes')) {
+                        $query->where('master_faskes.id_tipe_faskes', '=', $request->input('id_tipe_faskes'));
+                    }
+
+                    if ($request->filled('verification_status')) {
+                        $query->where('master_faskes.verification_status', '=', $request->input('verification_status'));
+                    } else {
+                        $query->where('master_faskes.verification_status', '=', MasterFaskes::STATUS_VERIFIED);
+                    }
+                })
+                ->orderBy('nama_faskes', $sort)
                 ->paginate($limit);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
