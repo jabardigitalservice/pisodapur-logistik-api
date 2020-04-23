@@ -26,7 +26,7 @@ class UpdateUserVillages extends Migration
     public function down()
     {
         Schema::table('villages', function (Blueprint $table) {
-            $table->integer('is_desa')->nullable()->change();
+            $table->dropColumn('is_desa');
         });
     }
 }
