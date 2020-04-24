@@ -18,7 +18,7 @@ class AdminSeeder extends Seeder
             'password'            => Hash::make('asdf890'),
             'email'               => 'dinkesprov@example.com',
             'roles'               => 'dinkesprov',
-            'code_district_city'  => '32.73', 
+            'code_district_city'  => '32.73',
             'name_district_city'  => 'KOTA BANDUNG',
         ]);
 
@@ -28,7 +28,7 @@ class AdminSeeder extends Seeder
             'password'            => Hash::make('asdf890'),
             'email'               => 'dinkeskota@example.com',
             'roles'               => 'dinkeskota',
-            'code_district_city'  => '32.73', 
+            'code_district_city'  => '32.73',
             'name_district_city'  => 'KOTA BANDUNG',
         ]);
     }

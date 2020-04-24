@@ -11,7 +11,7 @@ class MasterFaskesController extends Controller
 {
     public function index(Request $request)
     {
-        $limit = $request->filled('limit') ? $request->filled('limit') : 20;
+        $limit = $request->filled('limit') ? $request->input('limit') : 20;
         $sort = $request->filled('sort') ? $request->input('sort') : 'asc';
 
         try {
