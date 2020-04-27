@@ -104,20 +104,19 @@ class MasterFaskesController extends Controller
             ]);
             if ($validator->fails()) {
                 return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
-            } else {
+            } elseif ($request->verification_status == 'verified' || $request->verification_status == 'rejected') {
                 $model =  MasterFaskes::findOrFail($id);
-                $model->verification_status = 'verified';
+                $model->verification_status = $request->verification_status;
                 if ($model->save()) {
                     return response()->format(200, 'success', $model);
                 } else {
                     return response()->json(array('message' => 'could_not_update_faskes'), 500);
                 }
+            } else {
+                return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
             }
         } catch (\Exception $e) {
             return response()->json(array('message' => 'could_not_verify_faskes'), 500);
         }
-        $model = MasterFaskes::findOrFail($id);
-        $model->fill($request->input());
-        if ($model->save()) return $model;
     }
 }
