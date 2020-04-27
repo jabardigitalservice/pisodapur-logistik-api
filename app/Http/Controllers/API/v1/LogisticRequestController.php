@@ -250,4 +250,9 @@ class LogisticRequestController extends Controller
 
         return response()->format(200, 'success', $data);
     }
+
+    public function import(Request $request)
+    {
+        dd('hello');
+    }
 }
