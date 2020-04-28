@@ -21,7 +21,9 @@ class Applicant extends Model
         'email',
         'primary_phone_number',
         'secondary_phone_number',
-        'verification_status'
+        'verification_status',
+        'created_at',
+        'updated_at'
     ];
 
     public function agency()
