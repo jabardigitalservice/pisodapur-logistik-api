@@ -255,11 +255,25 @@ class LogisticRequestController extends Controller
 
     public function import(Request $request)
     {
-        try {
-            $response = Excel::import(new LogisticRequestImport, request()->file('file'));
-            return response()->format(200, 'success');
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
+        $validator = Validator::make(
+            $request->all(),
+            array_merge(
+                [
+                    'file' => 'required',
+                ]
+            )
+        );
+
+        if ($validator->fails()) {
+            return response()->format(422, $validator->errors());
+        } else {
+            try {
+                $response = Excel::import(new LogisticRequestImport, request()->file('file'));
+            } catch (\Exception $exception) {
+                return response()->format(400, $exception->getMessage());
+            }
         }
+
+        return response()->format(200, 'success');
     }
 }
