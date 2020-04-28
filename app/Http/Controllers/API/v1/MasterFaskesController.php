@@ -34,8 +34,7 @@ class MasterFaskesController extends Controller
                     'nama_atasan',
                     'nomor_registrasi',
                     'verification_status',
-                    'latitude',
-                    'longitude'
+                    'point_longitude_latitude'
                 )
                 ->where(function ($query) use ($request) {
                     if ($request->filled('nama_faskes')) {
@@ -79,8 +78,7 @@ class MasterFaskesController extends Controller
                 'nama_faskes' => 'required',
                 'id_tipe_faskes' => 'required',
                 'nama_atasan' => 'required',
-                'longitude' => 'required',
-                'latitude' => 'required',
+                'point_longitude_latitude' => 'required'
             ]);
             if ($validator->fails()) {
                 return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
