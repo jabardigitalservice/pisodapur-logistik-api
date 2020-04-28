@@ -15,6 +15,8 @@ use App\Http\Resources\LogisticRequestResource;
 use App\Letter;
 use DB;
 use JWTAuth;
+use App\Imports\LogisticRequestImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LogisticRequestController extends Controller
 {
@@ -249,5 +251,15 @@ class LogisticRequestController extends Controller
         }
 
         return response()->format(200, 'success', $data);
+    }
+
+    public function import(Request $request)
+    {
+        try {
+            $response = Excel::import(new LogisticRequestImport, request()->file('file'));
+            return response()->format(200, 'success');
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
     }
 }

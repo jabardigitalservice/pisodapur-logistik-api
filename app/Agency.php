@@ -16,7 +16,9 @@ class Agency extends Model
         'location_district_code',
         'location_subdistrict_code',
         'location_village_code',
-        'location_address'
+        'location_address',
+        'created_at',
+        'updated_at'
     ];
 
     public function masterFaskesType()

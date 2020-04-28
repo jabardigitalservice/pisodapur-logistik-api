@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class MasterUnit extends Model
 {
     protected $table = 'master_unit';
+    protected $fillable = ['unit'];
 
     public function need()
     {
