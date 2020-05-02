@@ -8,7 +8,7 @@ INSERT INTO `districtcities` (`id`, `kemendagri_kabupaten_kode`, `kemendagri_pro
 (167,	'32.07',	'JAWA BARAT',	'32',	'1020',	'KAB. CIAMIS'),
 (168,	'32.08',	'JAWA BARAT',	'32',	'1009',	'KAB. KUNINGAN'),
 (169,	'32.09',	'JAWA BARAT',	'32',	'1008',	'KAB. CIREBON'),
-(170,	'32.1',	'JAWA BARAT',	'32',	'1011',	'KAB. MAJALENGKA'),
+(170,	'32.10',	'JAWA BARAT',	'32',	'1011',	'KAB. MAJALENGKA'),
 (171,	'32.11',	'JAWA BARAT',	'32',	'1017',	'KAB. SUMEDANG'),
 (172,	'32.12',	'JAWA BARAT',	'32',	'1010',	'KAB. INDRAMAYU'),
 (173,	'32.13',	'JAWA BARAT',	'32',	'1015',	'KAB. SUBANG'),
