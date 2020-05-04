@@ -21,7 +21,9 @@ class Applicant extends Model
         'email',
         'primary_phone_number',
         'secondary_phone_number',
-        'verification_status'
+        'verification_status',
+        'created_at',
+        'updated_at'
     ];
 
     public function agency()
@@ -38,6 +40,10 @@ class Applicant extends Model
     public function getFileAttribute($value)
     {
         $data = FileUpload::find($value);
-        return env('AWS_CLOUDFRONT_URL') . $data->name;
+        if (substr($data->name, 0, 12) === 'registration') {
+            return env('AWS_CLOUDFRONT_URL') . $data->name;
+        } else {
+            return $data->name;
+        }
     }
 }
