@@ -18,64 +18,113 @@ use App\Village;
 use App\Product;
 use App\MasterUnit;
 use App\ProductUnit;
-use Carbon\Carbon;
+use DB;
 
 class LogisticRequestImport implements ToCollection, WithStartRow
 {
+    protected $result = [];
+    public $data;
+
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
             $data = $row->toArray();
-
-            $createdAt = Carbon::parse($data[0]);
+            $createdAt = gmdate("Y-m-d H:i:s", ($data[0] - 25569) * 86400);
 
             $masterFaskesTypeId = $this->getMasterFaskesType($data);
             $masterFaskesId = $this->getMasterFaskes($data);
             $districtCityId = $this->getDistrictCity($data);
             $subDistrictId = $this->getSubDistrict($data);
             $villageId = $this->getVillage($data);
+            $logisticList = $this->getLogisticList($data);
+            $totaldelimiter = substr_count($data[15], '#');
 
-            if ($data[2]) {
-                $agency = Agency::create([
-                    'master_faskes_id' => $masterFaskesId,
-                    'agency_type' => $masterFaskesTypeId,
-                    'agency_name' => $data[2],
-                    'phone_number' => $data[3],
-                    'location_district_code' => $districtCityId,
-                    'location_subdistrict_code' => $subDistrictId,
-                    'location_village_code' => $villageId,
-                    'location_address' => $data[7],
-                    'created_at' => $createdAt,
-                    'updated_at' => $createdAt
-                ]);
+            DB::beginTransaction();
+            try {
+                if ($data[2]) {
+                    if ($masterFaskesTypeId != null) {
+                        if ($masterFaskesId != null) {
+                            if ($logisticList != null) {
+                                if (($totaldelimiter % count($logisticList)) == 0) {
+                                    $agency = Agency::create([
+                                        'master_faskes_id' => $masterFaskesId,
+                                        'agency_type' => $masterFaskesTypeId,
+                                        'agency_name' => $data[2],
+                                        'phone_number' => $data[3],
+                                        'location_district_code' => $districtCityId,
+                                        'location_subdistrict_code' => $subDistrictId,
+                                        'location_village_code' => $villageId,
+                                        'location_address' => $data[7],
+                                        'created_at' => $createdAt,
+                                        'updated_at' => $createdAt
+                                    ]);
 
-                $applicant = Applicant::create([
-                    'agency_id' => $agency->id,
-                    'applicant_name' => $data[8],
-                    'applicants_office' => $data[9],
-                    'file' => $this->getFileUpload($data[13]),
-                    'email' => $data[10],
-                    'primary_phone_number' => $data[11],
-                    'secondary_phone_number' => $data[12],
-                    'verification_status' => $data[16],
-                    'created_at' => $createdAt,
-                    'updated_at' => $createdAt
-                ]);
+                                    $applicant = Applicant::create([
+                                        'agency_id' => $agency->id,
+                                        'applicant_name' => $data[8],
+                                        'applicants_office' => $data[9],
+                                        'file' => $this->getFileUpload($data[13]),
+                                        'email' => $data[10],
+                                        'primary_phone_number' => $data[11],
+                                        'secondary_phone_number' => $data[12],
+                                        'verification_status' => $data[16],
+                                        'created_at' => $createdAt,
+                                        'updated_at' => $createdAt
+                                    ]);
 
-                $letter = Letter::create([
-                    'agency_id' => $agency->id,
-                    'applicant_id' => $applicant->id,
-                    'letter' => $this->getFileUpload($data[14])
-                ]);
+                                    $letter = Letter::create([
+                                        'agency_id' => $agency->id,
+                                        'applicant_id' => $applicant->id,
+                                        'letter' => $this->getFileUpload($data[14])
+                                    ]);
 
-                $data['applicant_id'] = $applicant->id;
-                $data['agency_id'] = $agency->id;
+                                    foreach ($logisticList as $logisticItem) {
+                                        $unitId = $this->getMasterUnit($logisticItem);
+                                        $need = Needs::create(
+                                            [
+                                                'agency_id' => $agency->id,
+                                                'applicant_id' => $applicant->id,
+                                                'product_id' => $logisticItem['product_id'],
+                                                'brand' => $logisticItem[1],
+                                                'quantity' => $logisticItem[2],
+                                                'unit' => $unitId,
+                                                'usage' => $logisticItem[4],
+                                                'priority' => $logisticItem[5]
+                                            ]
+                                        );
+                                    }
+                                    $data['status'] = 'valid';
+                                    $data['notes'] = '';
+                                    $this->result[] = $data;
+                                } else {
+                                    $data['status'] = 'invalid';
+                                    $data['notes'] = 'Format list logistik kesehatan tidak tidak sesuai';
+                                    $this->result[] = $data;
+                                }
+                            } else {
+                                $data['status'] = 'invalid';
+                                $data['notes'] = 'Logistik kesehatan tidak terdaftar di data master';
+                                $this->result[] = $data;
+                            }
+                        } else {
+                            $data['status'] = 'invalid';
+                            $data['notes'] = 'Nama instansi tidak terdaftar di data master';
+                            $this->result[] = $data;
+                        }
+                    } else {
+                        $data['status'] = 'invalid';
+                        $data['notes'] = 'Jenis instansi tidak terdaftar di data master';
+                        $this->result[] = $data;
+                    }
+                }
 
-                $logisticList = $this->getLogisticList($data);
+                DB::commit();
+            } catch (\Exception $exception) {
+                DB::rollBack();
             }
         }
 
-        return true;
+        $this->data = $this->result;
     }
 
     public function getMasterFaskesType($data)
@@ -131,30 +180,23 @@ class LogisticRequestImport implements ToCollection, WithStartRow
 
     public function getLogisticList($data)
     {
-        $logisticList = [];
+        $logisticList1 = [];
+        $logisticList2 = [];
         $logisticListArray = explode('&&', $data[15]);
         foreach ($logisticListArray as $logisticListItem) {
-            $logisticList = explode('#', $logisticListItem);
-
-            $productId = $this->getProduct($logisticList);
-            $logisticList['product_id'] = $productId;
-            $unitId = $this->getMasterUnit($logisticList);
-
-            $need = Needs::create(
-                [
-                    'agency_id' => $data['agency_id'],
-                    'applicant_id' => $data['applicant_id'],
-                    'product_id' => $productId,
-                    'brand' => $logisticList[1],
-                    'quantity' => $logisticList[2],
-                    'unit' => $unitId,
-                    'usage' => $logisticList[4],
-                    'priority' => $logisticList[5]
-                ]
-            );
+            $logisticList1[] = explode('#', $logisticListItem);
         }
 
-        return $logisticList;
+        foreach ($logisticList1 as $logisticItem) {
+            if ($this->getProduct($logisticItem)) {
+                $logisticItem['product_id'] = $this->getProduct($logisticItem);
+                $logisticList2[] = $logisticItem;
+            } else {
+                return false;
+            }
+        }
+
+        return $logisticList2;
     }
 
     public function getProduct($data)

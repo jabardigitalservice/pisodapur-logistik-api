@@ -259,7 +259,7 @@ class LogisticRequestController extends Controller
             $request->all(),
             array_merge(
                 [
-                    'file' => 'required',
+                    'file' => 'required|mimes:xlsx',
                 ]
             )
         );
@@ -268,12 +268,13 @@ class LogisticRequestController extends Controller
             return response()->format(422, $validator->errors());
         } else {
             try {
-                $response = Excel::import(new LogisticRequestImport, request()->file('file'));
+                $import = new LogisticRequestImport;
+                Excel::import($import, request()->file('file'));
             } catch (\Exception $exception) {
                 return response()->format(400, $exception->getMessage());
             }
         }
 
-        return response()->format(200, 'success');
+        return response()->format(200, 'success', $import->data);
     }
 }
