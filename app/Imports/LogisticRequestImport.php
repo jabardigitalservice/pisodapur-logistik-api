@@ -19,6 +19,8 @@ use App\Product;
 use App\MasterUnit;
 use App\ProductUnit;
 use DB;
+use Carbon\Carbon;
+
 
 class LogisticRequestImport implements ToCollection, WithStartRow
 {
@@ -31,8 +33,7 @@ class LogisticRequestImport implements ToCollection, WithStartRow
     {
         foreach ($rows as $row) {
             $data = $row->toArray();
-            $createdAt = gmdate("Y-m-d H:i:s", ($data[0] - 25569) * 86400);
-
+            $createdAt = Carbon::createFromTimestamp(($data[0] - 25569) * 86400);
             $masterFaskesTypeId = $this->getMasterFaskesType($data);
             $masterFaskesId = $this->getMasterFaskes($data);
             $districtCityId = $this->getDistrictCity($data);
