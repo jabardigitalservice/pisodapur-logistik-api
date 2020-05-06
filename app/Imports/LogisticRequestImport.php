@@ -23,6 +23,8 @@ use DB;
 class LogisticRequestImport implements ToCollection, WithStartRow
 {
     protected $result = [];
+    protected $invalidFormatLogistic = [];
+    protected $invalidItemLogistic = [];
     public $data;
 
     public function collection(Collection $rows)
@@ -37,36 +39,34 @@ class LogisticRequestImport implements ToCollection, WithStartRow
             $subDistrictId = $this->getSubDistrict($data);
             $villageId = $this->getVillage($data);
             $logisticList = $this->getLogisticList($data);
-            $totaldelimiter = substr_count($data[15], '#');
-
             DB::beginTransaction();
             try {
                 if ($data[2]) {
                     if ($masterFaskesTypeId != null) {
                         if ($masterFaskesId != null) {
-                            if ($logisticList != null) {
-                                if (($totaldelimiter % count($logisticList)) == 0) {
+                            if (count($this->invalidFormatLogistic) == 0) {
+                                if (count($this->invalidItemLogistic) == 0) {
                                     $agency = Agency::create([
                                         'master_faskes_id' => $masterFaskesId,
                                         'agency_type' => $masterFaskesTypeId,
-                                        'agency_name' => $data[2],
-                                        'phone_number' => $data[3],
-                                        'location_district_code' => $districtCityId,
-                                        'location_subdistrict_code' => $subDistrictId,
-                                        'location_village_code' => $villageId,
-                                        'location_address' => $data[7],
+                                        'agency_name' => $data[2] ? $data[2] : '-',
+                                        'phone_number' => $data[3] ? $data[3] : '-',
+                                        'location_district_code' => $districtCityId ? $districtCityId : '-',
+                                        'location_subdistrict_code' => $subDistrictId ? $subDistrictId : '-',
+                                        'location_village_code' => $villageId ? $villageId : '-',
+                                        'location_address' => $data[7] ? $data[7] : '-',
                                         'created_at' => $createdAt,
                                         'updated_at' => $createdAt
                                     ]);
 
                                     $applicant = Applicant::create([
                                         'agency_id' => $agency->id,
-                                        'applicant_name' => $data[8],
-                                        'applicants_office' => $data[9],
+                                        'applicant_name' => $data[8] ? $data[8] : '-',
+                                        'applicants_office' => $data[9] ? $data[9] : '-',
                                         'file' => $this->getFileUpload($data[13]),
-                                        'email' => $data[10],
-                                        'primary_phone_number' => $data[11],
-                                        'secondary_phone_number' => $data[12],
+                                        'email' => $data[10] ? $data[10] : '-',
+                                        'primary_phone_number' => $data[11] ? $data[11] : '-',
+                                        'secondary_phone_number' => $data[12] ? $data[12] : '-',
                                         'verification_status' => $data[16],
                                         'created_at' => $createdAt,
                                         'updated_at' => $createdAt
@@ -93,34 +93,46 @@ class LogisticRequestImport implements ToCollection, WithStartRow
                                             ]
                                         );
                                     }
+
                                     $data['status'] = 'valid';
                                     $data['notes'] = '';
                                     $this->result[] = $data;
+                                    $this->invalidItemLogistic = [];
+                                    $this->invalidFormatLogistic = [];
                                 } else {
                                     $data['status'] = 'invalid';
-                                    $data['notes'] = 'Format list logistik kesehatan tidak tidak sesuai';
+                                    $data['notes'] = implode(",", $this->invalidItemLogistic);
                                     $this->result[] = $data;
+                                    $this->invalidItemLogistic = [];
+                                    $this->invalidFormatLogistic = [];
                                 }
                             } else {
                                 $data['status'] = 'invalid';
-                                $data['notes'] = 'Logistik kesehatan tidak terdaftar di data master';
+                                $data['notes'] = implode(",", $this->invalidFormatLogistic);
                                 $this->result[] = $data;
+                                $this->invalidItemLogistic = [];
+                                $this->invalidFormatLogistic = [];
                             }
                         } else {
                             $data['status'] = 'invalid';
                             $data['notes'] = 'Nama instansi tidak terdaftar di data master';
                             $this->result[] = $data;
+                            $this->invalidItemLogistic = [];
+                            $this->invalidFormatLogistic = [];
                         }
                     } else {
                         $data['status'] = 'invalid';
                         $data['notes'] = 'Jenis instansi tidak terdaftar di data master';
                         $this->result[] = $data;
+                        $this->invalidItemLogistic = [];
+                        $this->invalidFormatLogistic = [];
                     }
                 }
 
                 DB::commit();
             } catch (\Exception $exception) {
                 DB::rollBack();
+                return $exception;
             }
         }
 
@@ -188,11 +200,14 @@ class LogisticRequestImport implements ToCollection, WithStartRow
         }
 
         foreach ($logisticList1 as $logisticItem) {
-            if ($this->getProduct($logisticItem)) {
-                $logisticItem['product_id'] = $this->getProduct($logisticItem);
+            if (count($logisticItem) == 6) {
+                $product = $this->getProduct($logisticItem);
+                if ($product) {
+                    $logisticItem['product_id'] = $product->id;
+                }
                 $logisticList2[] = $logisticItem;
             } else {
-                return false;
+                $this->invalidFormatLogistic[] = 'tambahkan tanda "#" pada item logistik ' . $logisticItem[0];
             }
         }
 
@@ -202,11 +217,12 @@ class LogisticRequestImport implements ToCollection, WithStartRow
     public function getProduct($data)
     {
         $product = Product::where('name', 'LIKE', "%{$data[0]}%")->first();
-
-        if ($product) {
-            return $product->id;
+        if (!$product) {
+            $this->invalidItemLogistic[] = $data[0] . ' tidak terdaftar di data master';
+            return false;
         }
-        return false;
+
+        return $product;
     }
 
     public function getMasterUnit($data)
