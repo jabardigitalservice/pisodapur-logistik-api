@@ -232,7 +232,8 @@ class LogisticRequestImport implements ToCollection, WithStartRow
 
         if (!$masterUnit) {
             $masterUnit = MasterUnit::create([
-                'unit' => ucwords($data[3])
+                'unit' => ucwords($data[3]),
+                'is_imported' => true,
             ]);
 
             ProductUnit::create([

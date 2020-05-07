@@ -8,7 +8,7 @@ class Product extends Model
 {
 
     protected $fillable = [
-        'name', 'description', 'total_stock', 'total_used'
+        'name', 'description', 'total_stock', 'total_used', 'is_imported'
     ];
 
     public function productUnit()
