@@ -17,7 +17,8 @@ class MasterFaskes extends Model
         'nama_atasan',
         'longitude',
         'latitude',
-        'is_imported'
+        'is_imported',
+        'point_latitude_longitude'
     ];
 
     public function masterFaskesType()

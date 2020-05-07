@@ -1,6 +1,6 @@
 
 ## PIKOBAR LOGISTIK API
-Build with laravel 6 + MySql
+Build with laravel 5.7 + MySql
 
 ## Installation
 
@@ -12,7 +12,7 @@ $ docker-compose up -d
 $ docker exec -it api_logistik bash
 $ php composer.phar install
 $ php artisan key:generate
-$ php artisan jwt:generate
+$ php artisan jwt:secret
 $ php artisan migrate
 ```
 
