@@ -78,7 +78,7 @@ class MasterFaskesController extends Controller
                 'nama_faskes' => 'required',
                 'id_tipe_faskes' => 'required',
                 'nama_atasan' => 'required',
-                'point_latitude_longitude' => 'required'
+                'point_latitude_longitude' => 'string'
             ]);
             if ($validator->fails()) {
                 return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
