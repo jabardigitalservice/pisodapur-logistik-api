@@ -19,7 +19,7 @@ use App\Product;
 use App\MasterUnit;
 use App\ProductUnit;
 use DB;
-use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 
 class LogisticRequestImport implements ToCollection, WithStartRow
@@ -33,7 +33,7 @@ class LogisticRequestImport implements ToCollection, WithStartRow
     {
         foreach ($rows as $row) {
             $data = $row->toArray();
-            $createdAt = Carbon::createFromTimestamp(($data[0] - 25569) * 86400);
+            $createdAt = Date::excelToDateTimeObject($data[0]);
             $masterFaskesTypeId = $this->getMasterFaskesType($data);
             $masterFaskesId = $this->getMasterFaskes($data);
             $districtCityId = $this->getDistrictCity($data);
