@@ -11,6 +11,7 @@ class DistrictCitiesSeeder extends Seeder
      */
     public function run()
     {
+        \App\City::truncate();
         $filepath = base_path('database/seeds/data/districtcities.sql');
         DB::unprepared(file_get_contents($filepath));
     }
