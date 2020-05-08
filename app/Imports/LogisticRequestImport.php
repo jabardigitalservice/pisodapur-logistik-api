@@ -54,6 +54,7 @@ class LogisticRequestImport implements ToCollection, WithStartRow
 
             $createdAt = Date::excelToDateTimeObject($dataImport['tanggal_pengajuan']);
             $masterFaskesTypeId = $this->getMasterFaskesType($dataImport);
+            $dataImport['master_faskes_type_id'] = $masterFaskesTypeId;
             $masterFaskesId = $this->getMasterFaskes($dataImport);
             $districtCityId = $this->getDistrictCity($dataImport);
             $subDistrictId = $this->getSubDistrict($dataImport);
@@ -164,19 +165,30 @@ class LogisticRequestImport implements ToCollection, WithStartRow
     public function getMasterFaskesType($data)
     {
         $masterFaskesType = MasterFaskesType::where('name', 'LIKE', "%{$data['jenis_instansi']}%")->first();
-        if ($masterFaskesType) {
-            return $masterFaskesType->id;
+        if (!$masterFaskesType) {
+            $masterFaskesType = MasterFaskesType::create([
+                'name' => $data['jenis_instansi'],
+                'is_imported' => true
+            ]);
         }
-        return false;
+        return $masterFaskesType->id;
     }
 
     public function getMasterFaskes($data)
     {
         $masterFaskes = MasterFaskes::where('nama_faskes', 'LIKE', "%{$data['nama_instansi']}%")->first();
-        if ($masterFaskes) {
-            return $masterFaskes->id;
+
+        if (!$masterFaskes) {
+            $masterFaskes = MasterFaskes::create([
+                'id_tipe_faskes' => $data['master_faskes_type_id'],
+                'verification_status' => 'verified',
+                'nama_faskes' => $data['nama_instansi'],
+                'nama_atasan' => '-',
+                'nomor_registrasi' => '-',
+                'is_imported' => true
+            ]);
         }
-        return false;
+        return $masterFaskes->id;
     }
 
     public function getDistrictCity($data)
@@ -238,12 +250,14 @@ class LogisticRequestImport implements ToCollection, WithStartRow
 
     public function getProduct($data)
     {
-        $product = Product::where('name', 'LIKE', "%{$data[0]}%")->first();
+        $productName = str_replace(' ', '', $data[0]);
+        $product = Product::where('name', 'LIKE', "%{$productName}%")->first();
         if (!$product) {
-            $this->invalidItemLogistic[] = $data[0] . ' tidak terdaftar di data master';
-            return false;
+            $product = Product::create([
+                'name' => $productName,
+                'is_imported' => true
+            ]);
         }
-
         return $product;
     }
 
