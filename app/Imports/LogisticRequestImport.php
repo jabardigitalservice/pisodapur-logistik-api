@@ -241,7 +241,7 @@ class LogisticRequestImport implements ToCollection, WithStartRow
                 }
                 $logisticList2[] = $logisticItem;
             } else {
-                $this->invalidFormatLogistic[] = 'tambahkan tanda "#" pada item logistik ' . $logisticItem[0];
+                $this->invalidFormatLogistic[] = 'cek kembali tanda "#" pada item logistik ' . $logisticItem[0];
             }
         }
 
@@ -250,14 +250,12 @@ class LogisticRequestImport implements ToCollection, WithStartRow
 
     public function getProduct($data)
     {
-        $productName = str_replace(' ', '', $data[0]);
-        $product = Product::where('name', 'LIKE', "%{$productName}%")->first();
+        $product = Product::where('name', 'LIKE', "%{$data[0]}%")->first();
         if (!$product) {
-            $product = Product::create([
-                'name' => $productName,
-                'is_imported' => true
-            ]);
+            $this->invalidItemLogistic[] = $data[0] . ' tidak terdaftar di data master';
+            return false;
         }
+
         return $product;
     }
 
