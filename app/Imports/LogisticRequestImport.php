@@ -250,7 +250,8 @@ class LogisticRequestImport implements ToCollection, WithStartRow
 
     public function getProduct($data)
     {
-        $product = Product::where('name', 'LIKE', "%{$data[0]}%")->first();
+        $productName = str_replace(' ', '', $data[0]);
+        $product = Product::whereRaw("REPLACE(`name`, ' ', '') LIKE ? ", "%" . $productName . "%")->first();
         if (!$product) {
             $this->invalidItemLogistic[] = $data[0] . ' tidak terdaftar di data master';
             return false;
