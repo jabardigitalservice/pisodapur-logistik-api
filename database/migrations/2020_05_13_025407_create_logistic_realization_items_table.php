@@ -18,7 +18,7 @@ class CreateLogisticRealizationItemsTable extends Migration
             $table->integer('need_id')->nullable();
             $table->integer('agency_id')->nullable();
             $table->integer('product_id')->nullable();
-            $table->integer('quantity')->nullable();
+            $table->integer('realization_quantity')->nullable();
             $table->integer('unit_id')->nullable();
             $table->dateTime('realization_date')->nullable();
             $table->String('status')->nullable();
