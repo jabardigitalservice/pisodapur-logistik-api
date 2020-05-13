@@ -267,10 +267,13 @@ class LogisticRequestController extends Controller
         if ($validator->fails()) {
             return response()->format(422, $validator->errors());
         } else {
+            DB::beginTransaction();
             try {
                 $import = new LogisticRequestImport;
                 Excel::import($import, request()->file('file'));
+                DB::commit();
             } catch (\Exception $exception) {
+                DB::rollBack();
                 return response()->format(400, $exception->getMessage());
             }
         }
