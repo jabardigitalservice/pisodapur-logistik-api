@@ -12,7 +12,6 @@ class LogisticRealizationItems extends Model
         'approved',
         'not_avalivable'
     ];
-    const DEFAULT_STATUS = 'not_approved';
 
     protected $table = 'logistic_realization_items';
 
