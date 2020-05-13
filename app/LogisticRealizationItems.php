@@ -20,7 +20,7 @@ class LogisticRealizationItems extends Model
         'agency_id',
         'need_id',
         'product_id',
-        'quantity',
+        'realization_quantity',
         'unit_id',
         'status',
         'realization_date',
