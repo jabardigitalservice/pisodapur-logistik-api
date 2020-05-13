@@ -247,7 +247,8 @@ class LogisticRequestController extends Controller
                 'unit' => function ($query) {
                     return $query->select(['id', 'unit']);
                 }
-            ])->where('agency_id', $request->agency_id)->paginate($limit);
+            ])->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id')
+              ->where('needs.agency_id', $request->agency_id)->paginate($limit);
         }
 
         return response()->format(200, 'success', $data);
