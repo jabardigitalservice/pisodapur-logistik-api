@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Database\Seeder;
-use App\MasterFaskesType;
 
 class MasterFaskesTypeSeeder extends Seeder
 {
@@ -12,25 +11,8 @@ class MasterFaskesTypeSeeder extends Seeder
      */
     public function run()
     {
-        $data = [
-            [
-                'id' => 1,
-                'name' => 'Rumah Sakit'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Puskesmas'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Klinik'
-            ]
-        ];
-        foreach ($data as $key => $value) {
-            $masterFaskesType = MasterFaskesType::find($value['id']);
-            if (!$masterFaskesType) {
-                MasterFaskesType::create($value);
-            }
-        }
+        \App\MasterFaskesType::truncate();
+        $filepath = base_path('database/seeds/data/master_faskes_type.sql');
+        DB::unprepared(file_get_contents($filepath));
     }
 }
