@@ -272,7 +272,7 @@ class LogisticRequestController extends Controller
             ])
             ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
             ->where('needs.agency_id', $request->agency_id)->paginate($limit);
-            $data = $data->getCollection()->transform(function ($item, $key) {
+            $data->getCollection()->transform(function ($item, $key) {
                 $item->status = !$item->status ? 'not_approved' : $item->status;
                 return $item;
             });
