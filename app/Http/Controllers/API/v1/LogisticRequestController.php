@@ -49,6 +49,7 @@ class LogisticRequestController extends Controller
                         $query->where('location_district_code', '=', $request->input('city_code'));
                     }
                 })
+                ->orderBy('created_at', 'desc')
                 ->orderBy('agency_name', $sort)
                 ->paginate($limit);
         } catch (\Exception $exception) {
