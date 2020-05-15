@@ -29,7 +29,7 @@ class LogisticRequestController extends Controller
         }
 
         $limit = $request->filled('limit') ? $request->input('limit') : 20;
-        $sort = $request->filled('sort') ? $request->input('sort') : 'asc';
+        $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'created_at DESC'] : ['created_at DESC, ', 'agency_name ASC'];
 
         try {
             $data = Agency::with('masterFaskesType', 'applicant', 'city', 'subDistrict')
@@ -51,8 +51,7 @@ class LogisticRequestController extends Controller
                         $query->where('location_district_code', '=', $request->input('city_code'));
                     }
                 })
-                ->orderBy('created_at', 'desc')
-                ->orderBy('agency_name', $sort)
+                ->orderByRaw(implode($sort))
                 ->paginate($limit);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
