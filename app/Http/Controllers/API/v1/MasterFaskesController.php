@@ -37,7 +37,7 @@ class MasterFaskesController extends Controller
                     'latitude',
                     'longitude',
                     'is_imported',
-                    'point_latitude_longitude
+                    'point_latitude_longitude'
                 )
                 ->where(function ($query) use ($request) {
                     if ($request->filled('nama_faskes')) {
