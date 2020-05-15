@@ -61,101 +61,92 @@ class LogisticRequestImport implements ToCollection, WithStartRow
             $villageId = $this->getVillage($dataImport);
             $logisticList = $this->getLogisticList($dataImport);
 
-            DB::beginTransaction();
-            try {
+            if ($dataImport['tanggal_pengajuan'] && $dataImport['jenis_instansi'] && $dataImport['nama_instansi']) {
 
-                if ($dataImport['tanggal_pengajuan'] && $dataImport['jenis_instansi'] && $dataImport['nama_instansi']) {
+                if (!$masterFaskesTypeId) {
 
-                    if (!$masterFaskesTypeId) {
+                    $dataImport['status'] = 'invalid';
+                    $dataImport['notes'] = 'Jenis instansi tidak terdaftar di data master';
+                    $this->result[] = $dataImport;
+                    $this->invalidItemLogistic = [];
+                    $this->invalidFormatLogistic = [];
+                } else if (!$masterFaskesId) {
 
-                        $dataImport['status'] = 'invalid';
-                        $dataImport['notes'] = 'Jenis instansi tidak terdaftar di data master';
-                        $this->result[] = $dataImport;
-                        $this->invalidItemLogistic = [];
-                        $this->invalidFormatLogistic = [];
-                    } else if (!$masterFaskesId) {
+                    $dataImport['status'] = 'invalid';
+                    $dataImport['notes'] = 'Nama instansi tidak terdaftar di data master';
+                    $this->result[] = $dataImport;
+                    $this->invalidItemLogistic = [];
+                    $this->invalidFormatLogistic = [];
+                } else if (count($this->invalidFormatLogistic) > 0) {
 
-                        $dataImport['status'] = 'invalid';
-                        $dataImport['notes'] = 'Nama instansi tidak terdaftar di data master';
-                        $this->result[] = $dataImport;
-                        $this->invalidItemLogistic = [];
-                        $this->invalidFormatLogistic = [];
-                    } else if (count($this->invalidFormatLogistic) > 0) {
+                    $dataImport['status'] = 'invalid';
+                    $dataImport['notes'] = implode(",", $this->invalidFormatLogistic);
+                    $this->result[] = $dataImport;
+                    $this->invalidItemLogistic = [];
+                    $this->invalidFormatLogistic = [];
+                } else if (count($this->invalidItemLogistic) > 0) {
 
-                        $dataImport['status'] = 'invalid';
-                        $dataImport['notes'] = implode(",", $this->invalidFormatLogistic);
-                        $this->result[] = $dataImport;
-                        $this->invalidItemLogistic = [];
-                        $this->invalidFormatLogistic = [];
-                    } else if (count($this->invalidItemLogistic) > 0) {
+                    $dataImport['status'] = 'invalid';
+                    $dataImport['notes'] = implode(",", $this->invalidItemLogistic);
+                    $this->result[] = $dataImport;
+                    $this->invalidItemLogistic = [];
+                    $this->invalidFormatLogistic = [];
+                } else {
 
-                        $dataImport['status'] = 'invalid';
-                        $dataImport['notes'] = implode(",", $this->invalidItemLogistic);
-                        $this->result[] = $dataImport;
-                        $this->invalidItemLogistic = [];
-                        $this->invalidFormatLogistic = [];
-                    } else {
+                    $agency = Agency::create([
+                        'master_faskes_id' => $masterFaskesId,
+                        'agency_type' => $masterFaskesTypeId,
+                        'agency_name' => $dataImport['nama_instansi'] ? $dataImport['nama_instansi'] : '-',
+                        'phone_number' => $dataImport['telepon_instansi'] ? $dataImport['telepon_instansi'] : '-',
+                        'location_district_code' => $districtCityId ? $districtCityId : '-',
+                        'location_subdistrict_code' => $subDistrictId ? $subDistrictId : '-',
+                        'location_village_code' => $villageId ? $villageId : '-',
+                        'location_address' => $dataImport['alamat'] ? $dataImport['alamat'] : '-',
+                        'created_at' => $createdAt,
+                        'updated_at' => $createdAt
+                    ]);
 
-                        $agency = Agency::create([
-                            'master_faskes_id' => $masterFaskesId,
-                            'agency_type' => $masterFaskesTypeId,
-                            'agency_name' => $dataImport['nama_instansi'] ? $dataImport['nama_instansi'] : '-',
-                            'phone_number' => $dataImport['telepon_instansi'] ? $dataImport['telepon_instansi'] : '-',
-                            'location_district_code' => $districtCityId ? $districtCityId : '-',
-                            'location_subdistrict_code' => $subDistrictId ? $subDistrictId : '-',
-                            'location_village_code' => $villageId ? $villageId : '-',
-                            'location_address' => $dataImport['alamat'] ? $dataImport['alamat'] : '-',
-                            'created_at' => $createdAt,
-                            'updated_at' => $createdAt
-                        ]);
+                    $applicant = Applicant::create([
+                        'agency_id' => $agency->id,
+                        'applicant_name' => $dataImport['nama_pemohon'] ? $dataImport['nama_pemohon'] : '-',
+                        'applicants_office' => $dataImport['jabatan_pemohon'] ? $dataImport['jabatan_pemohon'] : '-',
+                        'file' => $this->getFileUpload($dataImport['file_ktp']),
+                        'email' => $dataImport['email_pemohon'] ? $dataImport['email_pemohon'] : '-',
+                        'primary_phone_number' => $dataImport['telepon_pemohon_1'] ? $dataImport['telepon_pemohon_1'] : '-',
+                        'secondary_phone_number' => $dataImport['telepon_pemohon_2'] ? $dataImport['telepon_pemohon_2'] : '-',
+                        'verification_status' => $dataImport['status_verifikasi'],
+                        'created_at' => $createdAt,
+                        'updated_at' => $createdAt
+                    ]);
 
-                        $applicant = Applicant::create([
-                            'agency_id' => $agency->id,
-                            'applicant_name' => $dataImport['nama_pemohon'] ? $dataImport['nama_pemohon'] : '-',
-                            'applicants_office' => $dataImport['jabatan_pemohon'] ? $dataImport['jabatan_pemohon'] : '-',
-                            'file' => $this->getFileUpload($dataImport['file_ktp']),
-                            'email' => $dataImport['email_pemohon'] ? $dataImport['email_pemohon'] : '-',
-                            'primary_phone_number' => $dataImport['telepon_pemohon_1'] ? $dataImport['telepon_pemohon_1'] : '-',
-                            'secondary_phone_number' => $dataImport['telepon_pemohon_2'] ? $dataImport['telepon_pemohon_2'] : '-',
-                            'verification_status' => $dataImport['status_verifikasi'],
-                            'created_at' => $createdAt,
-                            'updated_at' => $createdAt
-                        ]);
+                    $letter = Letter::create([
+                        'agency_id' => $agency->id,
+                        'applicant_id' => $applicant->id,
+                        'letter' => $this->getFileUpload($dataImport['file_surat_permohonan'])
+                    ]);
 
-                        $letter = Letter::create([
-                            'agency_id' => $agency->id,
-                            'applicant_id' => $applicant->id,
-                            'letter' => $this->getFileUpload($dataImport['file_surat_permohonan'])
-                        ]);
-
-                        foreach ($logisticList as $logisticItem) {
-                            $unitId = $this->getMasterUnit($logisticItem);
-                            $need = Needs::create(
-                                [
-                                    'agency_id' => $agency->id,
-                                    'applicant_id' => $applicant->id,
-                                    'product_id' => $logisticItem['product_id'],
-                                    'brand' => $logisticItem[1],
-                                    'quantity' => $logisticItem[2],
-                                    'unit' => $unitId,
-                                    'usage' => $logisticItem[4],
-                                    'priority' => $logisticItem[5]
-                                ]
-                            );
-                        }
-
-                        $dataImport['status'] = 'valid';
-                        $dataImport['notes'] = '';
-                        $this->result[] = $dataImport;
-                        $this->invalidItemLogistic = [];
-                        $this->invalidFormatLogistic = [];
+                    foreach ($logisticList as $logisticItem) {
+                        $unitId = $this->getMasterUnit($logisticItem);
+                        $need = Needs::create(
+                            [
+                                'agency_id' => $agency->id,
+                                'applicant_id' => $applicant->id,
+                                'product_id' => $logisticItem['product_id'],
+                                'brand' => $logisticItem[1],
+                                'quantity' => $logisticItem[2],
+                                'unit' => $unitId,
+                                'usage' => $logisticItem[4],
+                                'priority' => $logisticItem[5]
+                            ]
+                        );
                     }
-                }
 
-                DB::commit();
-            } catch (\Exception $exception) {
-                DB::rollBack();
-                return $exception;
+                    $dataImport['status'] = 'valid';
+                    $dataImport['notes'] = '';
+                    $this->result[] = $dataImport;
+                    $this->invalidItemLogistic = [];
+                    $this->invalidFormatLogistic = [];
+                }
             }
         }
 
@@ -185,6 +176,7 @@ class LogisticRequestImport implements ToCollection, WithStartRow
                 'nama_faskes' => $data['nama_instansi'],
                 'nama_atasan' => '-',
                 'nomor_registrasi' => '-',
+                'verification_status' => 'verified',
                 'is_imported' => true
             ]);
         }
@@ -241,7 +233,7 @@ class LogisticRequestImport implements ToCollection, WithStartRow
                 }
                 $logisticList2[] = $logisticItem;
             } else {
-                $this->invalidFormatLogistic[] = 'tambahkan tanda "#" pada item logistik ' . $logisticItem[0];
+                $this->invalidFormatLogistic[] = 'cek kembali tanda "#" pada item logistik ' . $logisticItem[0];
             }
         }
 
@@ -251,13 +243,14 @@ class LogisticRequestImport implements ToCollection, WithStartRow
     public function getProduct($data)
     {
         $productName = str_replace(' ', '', $data[0]);
-        $product = Product::where('name', 'LIKE', "%{$productName}%")->first();
+        $product = Product::whereRaw("REPLACE(`name`, ' ', '') LIKE ? ", "%" . $productName . "%")->first();
         if (!$product) {
             $product = Product::create([
                 'name' => $productName,
                 'is_imported' => true
             ]);
         }
+
         return $product;
     }
 

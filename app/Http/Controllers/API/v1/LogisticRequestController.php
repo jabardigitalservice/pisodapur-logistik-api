@@ -16,6 +16,8 @@ use App\Letter;
 use DB;
 use JWTAuth;
 use App\Imports\LogisticRequestImport;
+use App\Imports\MultipleSheetImport;
+use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class LogisticRequestController extends Controller
@@ -27,7 +29,7 @@ class LogisticRequestController extends Controller
         }
 
         $limit = $request->filled('limit') ? $request->input('limit') : 20;
-        $sort = $request->filled('sort') ? $request->input('sort') : 'asc';
+        $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'created_at DESC'] : ['created_at DESC, ', 'agency_name ASC'];
 
         try {
             $data = Agency::with('masterFaskesType', 'applicant', 'city', 'subDistrict')
@@ -49,7 +51,7 @@ class LogisticRequestController extends Controller
                         $query->where('location_district_code', '=', $request->input('city_code'));
                     }
                 })
-                ->orderBy('agency_name', $sort)
+                ->orderByRaw(implode($sort))
                 ->paginate($limit);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
@@ -240,14 +242,42 @@ class LogisticRequestController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
             $limit = $request->filled('limit') ? $request->input('limit') : 10;
-            $data = Needs::with([
+            $data = Needs::select(
+                'needs.id',
+                'needs.agency_id',
+                'needs.applicant_id',
+                'needs.product_id',
+                'needs.item',
+                'needs.brand',
+                'needs.quantity',
+                'needs.unit',
+                'needs.usage',
+                'needs.priority',
+                'needs.created_at',
+                'needs.updated_at',
+                'logistic_realization_items.need_id',
+                'logistic_realization_items.realization_quantity',
+                'logistic_realization_items.unit_id',
+                'logistic_realization_items.realization_date',
+                'logistic_realization_items.status',
+                'logistic_realization_items.realization_quantity',
+                'logistic_realization_items.created_by',
+                'logistic_realization_items.updated_by'
+            )
+            ->with([
                 'product' => function ($query) {
                     return $query->select(['id', 'name']);
                 },
                 'unit' => function ($query) {
                     return $query->select(['id', 'unit']);
                 }
-            ])->where('agency_id', $request->agency_id)->paginate($limit);
+            ])
+            ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
+            ->where('needs.agency_id', $request->agency_id)->paginate($limit);
+            $data->getCollection()->transform(function ($item, $key) {
+                $item->status = !$item->status ? 'not_approved' : $item->status;
+                return $item;
+            });
         }
 
         return response()->format(200, 'success', $data);
@@ -267,14 +297,24 @@ class LogisticRequestController extends Controller
         if ($validator->fails()) {
             return response()->format(422, $validator->errors());
         } else {
+            DB::beginTransaction();
             try {
                 $import = new LogisticRequestImport;
                 Excel::import($import, request()->file('file'));
+                DB::commit();
             } catch (\Exception $exception) {
+                DB::rollBack();
                 return response()->format(400, $exception->getMessage());
             }
         }
 
         return response()->format(200, 'success', $import->data);
+    }
+
+    public function importLogistic(Request $request)
+    {
+        $import = new MultipleSheetImport();
+        $ts = Excel::import($import, request()->file('file'));
+        LogisticImport::import($import);
     }
 }

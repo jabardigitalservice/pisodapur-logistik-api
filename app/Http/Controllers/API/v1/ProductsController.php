@@ -26,6 +26,8 @@ class ProductsController extends Controller
             if ($request->filled('name')) {
                 $query->where('products.name', 'LIKE', "%{$request->input('name')}%");
             }
+
+            $query->where('products.is_imported', false);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
