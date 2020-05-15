@@ -90,4 +90,5 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/logistic-request/need/list', 'LogisticRequestController@listNeed');
     Route::post('v1/logistic-request/import', 'LogisticRequestController@import');
     Route::post('v1/logistic-request/import-logistic', 'LogisticRequestController@importLogistic');
+    Route::post('v1/logistic-request/realization', 'LogisticRealizationItemController@store');
 });

@@ -51,6 +51,7 @@ class LogisticRequestController extends Controller
                         $query->where('location_district_code', '=', $request->input('city_code'));
                     }
                 })
+                ->orderBy('created_at', 'desc')
                 ->orderBy('agency_name', $sort)
                 ->paginate($limit);
         } catch (\Exception $exception) {
@@ -242,14 +243,42 @@ class LogisticRequestController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
             $limit = $request->filled('limit') ? $request->input('limit') : 10;
-            $data = Needs::with([
+            $data = Needs::select(
+                'needs.id',
+                'needs.agency_id',
+                'needs.applicant_id',
+                'needs.product_id',
+                'needs.item',
+                'needs.brand',
+                'needs.quantity',
+                'needs.unit',
+                'needs.usage',
+                'needs.priority',
+                'needs.created_at',
+                'needs.updated_at',
+                'logistic_realization_items.need_id',
+                'logistic_realization_items.realization_quantity',
+                'logistic_realization_items.unit_id',
+                'logistic_realization_items.realization_date',
+                'logistic_realization_items.status',
+                'logistic_realization_items.realization_quantity',
+                'logistic_realization_items.created_by',
+                'logistic_realization_items.updated_by'
+            )
+            ->with([
                 'product' => function ($query) {
                     return $query->select(['id', 'name']);
                 },
                 'unit' => function ($query) {
                     return $query->select(['id', 'unit']);
                 }
-            ])->where('agency_id', $request->agency_id)->paginate($limit);
+            ])
+            ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
+            ->where('needs.agency_id', $request->agency_id)->paginate($limit);
+            $data->getCollection()->transform(function ($item, $key) {
+                $item->status = !$item->status ? 'not_approved' : $item->status;
+                return $item;
+            });
         }
 
         return response()->format(200, 'success', $data);
