@@ -10,6 +10,7 @@ class LogisticImport extends Model
     {
         $application = $data->sheetData[0]->toArray();
 
+        //Todo : post data to logistic request table
         foreach ($application as $item) {
             self::findProduct($data, $item['id_permohonan']);
         }
@@ -21,12 +22,11 @@ class LogisticImport extends Model
 
         $result = [];
 
+        //Todo : post data to logistic request table
         foreach ($logisticItem as $item) {
             if ($item['id_permohonan'] === $idPermohonan) {
                 $result[] = $item;
             }
         }
-
-        dd($result);
     }
 }
