@@ -35,7 +35,8 @@ class MasterFaskesController extends Controller
                     'nomor_registrasi',
                     'verification_status',
                     'latitude',
-                    'longitude'
+                    'longitude',
+                    'is_imported'
                 )
                 ->where(function ($query) use ($request) {
                     if ($request->filled('nama_faskes')) {
@@ -51,6 +52,8 @@ class MasterFaskesController extends Controller
                     } else {
                         $query->where('master_faskes.verification_status', '=', MasterFaskes::STATUS_VERIFIED);
                     }
+
+                    $query->where('master_faskes.is_imported', '=', false);
                 })
                 ->orderBy('nama_faskes', $sort)
                 ->paginate($limit);

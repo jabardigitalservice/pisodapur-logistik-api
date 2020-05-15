@@ -176,6 +176,7 @@ class LogisticRequestImport implements ToCollection, WithStartRow
                 'nama_faskes' => $data['nama_instansi'],
                 'nama_atasan' => '-',
                 'nomor_registrasi' => '-',
+                'verification_status' => 'verified',
                 'is_imported' => true
             ]);
         }

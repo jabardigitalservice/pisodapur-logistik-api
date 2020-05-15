@@ -12,7 +12,7 @@ class MasterFaskesTypeController extends Controller
     {
 
         try {
-            $data = MasterFaskesType::all();
+            $data = MasterFaskesType::where('is_imported', false)->get();
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
