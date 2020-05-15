@@ -21,11 +21,13 @@ class ProductsController extends Controller
             $query = Product::orderBy('products.name', 'ASC');
             if ($request->filled('limit')) {
                 $query->paginate($request->input('limit'));
-            } 
-            
+            }
+
             if ($request->filled('name')) {
                 $query->where('products.name', 'LIKE', "%{$request->input('name')}%");
             }
+
+            $query->where('products.is_imported', false);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -47,11 +49,12 @@ class ProductsController extends Controller
     public function productUnit($id)
     {
         return Product::select('products.id', 'products.name', 'product_unit.unit_id', 'master_unit.unit')
-                        ->join('product_unit', 'product_unit.product_id', '=', 'products.id')
-                        ->join('master_unit', 'product_unit.unit_id', '=', 'master_unit.id')
-                        ->where('products.id', $id)
-                        ->get();
-        
+            ->join('product_unit', 'product_unit.product_id', '=', 'products.id')
+            ->join('master_unit', function ($join) {
+                $join->on('product_unit.unit_id', '=', 'master_unit.id')
+                    ->where('master_unit.is_imported', false);
+            })
+            ->where('products.id', $id)
+            ->get();
     }
-
 }
