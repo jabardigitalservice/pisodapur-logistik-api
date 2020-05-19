@@ -15,7 +15,6 @@ use App\Http\Resources\LogisticRequestResource;
 use App\Letter;
 use DB;
 use JWTAuth;
-use App\Imports\LogisticRequestImport;
 use App\Imports\MultipleSheetImport;
 use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -265,16 +264,16 @@ class LogisticRequestController extends Controller
                 'logistic_realization_items.created_by',
                 'logistic_realization_items.updated_by'
             )
-            ->with([
-                'product' => function ($query) {
-                    return $query->select(['id', 'name']);
-                },
-                'unit' => function ($query) {
-                    return $query->select(['id', 'unit']);
-                }
-            ])
-            ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
-            ->where('needs.agency_id', $request->agency_id)->paginate($limit);
+                ->with([
+                    'product' => function ($query) {
+                        return $query->select(['id', 'name']);
+                    },
+                    'unit' => function ($query) {
+                        return $query->select(['id', 'unit']);
+                    }
+                ])
+                ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
+                ->where('needs.agency_id', $request->agency_id)->paginate($limit);
             $data->getCollection()->transform(function ($item, $key) {
                 $item->status = !$item->status ? 'not_approved' : $item->status;
                 return $item;
@@ -300,8 +299,10 @@ class LogisticRequestController extends Controller
         } else {
             DB::beginTransaction();
             try {
-                $import = new LogisticRequestImport;
-                Excel::import($import, request()->file('file'));
+                $import = new MultipleSheetImport();
+                $ts = Excel::import($import, request()->file('file'));
+                LogisticImport::import($import);
+
                 DB::commit();
             } catch (\Exception $exception) {
                 DB::rollBack();
@@ -309,13 +310,6 @@ class LogisticRequestController extends Controller
             }
         }
 
-        return response()->format(200, 'success', $import->data);
-    }
-
-    public function importLogistic(Request $request)
-    {
-        $import = new MultipleSheetImport();
-        $ts = Excel::import($import, request()->file('file'));
-        LogisticImport::import($import);
+        return response()->format(200, 'success', '');
     }
 }
