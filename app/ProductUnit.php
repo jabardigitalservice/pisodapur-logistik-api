@@ -13,4 +13,9 @@ class ProductUnit extends Model
     {
         return $this->belongsTo('App\Product', 'product_id');
     }
+
+    public function logisticRealizationItems()
+    {
+        return $this->belongsToOne('App\LogisticRealizationItems', 'product_id', 'id');
+    }
 }

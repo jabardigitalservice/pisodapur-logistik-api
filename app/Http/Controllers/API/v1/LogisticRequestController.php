@@ -31,7 +31,43 @@ class LogisticRequestController extends Controller
         $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'created_at DESC'] : ['created_at DESC, ', 'agency_name ASC'];
 
         try {
-            $data = Agency::with('masterFaskesType', 'applicant', 'city', 'subDistrict')
+            $data = Agency::with([
+                'masterFaskesType' => function ($query) {
+                    return $query->select(['id', 'name']);
+                },
+                'applicant' => function ($query) {
+                    return $query->select([
+                        'id', 'agency_id', 'customer_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
+                    ]);
+                },
+                'city' => function ($query) {
+                    return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
+                },
+                'subDistrict' => function ($query) {
+                    return $query->select(['kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
+                },
+                'village' => function ($query) {
+                    return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
+                },
+                'logisticRequestItems' => function ($query) {
+                    return $query->select(['agency_id', 'product_id', 'brand', 'quantity', 'unit', 'usage', 'priority']);
+                },
+                'logisticRequestItems.product' => function ($query) {
+                    return $query->select(['id', 'name', 'material_group_status', 'material_group']);
+                },
+                'logisticRequestItems.unit' => function ($query) {
+                    return $query->select(['id', 'unit as name']);
+                },
+                'logisticRealizationItems' => function ($query) {
+                    return $query->select(['id', 'need_id', 'agency_id', 'product_id', 'realization_quantity', 'unit_id', 'realization_date', 'status']);
+                },
+                'logisticRealizationItems.product' => function ($query) {
+                    return $query->select(['id', 'name', 'material_group_status', 'material_group']);
+                },
+                'logisticRealizationItems.unit' => function ($query) {
+                    return $query->select(['id', 'unit as name']);
+                },
+            ])
                 ->whereHas('applicant', function ($query) use ($request) {
                     if ($request->filled('verification_status')) {
                         $query->where('verification_status', '=', $request->input('verification_status'));
@@ -40,7 +76,7 @@ class LogisticRequestController extends Controller
                     if ($request->filled('date')) {
                         $query->whereRaw("DATE(created_at) = '" . $request->input('date') . "'");
                     }
-                }) 
+                })
                 ->whereHas('masterFaskesType', function ($query) use ($request) {
                     if ($request->filled('faskes_type')) {
                         $query->where('id', '=', $request->input('faskes_type'));

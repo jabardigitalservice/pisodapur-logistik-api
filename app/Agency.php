@@ -55,4 +55,14 @@ class Agency extends Model
     {
         return $this->belongsTo('App\Subdistrict', 'location_subdistrict_code', 'kemendagri_kecamatan_kode');
     }
+
+    public function logisticRequestItems()
+    {
+        return $this->need();
+    }
+
+    public function logisticRealizationItems()
+    {
+        return $this->hasMany('App\LogisticRealizationItems', 'agency_id', 'id');
+    }
 }
