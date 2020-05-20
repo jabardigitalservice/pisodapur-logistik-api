@@ -76,6 +76,10 @@ class LogisticRequestController extends Controller
                     if ($request->filled('date')) {
                         $query->whereRaw("DATE(created_at) = '" . $request->input('date') . "'");
                     }
+
+                    if ($request->filled('source_data')) {
+                        $query->where('source_data', '=', $request->input('source_data'));
+                    }
                 })
                 ->whereHas('masterFaskesType', function ($query) use ($request) {
                     if ($request->filled('faskes_type')) {
