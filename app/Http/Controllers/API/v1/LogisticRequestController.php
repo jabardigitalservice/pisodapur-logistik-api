@@ -15,7 +15,6 @@ use App\Http\Resources\LogisticRequestResource;
 use App\Letter;
 use DB;
 use JWTAuth;
-use App\Imports\LogisticRequestImport;
 use App\Imports\MultipleSheetImport;
 use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -340,8 +339,10 @@ class LogisticRequestController extends Controller
         } else {
             DB::beginTransaction();
             try {
-                $import = new LogisticRequestImport;
-                Excel::import($import, request()->file('file'));
+                $import = new MultipleSheetImport();
+                $ts = Excel::import($import, request()->file('file'));
+                LogisticImport::import($import);
+
                 DB::commit();
             } catch (\Exception $exception) {
                 DB::rollBack();
@@ -349,13 +350,6 @@ class LogisticRequestController extends Controller
             }
         }
 
-        return response()->format(200, 'success', $import->data);
-    }
-
-    public function importLogistic(Request $request)
-    {
-        $import = new MultipleSheetImport();
-        $ts = Excel::import($import, request()->file('file'));
-        LogisticImport::import($import);
+        return response()->format(200, 'success', '');
     }
 }
