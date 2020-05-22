@@ -15,7 +15,6 @@ use App\Http\Resources\LogisticRequestResource;
 use App\Letter;
 use DB;
 use JWTAuth;
-use App\Imports\LogisticRequestImport;
 use App\Imports\MultipleSheetImport;
 use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -32,7 +31,43 @@ class LogisticRequestController extends Controller
         $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'created_at DESC'] : ['created_at DESC, ', 'agency_name ASC'];
 
         try {
-            $data = Agency::with('masterFaskesType', 'applicant', 'city', 'subDistrict')
+            $data = Agency::with([
+                'masterFaskesType' => function ($query) {
+                    return $query->select(['id', 'name']);
+                },
+                'applicant' => function ($query) {
+                    return $query->select([
+                        'id', 'agency_id', 'customer_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
+                    ]);
+                },
+                'city' => function ($query) {
+                    return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
+                },
+                'subDistrict' => function ($query) {
+                    return $query->select(['kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
+                },
+                'village' => function ($query) {
+                    return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
+                },
+                'logisticRequestItems' => function ($query) {
+                    return $query->select(['agency_id', 'product_id', 'brand', 'quantity', 'unit', 'usage', 'priority']);
+                },
+                'logisticRequestItems.product' => function ($query) {
+                    return $query->select(['id', 'name', 'material_group_status', 'material_group']);
+                },
+                'logisticRequestItems.unit' => function ($query) {
+                    return $query->select(['id', 'unit as name']);
+                },
+                'logisticRealizationItems' => function ($query) {
+                    return $query->select(['id', 'need_id', 'agency_id', 'product_id', 'realization_quantity', 'unit_id', 'realization_date', 'status']);
+                },
+                'logisticRealizationItems.product' => function ($query) {
+                    return $query->select(['id', 'name', 'material_group_status', 'material_group']);
+                },
+                'logisticRealizationItems.unit' => function ($query) {
+                    return $query->select(['id', 'unit as name']);
+                },
+            ])
                 ->whereHas('applicant', function ($query) use ($request) {
                     if ($request->filled('verification_status')) {
                         $query->where('verification_status', '=', $request->input('verification_status'));
@@ -40,6 +75,15 @@ class LogisticRequestController extends Controller
 
                     if ($request->filled('date')) {
                         $query->whereRaw("DATE(created_at) = '" . $request->input('date') . "'");
+                    }
+
+                    if ($request->filled('source_data')) {
+                        $query->where('source_data', '=', $request->input('source_data'));
+                    }
+                })
+                ->whereHas('masterFaskesType', function ($query) use ($request) {
+                    if ($request->filled('faskes_type')) {
+                        $query->where('id', '=', $request->input('faskes_type'));
                     }
                 })
                 ->where(function ($query) use ($request) {
@@ -264,16 +308,16 @@ class LogisticRequestController extends Controller
                 'logistic_realization_items.created_by',
                 'logistic_realization_items.updated_by'
             )
-            ->with([
-                'product' => function ($query) {
-                    return $query->select(['id', 'name']);
-                },
-                'unit' => function ($query) {
-                    return $query->select(['id', 'unit']);
-                }
-            ])
-            ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
-            ->where('needs.agency_id', $request->agency_id)->paginate($limit);
+                ->with([
+                    'product' => function ($query) {
+                        return $query->select(['id', 'name']);
+                    },
+                    'unit' => function ($query) {
+                        return $query->select(['id', 'unit']);
+                    }
+                ])
+                ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
+                ->where('needs.agency_id', $request->agency_id)->paginate($limit);
             $data->getCollection()->transform(function ($item, $key) {
                 $item->status = !$item->status ? 'not_approved' : $item->status;
                 return $item;
@@ -299,8 +343,10 @@ class LogisticRequestController extends Controller
         } else {
             DB::beginTransaction();
             try {
-                $import = new LogisticRequestImport;
-                Excel::import($import, request()->file('file'));
+                $import = new MultipleSheetImport();
+                $ts = Excel::import($import, request()->file('file'));
+                LogisticImport::import($import);
+
                 DB::commit();
             } catch (\Exception $exception) {
                 DB::rollBack();
@@ -308,13 +354,6 @@ class LogisticRequestController extends Controller
             }
         }
 
-        return response()->format(200, 'success', $import->data);
-    }
-
-    public function importLogistic(Request $request)
-    {
-        $import = new MultipleSheetImport();
-        $ts = Excel::import($import, request()->file('file'));
-        LogisticImport::import($import);
+        return response()->format(200, 'success', '');
     }
 }

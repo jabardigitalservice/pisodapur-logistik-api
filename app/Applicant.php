@@ -22,6 +22,7 @@ class Applicant extends Model
         'primary_phone_number',
         'secondary_phone_number',
         'verification_status',
+        'source_data',
         'created_at',
         'updated_at',
         'created_by',
