@@ -54,7 +54,10 @@ class MasterFaskesController extends Controller
                         $query->where('master_faskes.verification_status', '=', MasterFaskes::STATUS_VERIFIED);
                     }
 
-                    $query->where('master_faskes.is_imported', '=', false);
+                    if ($request->filled('is_imported')) {
+                        $query->where('master_faskes.is_imported', $request->input('is_imported'));
+                    }
+
                 })
                 ->orderBy('nama_faskes', $sort)
                 ->paginate($limit);
