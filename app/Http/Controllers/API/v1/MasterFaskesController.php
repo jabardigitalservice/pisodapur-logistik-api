@@ -55,7 +55,7 @@ class MasterFaskesController extends Controller
                     }
 
                     if ($request->filled('is_imported')) {
-                        $query->where('master_faskes.is_imported', '=', $request->input('is_imported'));
+                        $query->where('master_faskes.is_imported', $request->input('is_imported'));
                     }
 
                 })

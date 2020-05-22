@@ -14,7 +14,7 @@ class MasterFaskesTypeController extends Controller
         try {
             $data = MasterFaskesType::where(function ($query) use ($request) {
                 if ($request->filled('is_imported')) {
-                    $query->where('is_imported', '=', $request->input('is_imported'));
+                    $query->where('is_imported', $request->input('is_imported'));
                 }
             })->get();
         } catch (\Exception $exception) {
