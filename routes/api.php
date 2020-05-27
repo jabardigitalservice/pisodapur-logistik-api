@@ -58,6 +58,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     // PRODUCTS
     Route::get('v1/products', 'ProductsController@index');
     Route::get('v1/products/{id}', 'ProductsController@show');
+    Route::get('v1/products-total-request', 'ProductsController@productRequest');
 
     // TRANSACTIONS
     Route::prefix('v1/transactions')->group(function() {
