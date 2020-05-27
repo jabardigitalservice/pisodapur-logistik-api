@@ -26,7 +26,7 @@ class RemoveColumnCustomerIdInApplicantsTable extends Migration
     public function down()
     {
         Schema::table('applicants', function (Blueprint $table) {
-            //
+            $table->string('customer_id')->after('agency_id')->nullable();
         });
     }
 }
