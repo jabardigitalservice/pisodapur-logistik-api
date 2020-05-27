@@ -7,6 +7,7 @@ use JWTAuth;
 
 use App\Http\Controllers\Controller;
 use App\Product;
+use DB;
 
 class ProductsController extends Controller
 {
@@ -56,5 +57,39 @@ class ProductsController extends Controller
             })
             ->where('products.id', $id)
             ->get();
+    }
+
+    public function productRequest(Request $request)
+    {
+        try {
+            $query = Product::select('products.*', DB::raw('SUM(REPLACE(needs.quantity, ".", "")) as total_request'))
+            ->leftJoin('needs', function($join) {
+                $join->on('needs.product_id', '=', 'products.id');
+            })
+            ->leftJoin('applicants', function($join) {
+                $join->on('needs.agency_id', '=', 'applicants.agency_id');
+            })
+            ->leftJoin('product_unit', function($join) {
+                $join->on('product_unit.product_id', '=', 'products.id');
+            })
+            ->leftJoin('master_unit', function($join) {
+                $join->on('product_unit.unit_id', '=', 'master_unit.id');
+            })
+            ->where('applicants.verification_status', 'verified')
+            ->groupBy('products.id');
+
+            if ($request->filled('limit')) {
+                $data = $query->paginate($request->input('limit'));
+            } else {
+                $data = [
+                    'data' => $query->get(),
+                    'total' => $query->get()->count()
+                ];
+            }
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+
+        return response()->format(200, 'success', $data);
     }
 }
