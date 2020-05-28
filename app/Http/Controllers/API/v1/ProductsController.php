@@ -78,6 +78,10 @@ class ProductsController extends Controller
             ->where('applicants.verification_status', 'verified')
             ->groupBy('products.id');
 
+            if ($request->filled('sort')) {
+                $query->orderBy('total_request', $request->input('sort'));
+            } 
+
             if ($request->filled('limit')) {
                 $data = $query->paginate($request->input('limit'));
             } else {
