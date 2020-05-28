@@ -28,7 +28,7 @@ class MasterFaskesTypeController extends Controller
     public function masterFaskesTypeRequest(Request $request)
     {
         try {
-            $query = MasterFaskesType::select('master_faskes_types.name', DB::raw('COUNT(agency.agency_type) as total_request'))
+            $query = MasterFaskesType::selectRaw('master_faskes_types.name, COUNT(agency.agency_type) as total_request')
             ->leftJoin('agency', function($join) {
                 $join->on('agency.agency_type', '=', 'master_faskes_types.id');
             })

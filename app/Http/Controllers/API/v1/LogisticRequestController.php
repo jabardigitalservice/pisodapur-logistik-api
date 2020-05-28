@@ -360,20 +360,20 @@ class LogisticRequestController extends Controller
     public function requestSummary(Request $request)
     {
         try {
-            $total = Applicant::Select(DB::raw('COUNT(applicants.id) as total_request'))
+            $total = Applicant::SelectRaw('COUNT(applicants.id) as total_request')
                             ->where('verification_status', 'verified')
                             ->get();
 
-            $lastUpdate = Applicant::Select(DB::raw('MAX(applicants.updated_at) as last_update'))
+            $lastUpdate = Applicant::SelectRaw('MAX(applicants.updated_at) as last_update')
                             ->where('verification_status', 'verified')
                             ->get();
 
-            $totalPikobar = Applicant::Select(DB::raw('COUNT(applicants.id) as total_pikobar'))
+            $totalPikobar = Applicant::SelectRaw('COUNT(applicants.id) as total_pikobar')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'pikobar')
                             ->get();
 
-            $totalDinkesprov = Applicant::Select(DB::raw('COUNT(applicants.id) as total_dinkesprov'))
+            $totalDinkesprov = Applicant::SelectRaw('COUNT(applicants.id) as total_dinkesprov')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'dinkes_provinsi')
                             ->get();
