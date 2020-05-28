@@ -360,25 +360,30 @@ class LogisticRequestController extends Controller
     public function requestSummary(Request $request)
     {
         try {
-            $total = Applicant::SelectRaw('COUNT(applicants.id) as total_request')
+            $total = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
-                            ->get();
+                            ->count();
 
-            $lastUpdate = Applicant::SelectRaw('MAX(applicants.updated_at) as last_update')
-                            ->where('verification_status', 'verified')
-                            ->get();
+            $lastUpdate = Applicant::where('verification_status', 'verified')
+                            ->max('applicants.updated_at');
+                            
 
-            $totalPikobar = Applicant::SelectRaw('COUNT(applicants.id) as total_pikobar')
+            $totalPikobar = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'pikobar')
-                            ->get();
+                            ->count();
 
-            $totalDinkesprov = Applicant::SelectRaw('COUNT(applicants.id) as total_dinkesprov')
+            $totalDinkesprov = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'dinkes_provinsi')
-                            ->get();
+                            ->count();
 
-            $data = collect([$total, $totalPikobar, $totalDinkesprov, $lastUpdate]);
+            $data = [
+                'total_request' => $total,
+                'total_pikobar' => $totalPikobar,
+                'total_dinkesprov' => $totalDinkesprov,
+                'last_update' => $lastUpdate
+            ];
             
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
