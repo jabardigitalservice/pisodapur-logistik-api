@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API\v1;
 use App\MasterFaskesType;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use DB;
 
 class MasterFaskesTypeController extends Controller
 {
@@ -38,7 +37,7 @@ class MasterFaskesTypeController extends Controller
             ->where('applicants.verification_status', 'verified')
             ->groupBy('master_faskes_types.id');
             if ($request->filled('sort')) {
-                $query->orderBy('total_request', $request->input('limit'));
+                $query->orderBy('total_request', $request->input('sort'));
             } 
             $data = $query->get();
         } catch (\Exception $exception) {
