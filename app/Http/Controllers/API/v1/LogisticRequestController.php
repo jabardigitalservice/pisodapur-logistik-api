@@ -356,4 +356,34 @@ class LogisticRequestController extends Controller
 
         return response()->format(200, 'success', '');
     }
+
+    public function requestSummary(Request $request)
+    {
+        try {
+            $total = Applicant::Select(DB::raw('COUNT(applicants.id) as total_request'))
+                            ->where('verification_status', 'verified')
+                            ->get();
+
+            $lastUpdate = Applicant::Select(DB::raw('MAX(applicants.updated_at) as last_update'))
+                            ->where('verification_status', 'verified')
+                            ->get();
+
+            $totalPikobar = Applicant::Select(DB::raw('COUNT(applicants.id) as total_pikobar'))
+                            ->where('verification_status', 'verified')
+                            ->where('source_data', 'pikobar')
+                            ->get();
+
+            $totalDinkesprov = Applicant::Select(DB::raw('COUNT(applicants.id) as total_dinkesprov'))
+                            ->where('verification_status', 'verified')
+                            ->where('source_data', 'dinkes_provinsi')
+                            ->get();
+
+            $data = collect([$total, $totalPikobar, $totalDinkesprov, $lastUpdate]);
+            
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+
+        return response()->format(200, 'success', $data);
+    }
 }
