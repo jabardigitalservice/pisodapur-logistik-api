@@ -56,7 +56,6 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/areas/cities', 'AreasController@getCities');
     Route::get('v1/areas/subdistricts', 'AreasController@getSubDistricts');
     Route::get('v1/areas/villages', 'AreasController@getVillages');
-    Route::get('v1/areas/cities-total-request', 'AreasController@getCitiesTotalRequest');
 
     // PRODUCTS
     Route::get('v1/products', 'ProductsController@index');
@@ -94,4 +93,5 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/logistic-request/need/list', 'LogisticRequestController@listNeed');
     Route::post('v1/logistic-request/import', 'LogisticRequestController@import');
     Route::post('v1/logistic-request/realization', 'LogisticRealizationItemController@store');
+    Route::get('v1/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
 });

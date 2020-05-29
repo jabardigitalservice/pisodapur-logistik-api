@@ -90,7 +90,9 @@ class AreasController extends Controller
                             ->where('applicants.verification_status', 'verified');
                 }
                 ]);
-            $query->orderBy('agency_count', 'desc');
+            if ($request->filled('sort')) {
+                $query->orderBy('agency_count', $request->input('sort'));
+            }
             $data = $query->get();
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
