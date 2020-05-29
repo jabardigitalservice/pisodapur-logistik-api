@@ -56,6 +56,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/areas/cities', 'AreasController@getCities');
     Route::get('v1/areas/subdistricts', 'AreasController@getSubDistricts');
     Route::get('v1/areas/villages', 'AreasController@getVillages');
+    Route::get('v1/areas/cities-total-request', 'AreasController@getCitiesTotalRequest');
 
     // PRODUCTS
     Route::get('v1/products', 'ProductsController@index');
