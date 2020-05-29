@@ -84,18 +84,13 @@ class AreasController extends Controller
     public function getCitiesTotalRequest(Request $request)
     {
         try {
-            $query = City::selectRaw('districtcities.kemendagri_kabupaten_nama, COUNT(agency.location_district_code) as total_request')
-            ->leftJoin('agency', function($join) {
-                $join->on('agency.location_district_code', '=', 'districtcities.kemendagri_kabupaten_kode');
-            })
-            ->leftJoin('applicants', function($join) {
-                $join->on('applicants.agency_id', '=', 'agency.id');
-            })
-            ->where('applicants.verification_status', 'verified')
-            ->groupBy('districtcities.id');
-            if ($request->filled('sort')) {
-                $query->orderBy('total_request', $request->input('sort'));
-            } 
+            $query = City::withCount([
+                'agency' => function ($query) {
+                    return $query->join('applicants', 'applicants.agency_id', 'agency.id')
+                            ->where('applicants.verification_status', 'verified');
+                }
+                ]);
+            $query->orderBy('agency_count', 'desc');
             $data = $query->get();
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
