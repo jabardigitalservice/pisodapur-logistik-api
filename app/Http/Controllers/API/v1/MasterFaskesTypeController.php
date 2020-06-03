@@ -32,10 +32,9 @@ class MasterFaskesTypeController extends Controller
 
             $query = MasterFaskesType::withCount([
                 'agency as total_request' => function ($query) use ($startDate, $endDate) {
-                    $query->join('applicants', 'applicants.agency_id', 'agency.id')
-                        ->where('applicants.verification_status', 'verified');
-                    $query->whereBetween('applicants.updated_at', [$startDate, $endDate]);
-                    return $query;
+                    return $query->join('applicants', 'applicants.agency_id', 'agency.id')
+                        ->where('applicants.verification_status', 'verified')
+                        ->whereBetween('applicants.updated_at', [$startDate, $endDate]);
                 }
                 ]);
             if ($request->filled('sort')) {

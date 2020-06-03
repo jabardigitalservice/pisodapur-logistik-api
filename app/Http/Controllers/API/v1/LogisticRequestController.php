@@ -359,23 +359,28 @@ class LogisticRequestController extends Controller
 
     public function requestSummary(Request $request)
     {
+
+        $startDate = $request->filled('start_date') ? $request->input('start_date') : '2020-01-01';
+        $endDate = $request->filled('end_date') ? $request->input('end_date') : date('Y-m-d');
+
         try {
             $total = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
+                            ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
-            $lastUpdate = Applicant::where('verification_status', 'verified')
-                            ->max('applicants.updated_at');
-                            
+            $lastUpdate = $endDate;
 
             $totalPikobar = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'pikobar')
+                            ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
             $totalDinkesprov = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'dinkes_provinsi')
+                            ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
             $data = [
