@@ -16,6 +16,6 @@ class MasterFaskesType extends Model
     
     public function agency()
     {
-        return $this->hasMany('App\Agency', 'agency_type', 'id');
+        return $this->hasMany('App\Agency', 'agency_type');
     }
 }
