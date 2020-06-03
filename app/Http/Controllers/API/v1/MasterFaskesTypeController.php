@@ -36,7 +36,7 @@ class MasterFaskesTypeController extends Controller
                         ->where('applicants.verification_status', 'verified')
                         ->whereBetween('applicants.updated_at', [$startDate, $endDate]);
                 }
-                ]);
+            ]);
             if ($request->filled('sort')) {
                 $query->orderBy('total_request', $request->input('sort'));
             }
