@@ -11,6 +11,11 @@ class MasterFaskesType extends Model
 
     public function masterFaskes()
     {
-        return $this->belongsToOne('App\MasterFaskes', 'id_tipe_faskes', 'id');
+        return $this->belongsToOne('App\MasterFaskes', 'id_tipe_faskes');
+    }
+    
+    public function agency()
+    {
+        return $this->hasMany('App\Agency', 'agency_type');
     }
 }

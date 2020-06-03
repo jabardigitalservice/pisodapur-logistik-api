@@ -27,18 +27,19 @@ class MasterFaskesTypeController extends Controller
     public function masterFaskesTypeRequest(Request $request)
     {
         try {
-            $query = MasterFaskesType::selectRaw('master_faskes_types.name, COUNT(agency.agency_type) as total_request')
-            ->leftJoin('agency', function($join) {
-                $join->on('agency.agency_type', '=', 'master_faskes_types.id');
-            })
-            ->leftJoin('applicants', function($join) {
-                $join->on('applicants.agency_id', '=', 'agency.id');
-            })
-            ->where('applicants.verification_status', 'verified')
-            ->groupBy('master_faskes_types.id');
+            $startDate = $request->filled('start_date') ? $request->input('start_date') : '2020-01-01';
+            $endDate = $request->filled('end_date') ? $request->input('end_date') : date('Y-m-d');
+
+            $query = MasterFaskesType::withCount([
+                'agency as total_request' => function ($query) use ($startDate, $endDate) {
+                    return $query->join('applicants', 'applicants.agency_id', 'agency.id')
+                        ->where('applicants.verification_status', 'verified')
+                        ->whereBetween('applicants.updated_at', [$startDate, $endDate]);
+                }
+            ]);
             if ($request->filled('sort')) {
                 $query->orderBy('total_request', $request->input('sort'));
-            } 
+            }
             $data = $query->get();
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
