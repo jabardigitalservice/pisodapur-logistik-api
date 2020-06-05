@@ -7,6 +7,8 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Illuminate\Http\Request;
+use App\Agency;
+use DB;
 
 use App\Transaction;
 
@@ -14,61 +16,113 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
 {
     use Exportable;
 
-    public function query(Request $request)
+    protected $request;
+
+    function __construct($request) {
+           $this->request = $request;
+    }
+    public function query()
     {
-        dd($request);
-        // only display out transaction
-        $data = Transaction::with(['city', 'subdistrict'])->where('quantity', '<', 0)->get();
+        $sort = $this->request->sort ? ['agency_name ' . $this->request->sort . ', ', 'created_at DESC'] : ['created_at DESC, ', 'agency_name ASC'];
 
-        $data = 1;
-        dd($data);
+        DB::statement(DB::raw('set @row:=0'));
+        $data = Agency::selectRaw('*, @row:=@row+1 as row_number')
+        ->with([
+            'masterFaskesType' => function ($query) {
+                return $query->select(['id', 'name']);
+            },
+            'applicant' => function ($query) {
+                return $query->select([
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
+                ]);
+            },
+            'city' => function ($query) {
+                return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
+            },
+            'subDistrict' => function ($query) {
+                return $query->select(['kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
+            },
+            'village' => function ($query) {
+                return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
+            },
+            'logisticRequestItems' => function ($query) {
+                return $query->select(['agency_id', 'product_id', 'brand', 'quantity', 'unit', 'usage', 'priority']);
+            },
+            'logisticRequestItems.product' => function ($query) {
+                return $query->select(['id', 'name', 'material_group_status', 'material_group']);
+            },
+            'logisticRequestItems.master_unit' => function ($query) {
+                return $query->select(['id', 'unit as name']);
+            }
+        ])->whereHas('applicant', function ($query){
+            if ($this->request->verification_status) {
+                $query->where('verification_status', '=', $this->request->verification_status);
+            }
 
+            if ($this->request->date) {
+                $query->whereRaw("DATE(created_at) = '" . $this->request->date . "'");
+            }
+            if ($this->request->source_data) {
+                return $query->where('source_data', '=', $this->request->source_data);
+            }
+        })
+        ->whereHas('masterFaskesType', function ($query){
+            if ($this->request->faskes_type) {
+                $query->where('id', '=', $this->request->faskes_type);
+            }
+        })
+        ->where(function ($query){
+            if ($this->request->agency_name) {
+                $query->where('agency_name', 'LIKE', "%{$this->request->agency_name}%");
+            }
 
-        $angka = 1;
-        $angka2 = 5;
-
-        [1, 2, 3, 4];
+            if ($this->request->city_code) {
+                $query->where('location_district_code', '=', $this->request->city_code);
+            }
+        })
+        ->orderByRaw(implode($sort));
+        return $data;
     }
 
     public function headings(): array
     {
         return [
-            'ID',
-            'Nama Tujuan Distribusi',
-            'Nama Pemohon/PIC',
-            'Nomor Telepon',
-            'Alamat',
-            'Kecamatan Alamat',
-            'Kabupaten/Kota Alamat',
-            'Provinsi Alamat',
-            'Jumlah',
-            'Waktu',
-            'Catatan',
+            ['DAFTAR PERMOHONAN LOGISTIK'],
+            ['ALAT KESEHATAN'],
+            [], //add empty row
+            ['Nomor', 'Tanggal Pengajuan', 'Jenis Instansi', 'Nomor Telp Instansi', 'Alamat Lengkap', 'Kab/ Kota', 'Kecamatan', 'Desa/ Kel', 'Nama Pemohon', 'Jabatan', 'Email', 'Nomor Kontak Pemohon (opsi 1)', 'Nomor Kontak Pemohon (opsi 2)', 'Detail Permohonan (Nama Barang, Jumlah dan Satuan, Urgensi)', 'Status Permohonan']
         ];
     }
 
     /**
      * Map each row
      *
-     * @var Transaction $invoice
+     * @var LogisticsRequest $logisticsRequest
      */
-    public function map($transaction): array
+    public function map($logisticsRequest): array
     {
         return [
-            $transaction->id,
-            $transaction->name,
-            $transaction->contact_person,
-            $transaction->phone_number,
-            $transaction->location_address,
-            //$transaction->location_subdistrict_code,
-            $transaction->location_subdistrict_name,
-            //$transaction->location_district_code,
-            $transaction->location_district_name,
-            //$transaction->location_province_code,
-            $transaction->location_province_name,
-            abs($transaction->quantity),
-            ($transaction->time != null) ? $transaction->time->format('Y-m-d') : '',
-            $transaction->note,
+            $logisticsRequest->row_number,
+            $logisticsRequest->created_at,
+            $logisticsRequest->masterFaskesType['name'],
+            $logisticsRequest->phone_number,
+            $logisticsRequest->location_address,
+            $logisticsRequest->city['kemendagri_kabupaten_nama'],
+            $logisticsRequest->subDistrict['kemendagri_kecamatan_nama'],
+            $logisticsRequest->village['kemendagri_desa_nama'],
+            $logisticsRequest->applicant['applicant_name'],
+            $logisticsRequest->applicant['applicants_office'],
+            $logisticsRequest->applicant['email'],
+            $logisticsRequest->applicant['primary_phone_number'],
+            $logisticsRequest->applicant['secondary_phone_number'],
+            $logisticsRequest->logisticRequestItems->map(function ($items){
+                return
+                    $items->product->name.', '.
+                    $items->quantity.' '.$items->master_unit->name.', '.
+                    $items->priority. '/n'
+                ;
+            }),
+            $logisticsRequest->applicant['verification_status']
         ];
     }
 }
