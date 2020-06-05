@@ -21,22 +21,22 @@ Route::post('v1/authenticate', 'API\v1\UsersController@authenticate');
 
 // Landing Page Registration
 Route::namespace('API\v1')->group(function () {
-    Route::prefix('v1/landing-page-registration')->group(function () {
-        //Landing Page Registration
-        Route::post('/agency', 'AgencyController@store');
-        Route::post('/applicant', 'ApplicantController@store');
-        Route::post('/needs', 'NeedsController@store');
-        Route::post('/letter', 'LetterController@store');
+  Route::prefix('v1/landing-page-registration')->group(function () {
+    //Landing Page Registration
+    Route::post('/agency', 'AgencyController@store');
+    Route::post('/applicant', 'ApplicantController@store');
+    Route::post('/needs', 'NeedsController@store');
+    Route::post('/letter', 'LetterController@store');
 
-        // AREAS, for public
-        Route::get('/areas/cities', 'AreasController@getCities');
-        Route::get('/areas/subdistricts', 'AreasController@getSubDistricts');
-        Route::get('/areas/villages', 'AreasController@getVillages');
+    // AREAS, for public
+    Route::get('/areas/cities', 'AreasController@getCities');
+    Route::get('/areas/subdistricts', 'AreasController@getSubDistricts');
+    Route::get('/areas/villages', 'AreasController@getVillages');
 
-        Route::get('/products', 'ProductsController@index');
-        Route::get('/product-unit/{id}', 'ProductsController@productUnit');
-    });
-
+    Route::get('/products', 'ProductsController@index');
+    Route::get('/product-unit/{id}', 'ProductsController@productUnit');
+  });
+  
     Route::post('v1/logistic-request', 'LogisticRequestController@store');
     Route::apiResource('v1/master-faskes', 'MasterFaskesController');
     Route::apiResource('v1/master-faskes-type', 'MasterFaskesTypeController');
@@ -65,7 +65,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/products-total-request', 'ProductsController@productRequest');
 
     // TRANSACTIONS
-    Route::prefix('v1/transactions')->group(function () {
+    Route::prefix('v1/transactions')->group(function() {
         Route::get('/summary', 'TransactionController@summary');
         Route::get('/export', 'TransactionController@export');
         Route::get('/{id}', 'TransactionController@show');
@@ -75,18 +75,18 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
         Route::post('/', 'TransactionController@store');
     });
 
-    Route::prefix('v1/recipients')->group(function () {
-        Route::get('/', 'RecipientController@index');
-        Route::get('/rdt-result-summary', 'RecipientController@summary_rdt_result');
-        Route::get('/summary', 'RecipientController@summary');
-        // need to be last so /summary wont be treated as city_code=summary
-        Route::get('/{city_code}', 'RecipientController@show');
+    Route::prefix('v1/recipients')->group(function() {
+      Route::get('/', 'RecipientController@index');
+      Route::get('/rdt-result-summary', 'RecipientController@summary_rdt_result');
+      Route::get('/summary', 'RecipientController@summary');
+      // need to be last so /summary wont be treated as city_code=summary
+      Route::get('/{city_code}', 'RecipientController@show');
     });
 
-    Route::prefix('v1/recipients-faskes')->group(function () {
-        Route::get('/summary', 'RecipientFaskesController@summary');
-        Route::get('/export', 'RecipientFaskesController@export');
-        Route::get('/', 'RecipientFaskesController@index');
+    Route::prefix('v1/recipients-faskes')->group(function() {
+      Route::get('/summary', 'RecipientFaskesController@summary');
+      Route::get('/export', 'RecipientFaskesController@export');
+      Route::get('/', 'RecipientFaskesController@index');
     });
 
     Route::get('v1/logistic-request', 'LogisticRequestController@index');
