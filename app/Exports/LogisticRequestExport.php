@@ -6,11 +6,8 @@ use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Illuminate\Http\Request;
 use App\Agency;
 use DB;
-
-use App\Transaction;
 
 class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
 {
@@ -56,19 +53,19 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
             }
         ])->whereHas('applicant', function ($query){
             if ($this->request->verification_status) {
-                $query->where('verification_status', '=', $this->request->verification_status);
+                $query->where('verification_status', $this->request->verification_status);
             }
 
             if ($this->request->date) {
-                $query->whereRaw("DATE(created_at) = '" . $this->request->date . "'");
+                $query->whereRaw('DATE(created_at) = ?', [$this->request->date]);
             }
             if ($this->request->source_data) {
-                return $query->where('source_data', '=', $this->request->source_data);
+                $query->where('source_data', $this->request->source_data);
             }
         })
         ->whereHas('masterFaskesType', function ($query){
             if ($this->request->faskes_type) {
-                $query->where('id', '=', $this->request->faskes_type);
+                $query->where('id', $this->request->faskes_type);
             }
         })
         ->where(function ($query){
@@ -77,7 +74,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
             }
 
             if ($this->request->city_code) {
-                $query->where('location_district_code', '=', $this->request->city_code);
+                $query->where('location_district_code', $this->request->city_code);
             }
         })
         ->orderByRaw(implode($sort));
@@ -90,7 +87,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
             ['DAFTAR PERMOHONAN LOGISTIK'],
             ['ALAT KESEHATAN'],
             [], //add empty row
-            ['Nomor', 'Tanggal Pengajuan', 'Jenis Instansi', 'Nomor Telp Instansi', 'Alamat Lengkap', 'Kab/ Kota', 'Kecamatan', 'Desa/ Kel', 'Nama Pemohon', 'Jabatan', 'Email', 'Nomor Kontak Pemohon (opsi 1)', 'Nomor Kontak Pemohon (opsi 2)', 'Detail Permohonan (Nama Barang, Jumlah dan Satuan, Urgensi)', 'Status Permohonan']
+            ['Nomor', 'Tanggal Pengajuan', 'Jenis Instansi', 'Nomor Telp Instansi', 'Alamat Lengkap', 'Kab/Kota', 'Kecamatan', 'Desa/Kel', 'Nama Pemohon', 'Jabatan', 'Email', 'Nomor Kontak Pemohon (opsi 1)', 'Nomor Kontak Pemohon (opsi 2)', 'Detail Permohonan (Nama Barang, Jumlah dan Satuan, Urgensi)', 'Status Permohonan']
         ];
     }
 
@@ -119,7 +116,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
                 return
                     $items->product->name.', '.
                     $items->quantity.' '.$items->master_unit->name.', '.
-                    $items->priority. '/n'
+                    $items->priority. '\n'
                 ;
             }),
             $logisticsRequest->applicant['verification_status']
