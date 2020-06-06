@@ -20,7 +20,6 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
     }
     public function query()
     {
-        $sort = $this->request->sort ? ['agency_name ' . $this->request->sort . ', ', 'created_at DESC'] : ['created_at DESC, ', 'agency_name ASC'];
 
         DB::statement(DB::raw('set @row:=0'));
         $data = Agency::selectRaw('*, @row:=@row+1 as row_number')
@@ -76,8 +75,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
             if ($this->request->city_code) {
                 $query->where('location_district_code', $this->request->city_code);
             }
-        })
-        ->orderByRaw(implode($sort));
+        });
         return $data;
     }
 
