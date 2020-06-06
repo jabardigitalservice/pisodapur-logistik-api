@@ -47,7 +47,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
             'logisticRequestItems.product' => function ($query) {
                 return $query->select(['id', 'name', 'material_group_status', 'material_group']);
             },
-            'logisticRequestItems.master_unit' => function ($query) {
+            'logisticRequestItems.MasterUnit' => function ($query) {
                 return $query->select(['id', 'unit as name']);
             }
         ])->whereHas('applicant', function ($query){
@@ -113,7 +113,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
             $logisticsRequest->logisticRequestItems->map(function ($items){
                 return
                     $items->product->name.', '.
-                    $items->quantity.' '.$items->master_unit->name.', '.
+                    $items->quantity.' '.$items->MasterUnit->name.', '.
                     $items->priority. '\n'
                 ;
             }),

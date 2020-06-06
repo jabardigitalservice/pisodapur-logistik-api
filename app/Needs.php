@@ -33,7 +33,7 @@ class Needs extends Model
         return $this->hasOne('App\MasterUnit', 'id', 'unit');
     }
     
-    public function master_unit()
+    public function MasterUnit()
     {
         return $this->hasOne('App\MasterUnit', 'id', 'unit');
     }
