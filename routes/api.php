@@ -45,8 +45,6 @@ Route::namespace('API\v1')->group(function () {
     Route::post('v1/verify-master-faskes/{id}', 'MasterFaskesController@verify');
     Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
     Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
-
-    Route::get('v1/logistic-request/data/export', 'ExportLogisticRequestController@export');
 });
 
 Route::namespace('API\v1')->middleware('auth:api')->group(function () {
@@ -96,4 +94,5 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/logistic-request/import', 'LogisticRequestController@import');
     Route::post('v1/logistic-request/realization', 'LogisticRealizationItemController@store');
     Route::get('v1/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
+    Route::get('v1/logistic-request/data/export', 'ExportLogisticRequestController@export');
 });
