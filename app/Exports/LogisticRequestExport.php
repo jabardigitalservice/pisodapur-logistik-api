@@ -117,7 +117,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, Wit
             $logisticsRequest->logisticRequestItems->map(function ($items){
                 if ($items->quantity == '-' && $items->masterUnit->name == '-') {
                     $items->quantityUnit = 'jumlah dan satuan tidak ada';
-                }else{
+                } else {
                     $items->quantity = $items->quantity == '-' ? 'jumlah tidak ada ' : $items->quantity;
                     $items->unit = $items->masterUnit->name == '-' ? ' satuan tidak ada' : $items->masterUnit->name;
                     $items->quantityUnit = $items->quantity . ' ' . $items->unit;
@@ -125,8 +125,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, Wit
                 return
                     implode([$items->product->name,
                     $items->quantityUnit,
-                    $items->priority == '-' ? 'urgensi tidak ada' : $items->priority], ', ')
-                ;
+                    $items->priority == '-' ? 'urgensi tidak ada' : $items->priority], ', ');
             })->implode('; ', ''),
             $logisticsRequest->applicant['verification_status']
         ];
