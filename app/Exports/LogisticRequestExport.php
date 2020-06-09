@@ -6,10 +6,14 @@ use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithEvents;;
+use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use App\Agency;
 use DB;
 
-class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
+class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, WithEvents, ShouldAutoSize
 {
     use Exportable;
 
@@ -111,13 +115,39 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings
             $logisticsRequest->applicant['primary_phone_number'],
             $logisticsRequest->applicant['secondary_phone_number'],
             $logisticsRequest->logisticRequestItems->map(function ($items){
+                if ($items->quantity == '-' && $items->masterUnit->name == '-') {
+                    $items->quantityUnit = 'jumlah dan satuan tidak ada';
+                } else {
+                    $items->quantity = $items->quantity == '-' ? 'jumlah tidak ada ' : $items->quantity;
+                    $items->unit = $items->masterUnit->name == '-' ? ' satuan tidak ada' : $items->masterUnit->name;
+                    $items->quantityUnit = $items->quantity . ' ' . $items->unit;
+                }
                 return
-                    $items->product->name.', '.
-                    $items->quantity.' '.$items->masterUnit->name.', '.
-                    $items->priority. '\n'
-                ;
-            }),
+                    implode([$items->product->name,
+                    $items->quantityUnit,
+                    $items->priority == '-' ? 'urgensi tidak ada' : $items->priority], ', ');
+            })->implode('; ', ''),
             $logisticsRequest->applicant['verification_status']
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function registerEvents(): array
+    {
+        $styleArray = [
+            'font' => [
+            'bold' => true,
+            ]
+        ];
+        return [
+            AfterSheet::class    => function(AfterSheet $event) use ($styleArray){
+                $cellRange = 'A1:O4'; // All headers
+                $event->sheet->getDelegate()->getStyle($cellRange)->getFont()->setSize(12);
+                $event->sheet->getStyle($cellRange)->ApplyFromArray($styleArray);
+                $event->sheet->mergeCells('A1:O1');
+            },
         ];
     }
 }
