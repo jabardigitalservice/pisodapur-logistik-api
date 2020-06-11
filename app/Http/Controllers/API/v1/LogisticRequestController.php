@@ -111,8 +111,8 @@ class LogisticRequestController extends Controller
             if (in_array($request->agency_type, ['4', '5'])) {
                 $validator = Validator::make(
                     $request->all(), array_merge([
-                    'agency_type' => 'required|numeric',
-                    'agency_name' => 'required|string'
+                        'agency_type' => 'required|numeric',
+                        'agency_name' => 'required|string'
                     ])
                 );
                 if ($validator->fails()) {
