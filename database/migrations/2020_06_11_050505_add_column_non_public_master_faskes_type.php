@@ -13,9 +13,7 @@ class AddColumnNonPublicMasterFaskesType extends Migration
      */
     public function up()
     {
-        if (
-            !Schema::hasColumn('master_faskes_types', 'non_public')
-        ) {
+        if (!Schema::hasColumn('master_faskes_types', 'non_public')) {
             Schema::table('master_faskes_types', function (Blueprint $table) {
                 $table->boolean('non_public')->after('is_imported')->default(0);
             });

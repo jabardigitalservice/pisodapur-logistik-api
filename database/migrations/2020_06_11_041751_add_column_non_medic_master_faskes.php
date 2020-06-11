@@ -13,9 +13,7 @@ class AddColumnNonMedicMasterFaskes extends Migration
      */
     public function up()
     {
-        if (
-            !Schema::hasColumn('master_faskes', 'non_medical')
-        ) {
+        if (!Schema::hasColumn('master_faskes', 'non_medical')) {
             Schema::table('master_faskes', function (Blueprint $table) {
                 $table->boolean('non_medical')->after('is_imported')->default(0);
             });
