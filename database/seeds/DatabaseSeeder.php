@@ -20,5 +20,6 @@ class DatabaseSeeder extends Seeder
         $this->call(VillagesSeeder::class);
         $this->call(MasterFaskesSeeder::class);
         $this->call(UserSeeder::class);
+        $this->call(UpdateMasterFaskesTypeSeeder::class);
     }
 }

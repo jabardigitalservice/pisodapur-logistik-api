@@ -19,7 +19,8 @@ class MasterFaskes extends Model
         'longitude',
         'latitude',
         'is_imported',
-        'point_latitude_longitude'
+        'point_latitude_longitude',
+        'non_medical'
     ];
 
     public function masterFaskesType()
