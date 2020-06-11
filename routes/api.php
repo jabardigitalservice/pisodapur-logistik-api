@@ -95,4 +95,5 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/logistic-request/realization', 'LogisticRealizationItemController@store');
     Route::get('v1/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
     Route::get('v1/logistic-request/data/export', 'ExportLogisticRequestController@export');
+    Route::post('v1/logistic-request-non-public', 'LogisticRequestController@store')->name('non-public');
 });
