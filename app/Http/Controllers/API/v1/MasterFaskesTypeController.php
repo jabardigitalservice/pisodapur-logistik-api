@@ -16,6 +16,9 @@ class MasterFaskesTypeController extends Controller
                 if ($request->filled('is_imported')) {
                     $query->where('is_imported', $request->input('is_imported'));
                 }
+                if ($request->filled('non_public')) {
+                    $query->where('non_public', $request->input('non_public'));
+                }
             })->get();
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());

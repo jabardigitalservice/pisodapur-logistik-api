@@ -18,6 +18,7 @@ use JWTAuth;
 use App\Imports\MultipleSheetImport;
 use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\MasterFaskes;
 
 class LogisticRequestController extends Controller
 {
@@ -106,6 +107,36 @@ class LogisticRequestController extends Controller
 
     public function store(Request $request)
     {
+        if(!MasterFaskes::find($request->master_faskes_id) || ($request->route()->named('non-public') && JWTAuth::user()->roles == 'dinkesprov')){
+            if (in_array($request->agency_type, ['4', '5'])) { //allowable agency_type: {agency_type 4 => Masyarakat Umum , agency_type 5 => Instansi Lainnya}
+                $validator = Validator::make(
+                    $request->all(), array_merge([
+                        'agency_type' => 'required|numeric',
+                        'agency_name' => 'required|string'
+                    ])
+                );
+                if ($validator->fails()) {
+                    return response()->format(422, $validator->errors());
+                } else {
+                    $model = new MasterFaskes();
+                    $model->fill([
+                        'id_tipe_faskes' => $request->agency_type,
+                        'nama_faskes' => $request->agency_name
+                    ]);
+                    $model->nomor_izin_sarana = '-';
+                    $model->nama_atasan = '-';
+                    $model->point_latitude_longitude = '-';
+                    $model->verification_status = 'verified';
+                    $model->is_imported = 0;
+                    $model->non_medical = 1;
+                    if ($model->save()) {
+                        $request = $request->merge([$request, 'master_faskes_id' => $model->id]);
+                    }
+                }
+            } else {
+                return response()->json(['status' => 'fail', 'message' => 'agency_type_value_is_not_accepted']);
+            }
+        }
         $validator = Validator::make(
             $request->all(),
             array_merge(
