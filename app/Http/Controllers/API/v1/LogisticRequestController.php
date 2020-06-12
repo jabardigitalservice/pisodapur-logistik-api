@@ -263,7 +263,7 @@ class LogisticRequestController extends Controller
             },
             'applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note'
                 ]);
             },
             'letter' => function ($query) {
@@ -285,20 +285,23 @@ class LogisticRequestController extends Controller
 
     public function verification(Request $request)
     {
+        $rule = [
+            'applicant_id' => 'required|numeric',
+            'verification_status' => 'required|string'
+        ];
+        $rule['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? 'required' : '';
         $validator = Validator::make(
             $request->all(),
-            array_merge(
-                ['applicant_id' => 'required|numeric', 'verification_status' => 'required|string']
-            )
+            array_merge($rule)
         );
-
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
-
             $applicant = Applicant::findOrFail($request->applicant_id);
             $applicant->verification_status = $request->verification_status;
             $applicant->save();
+
+            //TODO: write code to send email notification!
         }
 
         return response()->format(200, 'success', $applicant);
