@@ -299,6 +299,7 @@ class LogisticRequestController extends Controller
         } else {
             $applicant = Applicant::findOrFail($request->applicant_id);
             $applicant->verification_status = $request->verification_status;
+            $applicant->note = $request->note;
             $applicant->save();
 
             //TODO: write code to send email notification!
