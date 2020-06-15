@@ -33,6 +33,7 @@ class MasterFaskesController extends Controller
                     'nomor_telepon',
                     'nama_atasan',
                     'nomor_registrasi',
+                    'nomor_izin_sarana',
                     'verification_status',
                     'latitude',
                     'longitude',
