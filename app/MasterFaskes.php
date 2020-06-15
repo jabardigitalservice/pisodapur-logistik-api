@@ -11,6 +11,7 @@ class MasterFaskes extends Model
 
     protected $table = 'master_faskes';
     protected $fillable = [
+        'nomor_izin_sarana',
         'nomor_registrasi',
         'nama_faskes',
         'id_tipe_faskes',
@@ -18,7 +19,8 @@ class MasterFaskes extends Model
         'longitude',
         'latitude',
         'is_imported',
-        'point_latitude_longitude'
+        'point_latitude_longitude',
+        'non_medical'
     ];
 
     public function masterFaskesType()

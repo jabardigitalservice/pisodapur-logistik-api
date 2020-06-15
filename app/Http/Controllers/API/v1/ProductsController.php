@@ -61,6 +61,9 @@ class ProductsController extends Controller
 
     public function productRequest(Request $request)
     {
+        $startDate = $request->filled('start_date') ? $request->input('start_date') : '2020-01-01';
+        $endDate = $request->filled('end_date') ? $request->input('end_date') : date('Y-m-d');
+
         try {
             $query = Product::select('products.*', DB::raw('SUM(REPLACE(needs.quantity, ".", "")) as total_request'))
             ->leftJoin('needs', function($join) {
@@ -76,6 +79,7 @@ class ProductsController extends Controller
                 $join->on('product_unit.unit_id', '=', 'master_unit.id');
             })
             ->where('applicants.verification_status', 'verified')
+            ->whereBetween('applicants.updated_at', [$startDate, $endDate])
             ->groupBy('products.id');
 
             if ($request->filled('sort')) {

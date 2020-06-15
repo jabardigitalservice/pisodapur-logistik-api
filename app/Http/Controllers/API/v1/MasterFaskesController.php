@@ -33,6 +33,7 @@ class MasterFaskesController extends Controller
                     'nomor_telepon',
                     'nama_atasan',
                     'nomor_registrasi',
+                    'nomor_izin_sarana',
                     'verification_status',
                     'latitude',
                     'longitude',
@@ -82,7 +83,7 @@ class MasterFaskesController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'nomor_registrasi' => 'required',
+                'nomor_izin_sarana' => 'required',
                 'nama_faskes' => 'required',
                 'id_tipe_faskes' => 'required',
                 'nama_atasan' => 'required',
@@ -94,6 +95,7 @@ class MasterFaskesController extends Controller
                 $model = new MasterFaskes();
                 $model->fill($request->input());
                 $model->verification_status = 'not_verified';
+                $model->is_imported = 0;
                 if ($model->save()) {
                     return response()->format(200, 'success', $model);
                 }
