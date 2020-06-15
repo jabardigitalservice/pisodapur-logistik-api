@@ -12,6 +12,7 @@ class Applicant extends Model
 
     const STATUS_NOT_VERIFIED = 'not_verified';
     const STATUS_VERIFIED = 'verified';
+    const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
         'agency_id',
@@ -27,7 +28,8 @@ class Applicant extends Model
         'updated_at',
         'created_by',
         'updated_by',
-        'verified_by'
+        'verified_by',
+        'note'
     ];
 
     public function agency()
@@ -37,7 +39,7 @@ class Applicant extends Model
 
     public function getVerificationStatusAttribute($value)
     {
-        $status = $value === self::STATUS_NOT_VERIFIED ? 'Belum Terverifikasi' : ($value === self::STATUS_VERIFIED ? 'Terverifikasi' : '');
+        $status = $value === self::STATUS_NOT_VERIFIED ? 'Belum Terverifikasi' : ($value === self::STATUS_VERIFIED ? 'Terverifikasi' : ($value === self::STATUS_REJECTED ? 'Pengajuan Ditolak' : ''));
         return $status;
     }
 

@@ -18,6 +18,7 @@ use JWTAuth;
 use App\Imports\MultipleSheetImport;
 use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\MasterFaskes;
 
 class LogisticRequestController extends Controller
 {
@@ -106,6 +107,36 @@ class LogisticRequestController extends Controller
 
     public function store(Request $request)
     {
+        if(!MasterFaskes::find($request->master_faskes_id) || ($request->route()->named('non-public') && JWTAuth::user()->roles == 'dinkesprov')){
+            if (in_array($request->agency_type, ['4', '5'])) { //allowable agency_type: {agency_type 4 => Masyarakat Umum , agency_type 5 => Instansi Lainnya}
+                $validator = Validator::make(
+                    $request->all(), array_merge([
+                        'agency_type' => 'required|numeric',
+                        'agency_name' => 'required|string'
+                    ])
+                );
+                if ($validator->fails()) {
+                    return response()->format(422, $validator->errors());
+                } else {
+                    $model = new MasterFaskes();
+                    $model->fill([
+                        'id_tipe_faskes' => $request->agency_type,
+                        'nama_faskes' => $request->agency_name
+                    ]);
+                    $model->nomor_izin_sarana = '-';
+                    $model->nama_atasan = '-';
+                    $model->point_latitude_longitude = '-';
+                    $model->verification_status = 'verified';
+                    $model->is_imported = 0;
+                    $model->non_medical = 1;
+                    if ($model->save()) {
+                        $request = $request->merge([$request, 'master_faskes_id' => $model->id]);
+                    }
+                }
+            } else {
+                return response()->json(['status' => 'fail', 'message' => 'agency_type_value_is_not_accepted']);
+            }
+        }
         $validator = Validator::make(
             $request->all(),
             array_merge(
@@ -232,7 +263,7 @@ class LogisticRequestController extends Controller
             },
             'applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note'
                 ]);
             },
             'letter' => function ($query) {
@@ -254,20 +285,24 @@ class LogisticRequestController extends Controller
 
     public function verification(Request $request)
     {
+        $rule = [
+            'applicant_id' => 'required|numeric',
+            'verification_status' => 'required|string'
+        ];
+        $rule['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? 'required' : '';
         $validator = Validator::make(
             $request->all(),
-            array_merge(
-                ['applicant_id' => 'required|numeric', 'verification_status' => 'required|string']
-            )
+            array_merge($rule)
         );
-
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
-
             $applicant = Applicant::findOrFail($request->applicant_id);
             $applicant->verification_status = $request->verification_status;
+            $applicant->note = $request->note;
             $applicant->save();
+
+            //TODO: write code to send email notification!
         }
 
         return response()->format(200, 'success', $applicant);
@@ -359,23 +394,28 @@ class LogisticRequestController extends Controller
 
     public function requestSummary(Request $request)
     {
+
+        $startDate = $request->filled('start_date') ? $request->input('start_date') : '2020-01-01';
+        $endDate = $request->filled('end_date') ? $request->input('end_date') : date('Y-m-d');
+
         try {
             $total = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
+                            ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
-            $lastUpdate = Applicant::where('verification_status', 'verified')
-                            ->max('applicants.updated_at');
-                            
+            $lastUpdate = $endDate;
 
             $totalPikobar = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'pikobar')
+                            ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
             $totalDinkesprov = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'dinkes_provinsi')
+                            ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
             $data = [

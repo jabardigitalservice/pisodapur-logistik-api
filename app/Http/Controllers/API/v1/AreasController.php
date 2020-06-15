@@ -83,11 +83,15 @@ class AreasController extends Controller
 
     public function getCitiesTotalRequest(Request $request)
     {
+        $startDate = $request->filled('start_date') ? $request->input('start_date') : '2020-01-01';
+        $endDate = $request->filled('end_date') ? $request->input('end_date') : date('Y-m-d');
+
         try {
             $query = City::withCount([
-                'agency' => function ($query) {
+                'agency' => function ($query) use ($startDate, $endDate){
                     return $query->join('applicants', 'applicants.agency_id', 'agency.id')
-                            ->where('applicants.verification_status', 'verified');
+                            ->where('applicants.verification_status', 'verified')
+                            ->whereBetween('applicants.updated_at', [$startDate, $endDate]);
                 }
                 ]);
             if ($request->filled('sort')) {
