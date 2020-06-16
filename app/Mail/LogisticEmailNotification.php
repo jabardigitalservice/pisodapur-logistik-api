@@ -40,7 +40,7 @@ class LogisticEmailNotification extends Mailable
             $note = $this->agency->applicant->note;
         } else {
             $text = 'Terima kasih anda sudah melakukan permohonan pada aplikasi Logistik Alat Kesehatan Pikobar. Permohonan logistik anda kami TERIMA. Untuk pengecekan permohonan logistik anda, hubungi nomor berikut ini:';
-            $note = 'Hotline Pikobar: 08112093306';
+            $note = env('HOTLINE_PIKOBAR');
         }
         return $this->view('email.logisticemailnotification')
                     ->subject('Logistik Alat Kesehatan Pikobar')
