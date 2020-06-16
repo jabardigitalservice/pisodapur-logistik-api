@@ -19,6 +19,8 @@ use App\Imports\MultipleSheetImport;
 use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\LogisticEmailNotification;
 
 class LogisticRequestController extends Controller
 {
@@ -301,8 +303,7 @@ class LogisticRequestController extends Controller
             $applicant->verification_status = $request->verification_status;
             $applicant->note = $request->note;
             $applicant->save();
-
-            //TODO: write code to send email notification!
+            $email = $this->sendEmailNotification($applicant->agency_id, $request->verification_status);
         }
 
         return response()->format(200, 'success', $applicant);
@@ -430,5 +431,15 @@ class LogisticRequestController extends Controller
         }
 
         return response()->format(200, 'success', $data);
+    }
+
+    public function sendEmailNotification($agencyId, $status)
+    {
+        try {
+            $agency = Agency::with('applicant')->findOrFail($agencyId);
+            Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));    
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
     }
 }
