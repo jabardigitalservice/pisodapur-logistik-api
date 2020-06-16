@@ -115,17 +115,17 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, Wit
             $logisticsRequest->applicant['primary_phone_number'],
             $logisticsRequest->applicant['secondary_phone_number'],
             $logisticsRequest->logisticRequestItems->map(function ($items){
-                if ($items->quantity == '-' && $items->masterUnit->name == '-') {
+                if ($items['quantity'] == '-' && $items->masterUnit['name'] == '-') {
                     $items->quantityUnit = 'jumlah dan satuan tidak ada';
                 } else {
-                    $items->quantity = $items->quantity == '-' ? 'jumlah tidak ada ' : $items->quantity;
-                    $items->unit = $items->masterUnit->name == '-' ? ' satuan tidak ada' : $items->masterUnit->name;
-                    $items->quantityUnit = $items->quantity . ' ' . $items->unit;
+                    $items['quantity'] = $items['quantity'] == '-' ? 'jumlah tidak ada ' : $items['quantity'];
+                    $items['unit'] = $items->masterUnit['name'] == '-' ? ' satuan tidak ada' : $items->masterUnit['name'];
+                    $items->quantityUnit = $items['quantity'] . ' ' . $items['unit'];
                 }
                 return
-                    implode([$items->product->name,
+                    implode([$items->product['name'],
                     $items->quantityUnit,
-                    $items->priority == '-' ? 'urgensi tidak ada' : $items->priority], ', ');
+                    $items['priority'] == '-' ? 'urgensi tidak ada' : $items['priority']], ', ');
             })->implode('; ', ''),
             $logisticsRequest->applicant['verification_status']
         ];
