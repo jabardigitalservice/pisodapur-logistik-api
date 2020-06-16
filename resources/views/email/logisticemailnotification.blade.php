@@ -11,14 +11,14 @@
 </head>
 <body>
     <div>
-        <p>Terima kasih anda sudah melakukan permohonan pada aplikasi Logistik Alat Kesehatan Pikobar. Akan tetapi, mohon maaf permohonan logistik anda kami TOLAK. Dengan alasan penolakan sebagai berikut: </p>
+        <p>{{ $text }}</p>
         <p>{{ $note }}</p>
     </div>
     <div>
         <div>Salam,</div>
         <div>Admin Logistik Alkes Pikobar</div>
         <div>Hotline Pikobar: 08112093306</div>
-        <div>Email: xxxxx</div>
+        <div>Email: digital.service@jabarprov.go.id</div>
     </div>
 </body>
 </html>

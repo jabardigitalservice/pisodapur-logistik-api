@@ -303,10 +303,7 @@ class LogisticRequestController extends Controller
             $applicant->verification_status = $request->verification_status;
             $applicant->note = $request->note;
             $applicant->save();
-            //TODO: write code to send email notification!
-            if ($request->verification_status === 'rejected') {
-                $this->sendEmailNotification($applicant->agency_id);
-            }
+            $email = $this->sendEmailNotification($applicant->agency_id, $request->verification_status);
         }
 
         return response()->format(200, 'success', $applicant);
@@ -436,14 +433,13 @@ class LogisticRequestController extends Controller
         return response()->format(200, 'success', $data);
     }
 
-    public function sendEmailNotification($agencyId)
+    public function sendEmailNotification($agencyId, $status)
     {
-        $agency = Agency::with('applicant')->findOrFail($agencyId);
-        Mail::to('randy.hamzah.h@gmail.com')->send(new LogisticEmailNotification($agency));
-
-        if (Mail::failures()) {
-            dd(Mail::failures());
+        try {
+            $agency = Agency::with('applicant')->findOrFail($agencyId);
+            Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));    
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
         }
-        return 'success';
     }
 }
