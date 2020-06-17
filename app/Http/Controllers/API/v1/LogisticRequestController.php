@@ -354,8 +354,10 @@ class LogisticRequestController extends Controller
                 ])
                 ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
                 ->where('needs.agency_id', $request->agency_id)->paginate($limit);
-            $data->getCollection()->transform(function ($item, $key) {
+            $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
+            $data->getCollection()->transform(function ($item, $key) use($logisticItemSummary) {
                 $item->status = !$item->status ? 'not_approved' : $item->status;
+                $item->logistic_item_summary = (int)$logisticItemSummary;
                 return $item;
             });
         }
