@@ -444,4 +444,53 @@ class LogisticRequestController extends Controller
             return response()->format(400, $exception->getMessage());
         }
     }
+
+    public function approval(Request $request)
+    {
+        try {
+            $rule = [
+                'applicant_id' => 'required|numeric',
+                'approval_status' => 'required|string'
+            ];
+            $rule['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+            $validator = Validator::make(
+                $request->all(),
+                array_merge($rule)
+            );
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                $applicant = Applicant::findOrFail($request->applicant_id);
+                $applicant->fill($request->input());
+                $applicant->save();
+            }
+            return response()->format(200, 'success', $applicant);
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+    }
+
+    public function stockCheking(Request $request)
+    {
+        try {
+            $rule = [
+                'applicant_id' => 'required|numeric',
+                'stock_checking_status' => 'required|string'
+            ];
+            $validator = Validator::make(
+                $request->all(),
+                array_merge($rule)
+            );
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                $applicant = Applicant::findOrFail($request->applicant_id);
+                $applicant->fill($request->input());
+                $applicant->save();
+            }
+            return response()->format(200, 'success', $applicant);
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+    }
 }
