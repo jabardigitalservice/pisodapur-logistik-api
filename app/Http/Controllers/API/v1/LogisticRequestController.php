@@ -107,7 +107,7 @@ class LogisticRequestController extends Controller
 
     public function store(Request $request)
     {
-        if(!MasterFaskes::find($request->master_faskes_id) || ($request->route()->named('non-public') && JWTAuth::user()->roles == 'dinkesprov')){
+        if (!MasterFaskes::find($request->master_faskes_id)) {
             if (in_array($request->agency_type, ['4', '5'])) { //allowable agency_type: {agency_type 4 => Masyarakat Umum , agency_type 5 => Instansi Lainnya}
                 $validator = Validator::make(
                     $request->all(), array_merge([
