@@ -35,14 +35,12 @@ class LogisticEmailNotification extends Mailable
      */
     public function build()
     {
-        $hotLine = env('HOTLINE_PIKOBAR');
         if ($this->status === Applicant::STATUS_REJECTED) {
-            // dd('test');
             $text = 'Terima kasih anda sudah melakukan permohonan pada aplikasi Logistik Alat Kesehatan Pikobar. Akan tetapi, mohon maaf permohonan logistik anda kami TOLAK. Dengan alasan penolakan sebagai berikut:';
             $note = $this->agency->applicant->note;
         } else {
             $text = 'Terima kasih anda sudah melakukan permohonan pada aplikasi Logistik Alat Kesehatan Pikobar. Permohonan logistik anda kami TERIMA. Untuk pengecekan permohonan logistik anda, hubungi nomor berikut ini:';
-            $note = $hotLine;
+            $note = env('HOTLINE_PIKOBAR');
         }
         return $this->view('email.logisticemailnotification')
                     ->subject('Logistik Alat Kesehatan Pikobar')
@@ -51,7 +49,7 @@ class LogisticEmailNotification extends Mailable
                         'note' => $note,
                         'agency' => $this->agency->agency_name,
                         'text' => $text,
-                        'hotLine' => $hotLine
+                        'hotLine' => env('HOTLINE_PIKOBAR')
                     ]);
     }
 }

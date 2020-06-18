@@ -40,7 +40,7 @@ class LogisticRequestController extends Controller
                 },
                 'applicant' => function ($query) {
                     return $query->select([
-                        'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
+                        'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status'
                     ]);
                 },
                 'city' => function ($query) {
@@ -265,7 +265,7 @@ class LogisticRequestController extends Controller
             },
             'applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note'
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status'
                 ]);
             },
             'letter' => function ($query) {
