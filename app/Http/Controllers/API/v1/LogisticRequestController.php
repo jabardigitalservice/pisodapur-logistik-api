@@ -83,6 +83,14 @@ class LogisticRequestController extends Controller
                     if ($request->filled('source_data')) {
                         $query->where('source_data', '=', $request->input('source_data'));
                     }
+
+                    if ($request->filled('approval_status')) {
+                        $query->where('approval_status', '=', $request->input('approval_status'));
+                    }
+
+                    if ($request->filled('stock_checking_status')) {
+                        $query->where('stock_checking_status', '=', $request->input('stock_checking_status'));
+                    }
                 })
                 ->whereHas('masterFaskesType', function ($query) use ($request) {
                     if ($request->filled('faskes_type')) {
