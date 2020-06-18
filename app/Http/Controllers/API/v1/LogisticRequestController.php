@@ -73,7 +73,7 @@ class LogisticRequestController extends Controller
             ])
                 ->whereHas('applicant', function ($query) use ($request) {
                     if ($request->filled('verification_status')) {
-                        $query->where('verification_status', '=', $request->input('verification_status'));
+                        $query->where('verification_status', $request->input('verification_status'));
                     }
 
                     if ($request->filled('date')) {
@@ -81,20 +81,20 @@ class LogisticRequestController extends Controller
                     }
 
                     if ($request->filled('source_data')) {
-                        $query->where('source_data', '=', $request->input('source_data'));
+                        $query->where('source_data', $request->input('source_data'));
                     }
 
                     if ($request->filled('approval_status')) {
-                        $query->where('approval_status', '=', $request->input('approval_status'));
+                        $query->where('approval_status', $request->input('approval_status'));
                     }
 
                     if ($request->filled('stock_checking_status')) {
-                        $query->where('stock_checking_status', '=', $request->input('stock_checking_status'));
+                        $query->where('stock_checking_status', $request->input('stock_checking_status'));
                     }
                 })
                 ->whereHas('masterFaskesType', function ($query) use ($request) {
                     if ($request->filled('faskes_type')) {
-                        $query->where('id', '=', $request->input('faskes_type'));
+                        $query->where('id', $request->input('faskes_type'));
                     }
                 })
                 ->where(function ($query) use ($request) {
@@ -103,7 +103,7 @@ class LogisticRequestController extends Controller
                     }
 
                     if ($request->filled('city_code')) {
-                        $query->where('location_district_code', '=', $request->input('city_code'));
+                        $query->where('location_district_code', $request->input('city_code'));
                     }
                 })
                 ->orderByRaw(implode($sort))
