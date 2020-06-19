@@ -29,7 +29,10 @@ class Applicant extends Model
         'created_by',
         'updated_by',
         'verified_by',
-        'note'
+        'note',
+        'approval_status',
+        'approval_note',
+        'stock_checking_status'
     ];
 
     public function agency()

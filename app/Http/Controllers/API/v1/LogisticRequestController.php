@@ -40,7 +40,7 @@ class LogisticRequestController extends Controller
                 },
                 'applicant' => function ($query) {
                     return $query->select([
-                        'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
+                        'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status'
                     ]);
                 },
                 'city' => function ($query) {
@@ -73,7 +73,7 @@ class LogisticRequestController extends Controller
             ])
                 ->whereHas('applicant', function ($query) use ($request) {
                     if ($request->filled('verification_status')) {
-                        $query->where('verification_status', '=', $request->input('verification_status'));
+                        $query->where('verification_status', $request->input('verification_status'));
                     }
 
                     if ($request->filled('date')) {
@@ -81,12 +81,20 @@ class LogisticRequestController extends Controller
                     }
 
                     if ($request->filled('source_data')) {
-                        $query->where('source_data', '=', $request->input('source_data'));
+                        $query->where('source_data', $request->input('source_data'));
+                    }
+
+                    if ($request->filled('approval_status')) {
+                        $query->where('approval_status', $request->input('approval_status'));
+                    }
+
+                    if ($request->filled('stock_checking_status')) {
+                        $query->where('stock_checking_status', $request->input('stock_checking_status'));
                     }
                 })
                 ->whereHas('masterFaskesType', function ($query) use ($request) {
                     if ($request->filled('faskes_type')) {
-                        $query->where('id', '=', $request->input('faskes_type'));
+                        $query->where('id', $request->input('faskes_type'));
                     }
                 })
                 ->where(function ($query) use ($request) {
@@ -95,7 +103,7 @@ class LogisticRequestController extends Controller
                     }
 
                     if ($request->filled('city_code')) {
-                        $query->where('location_district_code', '=', $request->input('city_code'));
+                        $query->where('location_district_code', $request->input('city_code'));
                     }
                 })
                 ->orderByRaw(implode($sort))
@@ -265,7 +273,7 @@ class LogisticRequestController extends Controller
             },
             'applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note'
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status'
                 ]);
             },
             'letter' => function ($query) {
@@ -440,6 +448,55 @@ class LogisticRequestController extends Controller
         try {
             $agency = Agency::with('applicant')->findOrFail($agencyId);
             Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));    
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+    }
+
+    public function approval(Request $request)
+    {
+        try {
+            $rule = [
+                'applicant_id' => 'required|numeric',
+                'approval_status' => 'required|string'
+            ];
+            $rule['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+            $validator = Validator::make(
+                $request->all(),
+                array_merge($rule)
+            );
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                $applicant = Applicant::findOrFail($request->applicant_id);
+                $applicant->fill($request->input());
+                $applicant->save();
+            }
+            return response()->format(200, 'success', $applicant);
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+    }
+
+    public function stockCheking(Request $request)
+    {
+        try {
+            $rule = [
+                'applicant_id' => 'required|numeric',
+                'stock_checking_status' => 'required|string'
+            ];
+            $validator = Validator::make(
+                $request->all(),
+                array_merge($rule)
+            );
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                $applicant = Applicant::findOrFail($request->applicant_id);
+                $applicant->fill($request->input());
+                $applicant->save();
+            }
+            return response()->format(200, 'success', $applicant);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
