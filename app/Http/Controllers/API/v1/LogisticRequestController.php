@@ -40,7 +40,7 @@ class LogisticRequestController extends Controller
                 },
                 'applicant' => function ($query) {
                     return $query->select([
-                        'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status'
+                        'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
                     ]);
                 },
                 'city' => function ($query) {
@@ -166,7 +166,8 @@ class LogisticRequestController extends Controller
                     'primary_phone_number' => 'required|numeric',
                     'secondary_phone_number' => 'required|numeric',
                     'logistic_request' => 'required',
-                    'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+                    'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
+                    'application_letter_number' => 'required|string'
                 ]
             )
         );
@@ -273,7 +274,7 @@ class LogisticRequestController extends Controller
             },
             'applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status'
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
                 ]);
             },
             'letter' => function ($query) {
