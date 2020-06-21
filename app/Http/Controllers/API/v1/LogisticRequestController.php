@@ -85,7 +85,11 @@ class LogisticRequestController extends Controller
                     }
 
                     if ($request->filled('approval_status')) {
-                        $query->where('approval_status', $request->input('approval_status'));
+                        if ($request->input('approval_status') == Applicant::STATUS_APPROVED) {
+                            $query->where('approval_status', $request->input('approval_status'));
+                        } else {
+                            $query->where('approval_status', null);
+                        }
                     }
 
                     if ($request->filled('stock_checking_status')) {
