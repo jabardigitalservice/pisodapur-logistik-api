@@ -43,7 +43,7 @@ class LogisticEmailNotification extends Mailable
             $note = env('HOTLINE_PIKOBAR');
         }
         return $this->view('email.logisticemailnotification')
-                    ->subject('Logistik Alat Kesehatan Pikobar')
+                    ->subject('Penolakan Permohonan Logistik Alkes')
                     ->with([
                         'applicantName' => $this->agency->applicant->applicant_name,
                         'note' => $note,

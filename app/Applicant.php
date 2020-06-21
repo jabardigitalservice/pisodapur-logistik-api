@@ -12,6 +12,7 @@ class Applicant extends Model
 
     const STATUS_NOT_VERIFIED = 'not_verified';
     const STATUS_VERIFIED = 'verified';
+    const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
@@ -32,7 +33,8 @@ class Applicant extends Model
         'note',
         'approval_status',
         'approval_note',
-        'stock_checking_status'
+        'stock_checking_status',
+        'application_letter_number'
     ];
 
     public function agency()
@@ -54,5 +56,11 @@ class Applicant extends Model
         } else {
             return $data->name;
         }
+    }
+
+    public function getApprovalStatusAttribute($value)
+    {
+        $status = $value === self::STATUS_APPROVED ? 'Telah Disetujui' : '';
+        return $status;
     }
 }
