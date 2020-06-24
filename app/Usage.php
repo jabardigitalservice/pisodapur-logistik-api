@@ -162,4 +162,30 @@ class Usage
         }
     }
 
+    /**
+     * Request logistic stock data obtained from PT POS
+     *
+     * @return Array [ error, result_array ]
+     */
+    static function getLogisticStock($param)
+    {
+        $apiKey = env('DASHBOARD_PIKOBAR_API_KEY');
+        $url = env('DASHBOARD_PIKOBAR_API_BASE_URL') . '/api-pt-pos/master/soh';
+        $url = $param != '' ? $url . '?where=' . $param : $url;
+        $res = static::getClient()->get($url, [
+            'headers' => [
+                'accept' => 'application/json',
+                'api-key' => $apiKey,
+            ]
+        ]);
+
+        if ($res->getStatusCode() != 200) {
+            error_log("Error: dasboard executif pikobar API returning status code ".$res->getStatusCode());
+            return [ response()->format(500, 'Internal server error'), null ];
+        } else {
+            // Extract the data
+            return response()->format(200, 'success', json_decode($res->getBody())->data);
+        }
+    }
+
 }

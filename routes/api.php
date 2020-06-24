@@ -96,4 +96,9 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
     Route::get('v1/logistic-request/data/export', 'ExportLogisticRequestController@export');
     Route::post('v1/logistic-request-non-public', 'LogisticRequestController@store')->name('non-public');
+    Route::post('v1/logistic-request/approval', 'LogisticRequestController@approval');
+    Route::post('v1/logistic-request/stock-checking', 'LogisticRequestController@stockCheking');
+    
+    // STOCK
+    Route::get('v1/stock', 'StockController@index');
 });

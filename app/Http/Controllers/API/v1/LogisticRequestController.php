@@ -19,6 +19,8 @@ use App\Imports\MultipleSheetImport;
 use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\LogisticEmailNotification;
 
 class LogisticRequestController extends Controller
 {
@@ -38,7 +40,7 @@ class LogisticRequestController extends Controller
                 },
                 'applicant' => function ($query) {
                     return $query->select([
-                        'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
+                        'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
                     ]);
                 },
                 'city' => function ($query) {
@@ -71,7 +73,7 @@ class LogisticRequestController extends Controller
             ])
                 ->whereHas('applicant', function ($query) use ($request) {
                     if ($request->filled('verification_status')) {
-                        $query->where('verification_status', '=', $request->input('verification_status'));
+                        $query->where('verification_status', $request->input('verification_status'));
                     }
 
                     if ($request->filled('date')) {
@@ -79,12 +81,24 @@ class LogisticRequestController extends Controller
                     }
 
                     if ($request->filled('source_data')) {
-                        $query->where('source_data', '=', $request->input('source_data'));
+                        $query->where('source_data', $request->input('source_data'));
+                    }
+
+                    if ($request->filled('approval_status')) {
+                        if ($request->input('approval_status') == Applicant::STATUS_APPROVED) {
+                            $query->where('approval_status', $request->input('approval_status'));
+                        } else {
+                            $query->where('approval_status', null);
+                        }
+                    }
+
+                    if ($request->filled('stock_checking_status')) {
+                        $query->where('stock_checking_status', $request->input('stock_checking_status'));
                     }
                 })
                 ->whereHas('masterFaskesType', function ($query) use ($request) {
                     if ($request->filled('faskes_type')) {
-                        $query->where('id', '=', $request->input('faskes_type'));
+                        $query->where('id', $request->input('faskes_type'));
                     }
                 })
                 ->where(function ($query) use ($request) {
@@ -93,7 +107,7 @@ class LogisticRequestController extends Controller
                     }
 
                     if ($request->filled('city_code')) {
-                        $query->where('location_district_code', '=', $request->input('city_code'));
+                        $query->where('location_district_code', $request->input('city_code'));
                     }
                 })
                 ->orderByRaw(implode($sort))
@@ -156,7 +170,8 @@ class LogisticRequestController extends Controller
                     'primary_phone_number' => 'required|numeric',
                     'secondary_phone_number' => 'required|numeric',
                     'logistic_request' => 'required',
-                    'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+                    'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
+                    'application_letter_number' => 'required|string'
                 ]
             )
         );
@@ -263,7 +278,7 @@ class LogisticRequestController extends Controller
             },
             'applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note'
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
                 ]);
             },
             'letter' => function ($query) {
@@ -301,8 +316,7 @@ class LogisticRequestController extends Controller
             $applicant->verification_status = $request->verification_status;
             $applicant->note = $request->note;
             $applicant->save();
-
-            //TODO: write code to send email notification!
+            $email = $this->sendEmailNotification($applicant->agency_id, $request->verification_status);
         }
 
         return response()->format(200, 'success', $applicant);
@@ -353,8 +367,10 @@ class LogisticRequestController extends Controller
                 ])
                 ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
                 ->where('needs.agency_id', $request->agency_id)->paginate($limit);
-            $data->getCollection()->transform(function ($item, $key) {
+            $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
+            $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
                 $item->status = !$item->status ? 'not_approved' : $item->status;
+                $item->logistic_item_summary = (int)$logisticItemSummary;
                 return $item;
             });
         }
@@ -430,5 +446,64 @@ class LogisticRequestController extends Controller
         }
 
         return response()->format(200, 'success', $data);
+    }
+
+    public function sendEmailNotification($agencyId, $status)
+    {
+        try {
+            $agency = Agency::with('applicant')->findOrFail($agencyId);
+            Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));    
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+    }
+
+    public function approval(Request $request)
+    {
+        try {
+            $rule = [
+                'applicant_id' => 'required|numeric',
+                'approval_status' => 'required|string'
+            ];
+            $rule['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+            $validator = Validator::make(
+                $request->all(),
+                array_merge($rule)
+            );
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                $applicant = Applicant::findOrFail($request->applicant_id);
+                $applicant->fill($request->input());
+                $applicant->save();
+            }
+            return response()->format(200, 'success', $applicant);
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+    }
+
+    public function stockCheking(Request $request)
+    {
+        try {
+            $rule = [
+                'applicant_id' => 'required|numeric',
+                'stock_checking_status' => 'required|string'
+            ];
+            $validator = Validator::make(
+                $request->all(),
+                array_merge($rule)
+            );
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                $applicant = Applicant::findOrFail($request->applicant_id);
+                $applicant->fill($request->input());
+                $applicant->save();
+            }
+            return response()->format(200, 'success', $applicant);
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
     }
 }
