@@ -171,7 +171,7 @@ class Usage
     {
         $apiKey = env('WMS_JABAR_API_KEY');
         $apiLink = env('WMS_JABAR_BASE_URL');
-        $apiFunction = $api ? $api : 'soh_fmaterialgroup';
+        $apiFunction = $api ? $api : '/api/soh_fmaterialgroup';
         $url = $apiLink . $apiFunction;
         $url = $url;
         $res = static::getClient()->get($url, [
