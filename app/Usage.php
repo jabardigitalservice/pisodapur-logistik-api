@@ -184,7 +184,7 @@ class Usage
         ]);
 
         if ($res->getStatusCode() != 200) {
-            error_log("Error: dasboard executive pikobar API returning status code ".$res->getStatusCode());
+            error_log("Error: WMS Jabar API returning status code ".$res->getStatusCode());
             return [ response()->format(500, 'Internal server error'), null ];
         } else {
             return json_decode($res->getBody())->msg;
