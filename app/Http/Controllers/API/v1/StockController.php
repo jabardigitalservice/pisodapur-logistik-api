@@ -12,7 +12,7 @@ class StockController extends Controller
         $param = '';
         $api = '';
         
-        if ( $request->filled('material_group') ) {
+        if ($request->filled('material_group')) {
             $param = '{"material_group":"' . $request->input('material_group') . '"}';
             $api = '/api/soh_fmaterialgroup';
         }
@@ -21,9 +21,9 @@ class StockController extends Controller
         
         //grouping data berdasarkan soh_location-nya
         $data = [];      
-        if (is_array($retApi) || is_object($retApi)){  
-            foreach($retApi as $val){
-                if(!isset($data[$val->soh_location])){
+        if (is_array($retApi) || is_object($retApi)) {  
+            foreach ($retApi as $val) {
+                if (!isset($data[$val->soh_location])) {
                     $data[$val->soh_location]['soh_location'] = $val->soh_location;
                     $data[$val->soh_location]['soh_location_name'] = $val->soh_location_name;
                     $data[$val->soh_location]['UoM'] = $val->UoM;
@@ -31,8 +31,7 @@ class StockController extends Controller
                     $data[$val->soh_location]['matg_name'] = $val->matg_id;
                     $data[$val->soh_location]['stock_ok'] = $val->stock_ok;
                     $data[$val->soh_location]['stock_nok'] = $val->stock_nok;
-                }
-                else{ 
+                } else { 
                     $data[$val->soh_location]['stock_ok'] += $val->stock_ok;
                     $data[$val->soh_location]['stock_nok'] += $val->stock_nok;
                 }
@@ -41,7 +40,7 @@ class StockController extends Controller
 
         $dataFinal = [];
         // Finalisasi data yang akan dilempar
-        foreach($data as $loc => $val){
+        foreach ($data as $loc => $val) {
             $dataFinal[] = $val;
         }
 
