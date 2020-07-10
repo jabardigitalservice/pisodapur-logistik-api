@@ -26,17 +26,19 @@ class LogisticRealizationItemController extends Controller
             return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
         } else {
             $model = new LogisticRealizationItems();
-            $modelUpdate = LogisticRealizationItems::where('need_id', $request->need_id)->first();
-            if($modelUpdate){
-               $model = $modelUpdate->fill($request->input());
-            } else {
-                $model->fill($request->input());
-            }
-
-            if ($model->save()) {
-                return response()->format(200, 'success', $model);
+            $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
+            $model->fill($request->input());
+            if ($model->save()) {            
+                if($findOne){                
+                    //updating latest log realization record 
+                    $findOne->realization_id = $model->id;
+                    if ($findOne->save()) {
+                        return response()->format(200, 'success', $model);
+                    }
+                } else {
+                    return response()->format(200, 'success', $model);
+                }
             }
         }
-
     }
 }
