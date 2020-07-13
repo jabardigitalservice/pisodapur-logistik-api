@@ -3,9 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Needs extends Model
 {
+    use SoftDeletes;
+    
     const STATUS = [
         'Rendah',
         'Menengah',

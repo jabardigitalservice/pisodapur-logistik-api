@@ -206,8 +206,16 @@ class LogisticRealizationItemController extends Controller
      */
     public function destroy($id)
     {
-        $data = LogisticRealizationItems::all();
-        return response()->format(200, 'success', $data);
+        DB::beginTransaction();
+        try {  
+            $deleteNeed = Needs::where('id', $id)->delete();
+            $deleteRealization = LogisticRealizationItems::where('need_id', $id)->delete();
+            DB::commit();
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            return response()->format(400, $exception->getMessage());
+        }
+        return response()->format(200, 'success', ['id' => $id]);
     }
     
     public function needStore($request)
@@ -245,8 +253,7 @@ class LogisticRealizationItemController extends Controller
 
         return $realization;
     }
-    
-    
+        
     public function needUpdate($request, $id)
     { 
         $need = Needs::where('id', $id)->update(
