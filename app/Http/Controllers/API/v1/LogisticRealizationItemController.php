@@ -31,7 +31,8 @@ class LogisticRealizationItemController extends Controller
             if ($model->save()) {            
                 if($findOne){                
                     //updating latest log realization record 
-                    $findOne->realization_id = $model->id;
+                    $findOne->realization_ref_id = $model->id;
+                    $findOne->deleted_at = date('Y-m-d H:i:s');
                     if ($findOne->save()) {
                         return response()->format(200, 'success', $model);
                     }

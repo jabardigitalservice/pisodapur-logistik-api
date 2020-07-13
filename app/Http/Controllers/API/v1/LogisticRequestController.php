@@ -21,6 +21,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
+use App\LogisticRealizationItems;
 
 class LogisticRequestController extends Controller
 {
@@ -366,6 +367,7 @@ class LogisticRequestController extends Controller
                     }
                 ])
                 ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
+                ->whereNull('logistic_realization_items.deleted_at')
                 ->where('needs.agency_id', $request->agency_id)->paginate($limit);
             $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
             $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
