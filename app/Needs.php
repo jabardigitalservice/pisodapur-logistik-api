@@ -3,9 +3,18 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Needs extends Model
 {
+    use SoftDeletes;
+    
+    const STATUS = [
+        'Rendah',
+        'Menengah',
+        'Tinggi',
+    ];
+
     protected $fillable = [
         'agency_id',
         'applicant_id',
@@ -15,7 +24,8 @@ class Needs extends Model
         'quantity',
         'unit',
         'usage',
-        'priority'
+        'priority',
+        'created_by'
     ];
 
     public function agency()

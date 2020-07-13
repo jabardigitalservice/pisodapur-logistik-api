@@ -3,9 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LogisticRealizationItems extends Model
 {
+    use SoftDeletes;
+    
     const STATUS = [
         'delivered',
         'not_delivered',

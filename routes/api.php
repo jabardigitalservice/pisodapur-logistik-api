@@ -98,6 +98,12 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/logistic-request-non-public', 'LogisticRequestController@store')->name('non-public');
     Route::post('v1/logistic-request/approval', 'LogisticRequestController@approval');
     Route::post('v1/logistic-request/stock-checking', 'LogisticRequestController@stockCheking');
+
+    // Logistic Realization Items by Admin
+    Route::get('v1/logistic-admin-realization', 'LogisticRealizationItemController@list');
+    Route::post('v1/logistic-admin-realization', 'LogisticRealizationItemController@add');
+    Route::put('v1/logistic-admin-realization/{id}', 'LogisticRealizationItemController@update');
+    Route::delete('v1/logistic-admin-realization/{id}', 'LogisticRealizationItemController@destroy');
     
     // STOCK
     Route::get('v1/stock', 'StockController@index');
