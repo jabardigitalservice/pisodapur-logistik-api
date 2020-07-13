@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Needs extends Model
 {
+    const STATUS = [
+        'Rendah',
+        'Menengah',
+        'Tinggi',
+    ];
+
     protected $fillable = [
         'agency_id',
         'applicant_id',
@@ -15,7 +21,8 @@ class Needs extends Model
         'quantity',
         'unit',
         'usage',
-        'priority'
+        'priority',
+        'created_by'
     ];
 
     public function agency()
