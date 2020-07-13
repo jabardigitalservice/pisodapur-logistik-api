@@ -31,7 +31,7 @@ class LogisticRealizationItemController extends Controller
             $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
             $model->fill($request->input());
             if ($model->save()) {            
-                if($findOne){                
+                if ($findOne) {                
                     //updating latest log realization record 
                     $findOne->realization_ref_id = $model->id;
                     $findOne->deleted_at = date('Y-m-d H:i:s');
@@ -54,11 +54,10 @@ class LogisticRealizationItemController extends Controller
             'quantity' => 'numeric',
             'unit_id' => 'numeric',
             'usage' => 'string',
-            'priority' => 'string',
-            
+            'priority' => 'string', 
             'realization_quantity' => 'numeric',
             'realization_date' => 'date',
-            'status' => 'string',
+            'status' => 'string'
         ]);
 
         if ($validator->fails()) {
@@ -160,43 +159,44 @@ class LogisticRealizationItemController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [             
-            'agency_id' => 'numeric',
-            'applicant_id' => 'numeric',
+        $validator = Validator::make($request->all(), [    
+            'agency_id' => 'numeric',  
             'product_id' => 'numeric',
             'quantity' => 'numeric',
             'unit_id' => 'numeric',
             'usage' => 'string',
             'priority' => 'string',
-            
             'realization_quantity' => 'numeric',
             'realization_date' => 'date',
-            'status' => 'string',
+            'status' => 'string', 
+            'created_by' => 'string',
+            'updated_by' => 'string'
         ]);
 
         if ($validator->fails()) {
-            return response()->format(422,  $validator->messages()->all());
+            return response()->format(422, $validator->errors());
         } elseif (!in_array($request->priority, Needs::STATUS)) {
             return response()->json(['status' => 'fail', 'message' => 'priority value is not accepted']);
         } elseif (!in_array($request->status, LogisticRealizationItems::STATUS)) {
             return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
         } else {
-            $model = new LogisticRealizationItems();
-            $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
-            $model->fill($request->input());
-            if ($model->save()) {            
-                if($findOne){                
-                    //updating latest log realization record 
-                    $findOne->realization_ref_id = $model->id;
-                    $findOne->deleted_at = date('Y-m-d H:i:s');
-                    if ($findOne->save()) {
-                        return response()->format(200, 'success', $model);
-                    }
-                } else {
-                    return response()->format(200, 'success', $model);
-                }
+            DB::beginTransaction();
+            try {  
+                $need = $this->needUpdate($request, $id);
+                $realization = $this->realizationUpdate($request, $id);
+
+                $response = array(
+                    'need' => $need,
+                    'realization' => $realization
+                );
+                DB::commit();
+            } catch (\Exception $exception) {
+                DB::rollBack();
+                return response()->format(400, $exception->getMessage());
             }
         }
+
+        return response()->format(200, 'success', $response);
     }
 
     /**
@@ -245,4 +245,49 @@ class LogisticRealizationItemController extends Controller
 
         return $realization;
     }
+    
+    
+    public function needUpdate($request, $id)
+    { 
+        $need = Needs::where('id', $id)->update(
+            [
+                'agency_id' => $request->input('agency_id'), 
+                'product_id' => $request->input('product_id'),
+                'brand' => $request->input('brand'),
+                'quantity' => $request->input('quantity'),
+                'unit' => $request->input('unit_id'),
+                'usage' => $request->input('usage'),
+                'priority' => $request->input('priority'),
+                'created_by' => 'admin'
+            ]
+        );
+
+        return $need;
+    }
+
+    public function realizationUpdate($request, $id)
+    {
+        $model = new LogisticRealizationItems();
+        $findOne = LogisticRealizationItems::where('need_id', $id)->orderBy('created_at', 'desc')->first();
+        $model->fill(
+            [ 
+                'need_id' => $id,
+                'agency_id' => $request->input('agency_id'),
+                'product_id' => $request->input('product_id'), 
+                'realization_quantity' => $request->input('realization_quantity'),
+                'unit_id' => $request->input('unit_id'),
+                'realization_date' => $request->input('realization_date'),
+                'status' => $request->input('status'),
+            ]
+        );
+        $model->save();
+        if ($findOne) {                
+            //updating latest log realization record 
+            $findOne->realization_ref_id = $model->id;
+            $findOne->deleted_at = date('Y-m-d H:i:s');
+            $findOne->save();
+        }
+        return $model;
+    }
+    
 }
