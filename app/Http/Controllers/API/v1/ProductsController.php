@@ -29,6 +29,7 @@ class ProductsController extends Controller
             }
 
             $query->where('products.is_imported', false);
+            $query->where('products.material_group_status', 1);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -44,7 +45,7 @@ class ProductsController extends Controller
      */
     public function show($id)
     {
-        return Product::findOrFail($id);
+        return Product::where('material_group_status', 1)->where('id', $id)->firstOrFail();
     }
 
     public function productUnit($id)
@@ -56,6 +57,7 @@ class ProductsController extends Controller
                     ->where('master_unit.is_imported', false);
             })
             ->where('products.id', $id)
+            ->where('products.material_group_status', 1)
             ->get();
     }
 
@@ -79,6 +81,7 @@ class ProductsController extends Controller
                 $join->on('product_unit.unit_id', '=', 'master_unit.id');
             })
             ->where('applicants.verification_status', 'verified')
+            ->where('products.material_group_status', 1)
             ->whereBetween('applicants.updated_at', [$startDate, $endDate])
             ->groupBy('products.id');
 
