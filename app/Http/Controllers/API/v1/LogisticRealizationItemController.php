@@ -225,7 +225,7 @@ class LogisticRealizationItemController extends Controller
                 'unit_id' => $request->input('unit_id'),
                 'realization_date' => $request->input('realization_date'),
                 'status' => $request->input('status'),
-                'updated_by' => JWTAuth::user()->roles
+                'updated_by' => JWTAuth::user()->id
             ]
         );
         $model->save();
