@@ -340,7 +340,7 @@ class LogisticRequestController extends Controller
                 'needs.id',
                 'needs.agency_id',
                 'needs.applicant_id',
-                'needs.product_id',
+                'logistic_realization_items.product_id',
                 'needs.item',
                 'needs.brand',
                 'needs.quantity',
@@ -368,6 +368,7 @@ class LogisticRequestController extends Controller
                 ])
                 ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
                 ->whereNull('logistic_realization_items.deleted_at')
+                ->orderBy('needs.id')
                 ->where('needs.agency_id', $request->agency_id)->paginate($limit);
             $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
             $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
