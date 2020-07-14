@@ -7,19 +7,23 @@ use App\Http\Controllers\Controller;
 use App\LogisticRealizationItems;
 use Validator;
 use DB;
+use JWTAuth;
+use App\User;
 
 class LogisticRealizationItemController extends Controller
 {
     public function store(Request $request)
-    {
+    {        
+        if (!in_array(JWTAuth::user()->roles, User::ADMIN_ROLE)) {
+            return response()->format(404, 'You cannot access this page', null);
+        }
+
         $validator = Validator::make($request->all(), [
             'need_id' => 'numeric',
             'quantity' => 'numeric',
             'unit_id' => 'numeric',
             'realization_date' => 'date',
-            'status' => 'string',
-            'created_by' => 'string',
-            'updated_by' => 'string'
+            'status' => 'string'
         ]);
         if ($validator->fails()) {
             return response()->format(422,  $validator->messages()->all());
@@ -30,7 +34,7 @@ class LogisticRealizationItemController extends Controller
             $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
             $model->fill($request->input());
             if ($model->save()) {            
-                if ($findOne) {                
+                if ($findOne) {
                     //updating latest log realization record 
                     $findOne->realization_ref_id = $model->id;
                     $findOne->deleted_at = date('Y-m-d H:i:s');
@@ -45,7 +49,11 @@ class LogisticRealizationItemController extends Controller
     }
 
     public function add(Request $request)
-    {
+    {    
+        if (!in_array(JWTAuth::user()->roles, User::ADMIN_ROLE)) {
+            return response()->format(404, 'You cannot access this page', null);
+        }
+
         $validator = Validator::make($request->all(), [             
             'agency_id' => 'numeric', 
             'product_id' => 'numeric', 
@@ -86,6 +94,10 @@ class LogisticRealizationItemController extends Controller
      */
     public function list(Request $request)
     {
+        if (!in_array(JWTAuth::user()->roles, User::ADMIN_ROLE)) {
+            return response()->format(404, 'You cannot access this page', null);
+        }
+
         $validator = Validator::make(
             $request->all(),
             array_merge(
@@ -97,7 +109,7 @@ class LogisticRealizationItemController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
             $limit = $request->filled('limit') ? $request->input('limit') : 10;
-            $data = LogisticRealizationItems::where('created_by', '999999')
+            $data = LogisticRealizationItems::whereNotNull('created_by')
             ->with([
                 'product' => function ($query) {
                     return $query->select(['id', 'name']);
@@ -122,15 +134,17 @@ class LogisticRealizationItemController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!in_array(JWTAuth::user()->roles, User::ADMIN_ROLE)) {
+            return response()->format(404, 'You cannot access this page', null);
+        }
+
         $validator = Validator::make($request->all(), [    
             'agency_id' => 'numeric',  
             'product_id' => 'numeric', 
             'unit_id' => 'numeric', 
             'realization_quantity' => 'numeric',
             'realization_date' => 'date',
-            'status' => 'string', 
-            'created_by' => 'string',
-            'updated_by' => 'string'
+            'status' => 'string'
         ]);
 
         if ($validator->fails()) {
@@ -162,6 +176,10 @@ class LogisticRealizationItemController extends Controller
      */
     public function destroy($id)
     {
+        if (!in_array(JWTAuth::user()->roles, User::ADMIN_ROLE)) {
+            return response()->format(404, 'You cannot access this page', null);
+        }
+        
         DB::beginTransaction();
         try {   
             $deleteRealization = LogisticRealizationItems::where('id', $id)->delete();
@@ -172,6 +190,9 @@ class LogisticRealizationItemController extends Controller
         }
         return response()->format(200, 'success', ['id' => $id]);
     }
+
+
+    // Utilities Function Below Here
 
     public function realizationStore($request)
     {
@@ -184,7 +205,7 @@ class LogisticRealizationItemController extends Controller
                 'unit_id' => $request->input('unit_id'),
                 'realization_date' => $request->input('realization_date'),
                 'status' => $request->input('status'),
-                'created_by' => 999999
+                'created_by' => JWTAuth::user()->id
             ]
         );
 
@@ -204,7 +225,7 @@ class LogisticRealizationItemController extends Controller
                 'unit_id' => $request->input('unit_id'),
                 'realization_date' => $request->input('realization_date'),
                 'status' => $request->input('status'),
-                'created_by' => 999999
+                'updated_by' => JWTAuth::user()->roles
             ]
         );
         $model->save();
