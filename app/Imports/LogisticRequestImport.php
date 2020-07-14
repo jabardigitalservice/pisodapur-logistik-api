@@ -247,6 +247,7 @@ class LogisticRequestImport implements ToCollection, WithStartRow
         if (!$product) {
             $product = Product::create([
                 'name' => $productName,
+                'material_group_status' => 1,
                 'is_imported' => true
             ]);
         }
