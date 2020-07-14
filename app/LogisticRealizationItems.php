@@ -14,7 +14,8 @@ class LogisticRealizationItems extends Model
         'not_delivered',
         'approved',
         'not_approved',
-        'not_avalivable'
+        'not_avalivable',
+        'replaced'
     ];
 
     protected $table = 'logistic_realization_items';
