@@ -4,16 +4,21 @@ namespace App\Http\Controllers\API\v1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Usage;
+use App\Product;
 
 class StockController extends Controller
 {
     public function index(Request $request)
     {
         $param = '';
+        $product = [];
         $api = '';
         
-        if ($request->filled('material_group')) {
-            $param = '{"material_group":"' . $request->input('material_group') . '"}';
+        if ($request->filled('id')) {
+            $product = Product::find($request->input('id'));
+            $materialGroupId = $product->material_group;
+            
+            $param = '{"material_group":"' . $materialGroupId . '"}';
             $api = '/api/soh_fmaterialgroup';
         }
 
@@ -38,8 +43,8 @@ class StockController extends Controller
             }
         }
 
-        $dataFinal = [];
         // Finalisasi data yang akan dilempar
+        $dataFinal = [];
         foreach ($data as $loc => $val) {
             $dataFinal[] = $val;
         }
