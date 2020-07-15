@@ -45,19 +45,18 @@ class ProductsController extends Controller
      */
     public function show($id)
     {
-        return Product::where('material_group_status', 1)->where('id', $id)->firstOrFail();
+        return Product::where('id', $id)->firstOrFail();
     }
 
     public function productUnit($id)
     {
         return Product::select('products.id', 'products.name', 'product_unit.unit_id', 'master_unit.unit')
-            ->join('product_unit', 'product_unit.product_id', '=', 'products.id')
-            ->join('master_unit', function ($join) {
+            ->leftJoin('product_unit', 'product_unit.product_id', '=', 'products.id')
+            ->leftJoin('master_unit', function ($join) {
                 $join->on('product_unit.unit_id', '=', 'master_unit.id')
                     ->where('master_unit.is_imported', false);
             })
-            ->where('products.id', $id)
-            ->where('products.material_group_status', 1)
+            ->where('products.id', $id) 
             ->get();
     }
 
