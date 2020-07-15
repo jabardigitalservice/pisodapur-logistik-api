@@ -340,7 +340,7 @@ class LogisticRequestController extends Controller
                 'needs.id',
                 'needs.agency_id',
                 'needs.applicant_id',
-                'logistic_realization_items.product_id',
+                'needs.product_id',
                 'needs.item',
                 'needs.brand',
                 'needs.quantity',
