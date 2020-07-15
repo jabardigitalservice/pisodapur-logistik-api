@@ -107,4 +107,21 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     
     // STOCK
     Route::get('v1/stock', 'StockController@index');
+
+    // Outgoing Letter Management
+    Route::get('v1/outgoing-letter', 'OutgoingLetterController@index');
+    Route::get('v1/outgoing-letter/{id}', 'OutgoingLetterController@show');
+    Route::post('v1/outgoing-letter', 'OutgoingLetterController@store');
+    Route::put('v1/outgoing-letter/{id}', 'OutgoingLetterController@update');
+    Route::delete('v1/outgoing-letter/{id}', 'OutgoingLetterController@destroy');
+    Route::get('v1/outgoing-letter/upload', 'OutgoingLetterController@upload');
+
+    //Request Letter Management
+    Route::get('v1/request-letter', 'LetterController@index');
+    Route::get('v1/request-letter/{id}', 'LetterController@show');
+    Route::post('v1/request-letter', 'LetterController@store');
+    Route::put('v1/request-letter/{id}', 'LetterController@update');
+    Route::delete('v1/request-letter/{id}', 'LetterController@destroy');
+    Route::get('v1/request-letter/upload', 'LetterController@upload');
+
 });

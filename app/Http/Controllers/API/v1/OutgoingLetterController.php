@@ -1,9 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API\v1;
 
 use App\OutgoingLetter;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Validator;
+use JWTAuth;
 
 class OutgoingLetterController extends Controller
 {
@@ -12,19 +15,35 @@ class OutgoingLetterController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-    }
+        $data = [];
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        if (!JWTAuth::user()->id) {
+            return response()->format(404, 'You cannot access this page', null);
+        } else {
+            $limit = $request->filled('limit') ? $request->input('limit') : 10;
+            $sort = $request->filled('sort') ? ['letter_date ' . $request->input('sort') ] : ['letter_date ASC'];
+
+            try {
+                $data = OutgoingLetter::where('user_id',  JWTAuth::user()->id)
+                ->where(function ($query) use ($request) {
+                    if ($request->filled('letter_number')) {
+                        $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
+                    }
+
+                    if ($request->filled('letter_date')) {
+                        $query->where('letter_date', $request->input('letter_date'));
+                    }
+                })         
+                ->orderByRaw(implode($sort))
+                ->paginate($limit);
+            } catch (\Exception $exception) {
+                return response()->format(400, $exception->getMessage());
+            }
+        }
+
+        return response()->format(200, 'success', $data);
     }
 
     /**
@@ -34,8 +53,7 @@ class OutgoingLetterController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
-        //
+    { 
     }
 
     /**
