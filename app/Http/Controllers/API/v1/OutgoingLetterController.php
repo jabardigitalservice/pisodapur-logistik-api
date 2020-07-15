@@ -54,6 +54,39 @@ class OutgoingLetterController extends Controller
      */
     public function store(Request $request)
     { 
+        $response = [];
+        $validator = Validator::make(
+            $request->all(),
+            array_merge(
+                [
+                    'letter_number' => 'required',
+                    'letter_date' => 'required',
+                    'letter_request' => 'required',
+                ]
+            )
+        );
+
+        if ($validator->fails()) {
+            return response()->format(422, $validator->errors());
+        } else {
+            DB::beginTransaction();
+            try {
+                $outgoing_letter = $this->outgoingLetterStore($request);
+                $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
+
+                $request_letter = $this->requestLetterStore($request);
+
+                $response = array(
+                    'outgoing_letter' => $outgoing_letter,
+                    'request_letter' => $request_letter,
+                );
+            } catch (\Exception $exception) {
+                DB::rollBack();
+                return response()->format(400, $exception->getMessage());
+            }
+        }
+
+        return response()->format(200, 'success', new LogisticRequestResource($response));
     }
 
     /**
@@ -64,7 +97,7 @@ class OutgoingLetterController extends Controller
      */
     public function show(OutgoingLetter $outgoingLetter)
     {
-        //
+        
     }
 
     /**
@@ -99,5 +132,17 @@ class OutgoingLetterController extends Controller
     public function destroy(OutgoingLetter $outgoingLetter)
     {
         //
+    }  
+
+    /**
+     * Store Outgoing Letter
+     *
+     * @param  \App\OutgoingLetter  $outgoingLetter
+     * @return \Illuminate\Http\Response
+     */
+    public function outgoingLetterStore($request)
+    {
+        $outgoing_letter = OutgoingLetter::create($request->all());
+        return $outgoing_letter;
     }
 }
