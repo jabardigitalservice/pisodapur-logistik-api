@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\API\v1;
 
 use App\OutgoingLetter;
+use App\RequestLetter;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator;
 use JWTAuth;
+use DB;
 
 class OutgoingLetterController extends Controller
 {
@@ -55,38 +57,46 @@ class OutgoingLetterController extends Controller
     public function store(Request $request)
     { 
         $response = [];
-        $validator = Validator::make(
-            $request->all(),
-            array_merge(
-                [
-                    'letter_number' => 'required',
-                    'letter_date' => 'required',
-                    'letter_request' => 'required',
-                ]
-            )
-        );
-
-        if ($validator->fails()) {
-            return response()->format(422, $validator->errors());
+        if (!JWTAuth::user()->id) {
+            return response()->format(404, 'You cannot access this page', null);
         } else {
-            DB::beginTransaction();
-            try {
-                $outgoing_letter = $this->outgoingLetterStore($request);
-                $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
+            $validator = Validator::make(
+                $request->all(),
+                array_merge(
+                    [
+                        'letter_number' => 'required',
+                        'letter_date' => 'required',
+                        'letter_request' => 'required',
+                    ]
+                )
+            );
 
-                $request_letter = $this->requestLetterStore($request);
+            if ($validator->fails()) {
+                return response()->format(422, $validator->errors());
+            } else {
+                DB::beginTransaction();
+                try {
+                    $request->request->add(['user_id' => JWTAuth::user()->id]);
+                    $request->request->add(['status' =>  OutgoingLetter::STATUS[0]]);
+                    $outgoing_letter = $this->outgoingLetterStore($request);
+                    
+                    $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
+                    $request_letter = $this->requestLetterStore($request);
 
-                $response = array(
-                    'outgoing_letter' => $outgoing_letter,
-                    'request_letter' => $request_letter,
-                );
-            } catch (\Exception $exception) {
-                DB::rollBack();
-                return response()->format(400, $exception->getMessage());
+                    $response = array(
+                        'outgoing_letter' => $outgoing_letter,
+                        'request_letter' => $request_letter,
+                    );
+
+                    DB::commit();
+                } catch (\Exception $exception) {
+                    DB::rollBack();
+                    return response()->format(400, $exception->getMessage());
+                }
             }
         }
-
-        return response()->format(200, 'success', new LogisticRequestResource($response));
+        
+        return response()->format(200, 'success', $response);
     }
 
     /**
@@ -144,5 +154,27 @@ class OutgoingLetterController extends Controller
     {
         $outgoing_letter = OutgoingLetter::create($request->all());
         return $outgoing_letter;
+    }
+
+    /**
+     * Store Request Letter
+     *
+     * @param  \App\OutgoingLetter  $outgoingLetter
+     * @return \Illuminate\Http\Response
+     */
+    public function requestLetterStore($request)
+    {
+        $response = [];
+        foreach (json_decode($request->input('letter_request'), true) as $key => $value) {
+            $request_letter = RequestLetter::create(
+                [
+                    'outgoing_letter_id' => $request->input('outgoing_letter_id'), 
+                    'applicant_id' => $value['applicant_id']
+                ]
+            );
+            $response[] = $request_letter;
+        }
+
+        return $response;
     }
 }

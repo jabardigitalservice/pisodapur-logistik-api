@@ -8,4 +8,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class RequestLetter extends Model
 {
     use SoftDeletes;
+    protected $table = 'request_letters';
+    
+    protected $fillable = [
+        'outgoing_letter_id',
+        'applicant_id',
+        'created_at',
+        'updated_at',
+        'deleted_at'
+    ];
 }
