@@ -14,7 +14,7 @@ class LogisticRealizationItems extends Model
         'not_delivered',
         'approved',
         'not_approved',
-        'not_avalivable',
+        'not_available',
         'replaced'
     ];
 
