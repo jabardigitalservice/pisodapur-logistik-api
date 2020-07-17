@@ -164,40 +164,6 @@ class OutgoingLetterController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\OutgoingLetter  $outgoingLetter
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(OutgoingLetter $outgoingLetter)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\OutgoingLetter  $outgoingLetter
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, OutgoingLetter $outgoingLetter)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\OutgoingLetter  $outgoingLetter
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(OutgoingLetter $outgoingLetter)
-    {
-        //
-    }  
-
-    /**
      * Store Outgoing Letter
      *
      * @param  \App\OutgoingLetter  $outgoingLetter
@@ -228,7 +194,6 @@ class OutgoingLetterController extends Controller
 
         return $response;
     }
-
 
     /**
      * getRealizationData
