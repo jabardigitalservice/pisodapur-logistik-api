@@ -109,15 +109,7 @@ class LogisticRealizationItemController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
             $limit = $request->filled('limit') ? $request->input('limit') : 10;
-            $data = LogisticRealizationItems::whereNotNull('created_by')
-            ->with([
-                'product' => function ($query) {
-                    return $query->select(['id', 'name']);
-                },
-                'unit' => function ($query) {
-                    return $query->select(['id', 'unit']);
-                }
-            ]) 
+            $data = LogisticRealizationItems::whereNotNull('created_by') 
             ->whereNull('logistic_realization_items.deleted_at')
             ->orderBy('id')
             ->where('agency_id', $request->agency_id)
@@ -225,7 +217,7 @@ class LogisticRealizationItemController extends Controller
                 'unit_id' => $request->input('unit_id'),
                 'realization_date' => $request->input('realization_date'),
                 'status' => $request->input('status'),
-                'updated_by' => JWTAuth::user()->id
+                'created_by' => JWTAuth::user()->id
             ]
         );
         $model->save();
