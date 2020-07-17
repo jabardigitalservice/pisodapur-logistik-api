@@ -20,30 +20,25 @@ class OutgoingLetterController extends Controller
      */
     public function index(Request $request)
     {
-        $data = [];
+        $data = []; 
+        $limit = $request->input('limit', 10);
+        $sort = $request->filled('sort') ? ['letter_date ' . $request->input('sort') ] : ['letter_date ASC'];
 
-        if (!JWTAuth::user()->id) {
-            return response()->format(404, 'You cannot access this page', null);
-        } else {
-            $limit = $request->input('limit', 10);
-            $sort = $request->filled('sort') ? ['letter_date ' . $request->input('sort') ] : ['letter_date ASC'];
+        try {
+            $data = OutgoingLetter::where('user_id',  JWTAuth::user()->id)
+            ->where(function ($query) use ($request) {
+                if ($request->filled('letter_number')) {
+                    $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
+                }
 
-            try {
-                $data = OutgoingLetter::where('user_id',  JWTAuth::user()->id)
-                ->where(function ($query) use ($request) {
-                    if ($request->filled('letter_number')) {
-                        $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
-                    }
-
-                    if ($request->filled('letter_date')) {
-                        $query->where('letter_date', $request->input('letter_date'));
-                    }
-                })         
-                ->orderByRaw(implode($sort))
-                ->paginate($limit);
-            } catch (\Exception $exception) {
-                return response()->format(400, $exception->getMessage());
-            }
+                if ($request->filled('letter_date')) {
+                    $query->where('letter_date', $request->input('letter_date'));
+                }
+            })         
+            ->orderByRaw(implode($sort))
+            ->paginate($limit);
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
         }
 
         return response()->format(200, 'success', $data);
@@ -58,42 +53,38 @@ class OutgoingLetterController extends Controller
     public function store(Request $request)
     { 
         $response = [];
-        if (!JWTAuth::user()->id) {
-            return response()->format(404, 'You cannot access this page', null);
+        $validator = Validator::make(
+            $request->all(),
+            array_merge(
+                [
+                    'letter_number' => 'required',
+                    'letter_date' => 'required',
+                    'letter_request' => 'required',
+                ]
+            )
+        );
+
+        if ($validator->fails()) {
+            return response()->format(422, $validator->errors());
         } else {
-            $validator = Validator::make(
-                $request->all(),
-                array_merge(
-                    [
-                        'letter_number' => 'required',
-                        'letter_date' => 'required',
-                        'letter_request' => 'required',
-                    ]
-                )
-            );
+            DB::beginTransaction();
+            try {
+                $request->request->add(['user_id' => JWTAuth::user()->id]);
+                $request->request->add(['status' =>  OutgoingLetter::STATUS[0]]);
+                $outgoing_letter = $this->outgoingLetterStore($request);
+                
+                $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
+                $request_letter = $this->requestLetterStore($request);
 
-            if ($validator->fails()) {
-                return response()->format(422, $validator->errors());
-            } else {
-                DB::beginTransaction();
-                try {
-                    $request->request->add(['user_id' => JWTAuth::user()->id]);
-                    $request->request->add(['status' =>  OutgoingLetter::STATUS[0]]);
-                    $outgoing_letter = $this->outgoingLetterStore($request);
-                    
-                    $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
-                    $request_letter = $this->requestLetterStore($request);
+                $response = array(
+                    'outgoing_letter' => $outgoing_letter,
+                    'request_letter' => $request_letter,
+                );
 
-                    $response = array(
-                        'outgoing_letter' => $outgoing_letter,
-                        'request_letter' => $request_letter,
-                    );
-
-                    DB::commit();
-                } catch (\Exception $exception) {
-                    DB::rollBack();
-                    return response()->format(400, $exception->getMessage());
-                }
+                DB::commit();
+            } catch (\Exception $exception) {
+                DB::rollBack();
+                return response()->format(400, $exception->getMessage());
             }
         }
         
@@ -110,54 +101,48 @@ class OutgoingLetterController extends Controller
     {
         $data = [];
 
-        if (!JWTAuth::user()->id) {
-            return response()->format(404, 'You cannot access this page', null);
-        } else {
-            $limit = $request->input('limit', 10);
-            try {
-                $outgoingLetter = OutgoingLetter::find($id);
-                $requestLetter = RequestLetter::select(
-                    'request_letters.id',
-                    'request_letters.outgoing_letter_id',
-                    'request_letters.applicant_id',
-                    'applicants.application_letter_number',
-                    'applicants.agency_id',
-                    'agency.agency_name',
-                    'agency.location_district_code',
-                    'districtcities.kemendagri_kabupaten_nama',
-                    'applicants.applicant_name',
-                    DB::raw('0 as realization_total'),
-                    DB::raw('"" as realization_date')
-                )
-                ->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
-                ->join('agency', 'agency.id', '=', 'applicants.agency_id')
-                ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
-                ->where(function ($query) use ($request) {
-                    if ($request->filled('application_letter_number')) {
-                        $query->where('applicants.application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%");
-                    }
-
-                })
-                ->where('request_letters.outgoing_letter_id', $id)
-                ->orderBy('request_letters.id')
-                ->paginate($limit);
-
-                $requestLetterProcess = [];
-                foreach ($requestLetter as $key => $val) {
-                    $requestLetterProcess[] = $this->getRealizationData($val);
+        $limit = $request->input('limit', 10);
+        try {
+            $outgoingLetter = OutgoingLetter::find($id);
+            $requestLetter = RequestLetter::select(
+                'request_letters.id',
+                'request_letters.outgoing_letter_id',
+                'request_letters.applicant_id',
+                'applicants.application_letter_number',
+                'applicants.agency_id',
+                'agency.agency_name',
+                'agency.location_district_code',
+                'districtcities.kemendagri_kabupaten_nama',
+                'applicants.applicant_name',
+                DB::raw('0 as realization_total'),
+                DB::raw('"" as realization_date')
+            )
+            ->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
+            ->join('agency', 'agency.id', '=', 'applicants.agency_id')
+            ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
+            ->where(function ($query) use ($request) {
+                if ($request->filled('application_letter_number')) {
+                    $query->where('applicants.application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%");
                 }
 
-                $requestLetter = $requestLetterProcess;
+            })
+            ->where('request_letters.outgoing_letter_id', $id)
+            ->orderBy('request_letters.id')
+            ->paginate($limit);
 
-                $data = [
-                    'id' => $id,
-                    'request' => $request->all(),
-                    'outgoing_letter' => $outgoingLetter,
-                    'request_letter' => $requestLetter
-                ];
-            } catch (\Exception $exception) {
-                return response()->format(400, $exception->getMessage());
+            $requestLetterProcess = [];
+            foreach ($requestLetter as $key => $val) {
+                $requestLetterProcess[] = $this->getRealizationData($val);
             }
+
+            $requestLetter = $requestLetterProcess;
+
+            $data = [
+                'outgoing_letter' => $outgoingLetter,
+                'request_letter' => $requestLetter
+            ];
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
         }
 
         return response()->format(200, 'success', $data);
