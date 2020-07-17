@@ -20,9 +20,6 @@ class OutgoingLetter extends Model
         'letter_number',
         'letter_date',
         'status',
-        'filename',
-        'created_at',
-        'updated_at',
-        'deleted_at'
+        'filename'
     ];
 }

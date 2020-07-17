@@ -12,9 +12,6 @@ class RequestLetter extends Model
     
     protected $fillable = [
         'outgoing_letter_id',
-        'applicant_id',
-        'created_at',
-        'updated_at',
-        'deleted_at'
+        'applicant_id'
     ];
 }
