@@ -25,7 +25,7 @@ class OutgoingLetterController extends Controller
         if (!JWTAuth::user()->id) {
             return response()->format(404, 'You cannot access this page', null);
         } else {
-            $limit = $request->filled('limit') ? $request->input('limit') : 10;
+            $limit = $request->input('limit', 10);
             $sort = $request->filled('sort') ? ['letter_date ' . $request->input('sort') ] : ['letter_date ASC'];
 
             try {
@@ -113,7 +113,7 @@ class OutgoingLetterController extends Controller
         if (!JWTAuth::user()->id) {
             return response()->format(404, 'You cannot access this page', null);
         } else {
-            $limit = $request->filled('limit') ? $request->input('limit') : 10;
+            $limit = $request->input('limit', 10);
             try {
                 $outgoingLetter = OutgoingLetter::find($id);
                 $requestLetter = RequestLetter::select(

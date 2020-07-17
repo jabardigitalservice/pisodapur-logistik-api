@@ -108,7 +108,7 @@ class LogisticRealizationItemController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
-            $limit = $request->filled('limit') ? $request->input('limit') : 10;
+            $limit = $request->input('limit', 10);
             $data = LogisticRealizationItems::whereNotNull('created_by') 
             ->whereNull('logistic_realization_items.deleted_at')
             ->orderBy('id')
