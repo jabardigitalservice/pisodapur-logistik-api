@@ -20,6 +20,16 @@ class Agency extends Model
         'created_at',
         'updated_at'
     ];
+    
+    protected function getCreatedAtAttribute($value)
+    {
+        return date('Y-m-d H:i:s', strtotime($value . ' + 7 Hours'));
+    }
+
+    protected function getUpdatedAtAttribute($value)
+    {
+        return date('Y-m-d H:i:s', strtotime($value . ' + 7 Hours'));
+    }
 
     public function masterFaskesType()
     {
