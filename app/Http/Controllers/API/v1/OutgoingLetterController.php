@@ -70,7 +70,7 @@ class OutgoingLetterController extends Controller
             DB::beginTransaction();
             try {
                 $request->request->add(['user_id' => JWTAuth::user()->id]);
-                $request->request->add(['status' =>  OutgoingLetter::STATUS[0]]);
+                $request->request->add(['status' =>  OutgoingLetter::APPROVED]);
                 $outgoing_letter = $this->outgoingLetterStore($request);
                 
                 $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
