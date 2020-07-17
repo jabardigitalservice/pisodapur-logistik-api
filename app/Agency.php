@@ -16,20 +16,8 @@ class Agency extends Model
         'location_district_code',
         'location_subdistrict_code',
         'location_village_code',
-        'location_address',
-        'created_at',
-        'updated_at'
+        'location_address'
     ];
-    
-    protected function getCreatedAtAttribute($value)
-    {
-        return date('Y-m-d H:i:s', strtotime($value . ' + 7 Hours'));
-    }
-
-    protected function getUpdatedAtAttribute($value)
-    {
-        return date('Y-m-d H:i:s', strtotime($value . ' + 7 Hours'));
-    }
 
     public function masterFaskesType()
     {
