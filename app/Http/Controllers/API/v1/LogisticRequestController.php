@@ -335,7 +335,7 @@ class LogisticRequestController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
-            $limit = $request->filled('limit') ? $request->input('limit') : 10;
+            $limit = $request->input('limit', 10);
             $data = Needs::select(
                 'needs.id',
                 'needs.agency_id',

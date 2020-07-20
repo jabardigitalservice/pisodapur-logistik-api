@@ -107,4 +107,11 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     
     // STOCK
     Route::get('v1/stock', 'StockController@index');
+
+    // Outgoing Letter Management
+    Route::get('v1/outgoing-letter', 'OutgoingLetterController@index');
+    Route::get('v1/outgoing-letter/{id}', 'OutgoingLetterController@show');
+    Route::post('v1/outgoing-letter', 'OutgoingLetterController@store');
+    Route::put('v1/outgoing-letter/{id}', 'OutgoingLetterController@update');
+
 });
