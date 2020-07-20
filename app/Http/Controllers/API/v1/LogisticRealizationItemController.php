@@ -9,6 +9,7 @@ use Validator;
 use DB;
 use JWTAuth;
 use App\User;
+use App\Needs;
 
 class LogisticRealizationItemController extends Controller
 {
@@ -32,6 +33,8 @@ class LogisticRealizationItemController extends Controller
         } else {
             $model = new LogisticRealizationItems();
             $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
+            unset($request['id']);
+            $request['unit_id'] = $request->input('unit_id', 1);
             $model->fill($request->input());
             if ($model->save()) {            
                 if ($findOne) {
@@ -109,11 +112,23 @@ class LogisticRealizationItemController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
             $limit = $request->input('limit', 10);
-            $data = LogisticRealizationItems::whereNotNull('created_by') 
-            ->whereNull('logistic_realization_items.deleted_at')
-            ->orderBy('id')
-            ->where('agency_id', $request->agency_id)
-            ->paginate($limit);
+            $data = LogisticRealizationItems::with([
+                    'product' => function ($query) {
+                        return $query->select(['id', 'name']);
+                    },
+                    'unit' => function ($query) {
+                        return $query->select(['id', 'unit']);
+                    }
+                ]) 
+                ->whereNotNull('created_by')
+                ->orderBy('logistic_realization_items.id') 
+                ->where('logistic_realization_items.agency_id', $request->agency_id)->paginate($limit);
+            $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
+            $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
+                $item->status = !$item->status ? 'not_approved' : $item->status;
+                $item->logistic_item_summary = (int)$logisticItemSummary;
+                return $item;
+            });
         }
 
         return response()->format(200, 'success', $data);
@@ -205,29 +220,24 @@ class LogisticRealizationItemController extends Controller
     }
 
     public function realizationUpdate($request, $id)
-    {
-        $model = new LogisticRealizationItems();
+    { 
         $findOne = LogisticRealizationItems::find($id);
-        $model->fill(
-            [ 
-                'need_id' => $id,
-                'agency_id' => $request->input('agency_id'),
-                'product_id' => $request->input('product_id'), 
-                'realization_quantity' => $request->input('realization_quantity'),
-                'unit_id' => $request->input('unit_id'),
-                'realization_date' => $request->input('realization_date'),
-                'status' => $request->input('status'),
-                'created_by' => JWTAuth::user()->id
-            ]
-        );
-        $model->save();
         if ($findOne) {                
-            //updating latest log realization record 
-            $findOne->realization_ref_id = $model->id;
-            $findOne->deleted_at = date('Y-m-d H:i:s');
+            //updating latest log realization recor
+            $findOne->fill(
+                [  
+                    'agency_id' => $request->input('agency_id'),
+                    'product_id' => $request->input('product_id'), 
+                    'realization_quantity' => $request->input('realization_quantity'),
+                    'unit_id' => $request->input('unit_id'),
+                    'realization_date' => $request->input('realization_date'),
+                    'status' => $request->input('status'),
+                    'updated_by' => JWTAuth::user()->id
+                ]
+            );  
             $findOne->save();
         }
-        return $model;
+        return $findOne;
     }
     
 }
