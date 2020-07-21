@@ -351,7 +351,7 @@ class LogisticRequestController extends Controller
                 'needs.updated_at',
                 'logistic_realization_items.need_id',
                 'logistic_realization_items.realization_quantity',
-                'logistic_realization_items.unit_id',
+                DB::raw('IFNULL(logistic_realization_items.unit_id, needs.unit) as unit_id'),
                 'logistic_realization_items.realization_date',
                 'logistic_realization_items.status',
                 'logistic_realization_items.realization_quantity',
