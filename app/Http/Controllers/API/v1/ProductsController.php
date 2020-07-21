@@ -50,7 +50,12 @@ class ProductsController extends Controller
 
     public function productUnit($id)
     {
-        return Product::select('products.id', 'products.name', 'product_unit.unit_id', 'master_unit.unit')
+        $data = Product::select(
+                'products.id', 
+                'products.name',  
+                DB::raw('IFNULL(product_unit.unit_id, 1) as unit_id'),
+                DB::raw('IFNULL(master_unit.unit, "PCS") as unit')
+            )
             ->leftJoin('product_unit', 'product_unit.product_id', '=', 'products.id')
             ->leftJoin('master_unit', function ($join) {
                 $join->on('product_unit.unit_id', '=', 'master_unit.id')
@@ -58,6 +63,8 @@ class ProductsController extends Controller
             })
             ->where('products.id', $id) 
             ->get();
+            
+        return $data;
     }
 
     public function productRequest(Request $request)
