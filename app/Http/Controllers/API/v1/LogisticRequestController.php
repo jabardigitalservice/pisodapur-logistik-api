@@ -42,7 +42,7 @@ class LogisticRequestController extends Controller
                 'applicant' => function ($query) {
                     return $query->select([
                         'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
-                    ]);
+                    ])->where('is_deleted', 0);
                 },
                 'city' => function ($query) {
                     return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
@@ -74,7 +74,7 @@ class LogisticRequestController extends Controller
             ])
                 ->whereHas('applicant', function ($query) use ($request) {
                     if ($request->filled('verification_status')) {
-                        $query->where('verification_status', $request->input('verification_status'));
+                        $query->where('is_deleted', 0)->where('verification_status', $request->input('verification_status'));
                     }
 
                     if ($request->filled('date')) {
@@ -280,7 +280,7 @@ class LogisticRequestController extends Controller
             'applicant' => function ($query) {
                 return $query->select([
                     'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
-                ]);
+                ])->where('is_deleted', 0);
             },
             'letter' => function ($query) {
                 return $query->select(['id', 'agency_id', 'letter']);
@@ -313,7 +313,10 @@ class LogisticRequestController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
-            $applicant = Applicant::findOrFail($request->applicant_id);
+            $applicant = Applicant::where('id', $request->applicant_id)
+                ->where('is_deleted', 0)
+                ->firstOrFail();
+
             $applicant->verification_status = $request->verification_status;
             $applicant->note = $request->note;
             $applicant->save();
@@ -419,6 +422,7 @@ class LogisticRequestController extends Controller
         try {
             $total = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
+                            ->where('is_deleted', 0)
                             ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
@@ -427,12 +431,14 @@ class LogisticRequestController extends Controller
             $totalPikobar = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'pikobar')
+                            ->where('is_deleted', 0)
                             ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
             $totalDinkesprov = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'dinkes_provinsi')
+                            ->where('is_deleted', 0)
                             ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
@@ -453,7 +459,11 @@ class LogisticRequestController extends Controller
     public function sendEmailNotification($agencyId, $status)
     {
         try {
-            $agency = Agency::with('applicant')->findOrFail($agencyId);
+            $agency = Agency::with(['applicant' => function ($query) {
+                return $query->select([
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                ])->where('is_deleted', 0);
+            }])->findOrFail($agencyId);
             Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));    
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
@@ -475,7 +485,7 @@ class LogisticRequestController extends Controller
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             } else {
-                $applicant = Applicant::findOrFail($request->applicant_id);
+                $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', 0)->firstOrFail();
                 $applicant->fill($request->input());
                 $applicant->save();
             }
@@ -499,7 +509,7 @@ class LogisticRequestController extends Controller
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             } else {
-                $applicant = Applicant::findOrFail($request->applicant_id);
+                $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', 0)->firstOrFail();
                 $applicant->fill($request->input());
                 $applicant->save();
             }
