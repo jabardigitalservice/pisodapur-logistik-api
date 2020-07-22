@@ -91,7 +91,7 @@ class AreasController extends Controller
                 'agency' => function ($query) use ($startDate, $endDate){
                     return $query->join('applicants', 'applicants.agency_id', 'agency.id')
                             ->where('applicants.verification_status', 'verified')
-                            ->where('applicants.is_deleted', 0)
+                            ->where('applicants.is_deleted', '!=', 1)
                             ->whereBetween('applicants.updated_at', [$startDate, $endDate]);
                 }
                 ]);
