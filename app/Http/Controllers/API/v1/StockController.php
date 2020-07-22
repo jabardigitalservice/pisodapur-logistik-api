@@ -28,17 +28,18 @@ class StockController extends Controller
         $data = [];      
         if (is_array($retApi) || is_object($retApi)) {  
             foreach ($retApi as $val) {
-                if (!isset($data[$val->soh_location])) {
-                    $data[$val->soh_location]['soh_location'] = $val->soh_location;
-                    $data[$val->soh_location]['soh_location_name'] = $val->soh_location_name;
-                    $data[$val->soh_location]['UoM'] = $val->UoM;
-                    $data[$val->soh_location]['matg_id'] = $val->matg_id;
-                    $data[$val->soh_location]['matg_name'] = $val->matg_id;
-                    $data[$val->soh_location]['stock_ok'] = $val->stock_ok;
-                    $data[$val->soh_location]['stock_nok'] = $val->stock_nok;
+                if (!isset($data[$val->material_id.'-'.$val->soh_location])) {
+                    $data[$val->material_id.'-'.$val->soh_location]['soh_location'] = $val->soh_location;
+                    $data[$val->material_id.'-'.$val->soh_location]['soh_location_name'] = $val->soh_location_name;
+                    $data[$val->material_id.'-'.$val->soh_location]['UoM'] = $val->UoM;
+                    $data[$val->material_id.'-'.$val->soh_location]['matg_id'] = $val->matg_id;
+                    $data[$val->material_id.'-'.$val->soh_location]['material_id'] = $val->material_id;
+                    $data[$val->material_id.'-'.$val->soh_location]['matg_name'] = $val->material_name;
+                    $data[$val->material_id.'-'.$val->soh_location]['stock_ok'] = $val->stock_ok;
+                    $data[$val->material_id.'-'.$val->soh_location]['stock_nok'] = $val->stock_nok;
                 } else { 
-                    $data[$val->soh_location]['stock_ok'] += $val->stock_ok;
-                    $data[$val->soh_location]['stock_nok'] += $val->stock_nok;
+                    $data[$val->material_id.'-'.$val->soh_location]['stock_ok'] += $val->stock_ok;
+                    $data[$val->material_id.'-'.$val->soh_location]['stock_nok'] += $val->stock_nok;
                 }
             }
         }
