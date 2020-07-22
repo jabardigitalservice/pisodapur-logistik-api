@@ -20,4 +20,12 @@ class OutgoingLetter extends Model
         'status',
         'filename'
     ];
+
+    /**
+     * Get total request letter by Outgoing Letter ID
+     */
+    public function requestLetter()
+    {
+        return $this->hasMany('App\RequestLetter', 'outgoing_letter_id', 'id');
+    }
 }
