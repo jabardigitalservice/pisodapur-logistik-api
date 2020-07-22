@@ -25,7 +25,17 @@ class OutgoingLetterController extends Controller
         $sort = $request->filled('sort') ? ['letter_date ' . $request->input('sort') ] : ['letter_date ASC'];
 
         try {
-            $data = OutgoingLetter::where('user_id',  JWTAuth::user()->id)
+            $data = OutgoingLetter::select(
+                'id', 
+                'letter_number', 
+                'letter_date', 
+                DB::raw('0 as request_letter_total'), 
+                'status', 
+                'filename', 
+                'created_at', 
+                'updated_at'
+            ) 
+            ->where('user_id',  JWTAuth::user()->id)
             ->where(function ($query) use ($request) {
                 if ($request->filled('letter_number')) {
                     $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
@@ -37,6 +47,10 @@ class OutgoingLetterController extends Controller
             })         
             ->orderByRaw(implode($sort))
             ->paginate($limit);
+
+            foreach ($data as $key => $value) {
+                $data[$key]['request_letter_total'] = $this->getRequestLetterTotal($value['id']);
+            }
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -203,5 +217,11 @@ class OutgoingLetterController extends Controller
         
         $data = $request_letter;
         return $data;
+    }
+
+    public function getRequestLetterTotal($id)
+    {
+        $data = RequestLetter::where('outgoing_letter_id', $id)->get();
+        return count($data);
     }
 }

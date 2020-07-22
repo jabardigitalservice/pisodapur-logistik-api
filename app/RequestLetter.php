@@ -14,4 +14,9 @@ class RequestLetter extends Model
         'outgoing_letter_id',
         'applicant_id'
     ];
+
+    public function outgoingLetter()
+    {
+        return $this->belongsToMany('App\OutgoingLetter', 'id', 'outgoing_letter_id');
+    }
 }
