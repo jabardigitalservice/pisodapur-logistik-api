@@ -94,6 +94,40 @@ class RequestLetterController extends Controller
         return response()->format(200, 'success', $data);
     }
 
+    public function store(Request $request)
+    {
+        $response = [];
+        $validator = Validator::make(
+            $request->all(),
+            array_merge(
+                [
+                    'outgoing_letter_id' => 'required|numeric',
+                    'letter_request' => 'required',
+                ]
+            )
+        );
+
+        if ($validator->fails()) {
+            return response()->format(422, $validator->errors());
+        } else {
+            DB::beginTransaction();
+            try {                  
+                $request_letter = $this->requestLetterStore($request);
+
+                $response = array(
+                    'request_letter' => $request_letter,
+                );
+
+                DB::commit();
+            } catch (\Exception $exception) {
+                DB::rollBack();
+                return response()->format(400, $exception->getMessage());
+            }
+        }
+        
+        return response()->format(200, 'success', $response);
+    }
+
     /**
      * getRealizationData
      * 
@@ -115,5 +149,29 @@ class RequestLetterController extends Controller
         
         $data = $request_letter;
         return $data; 
+    }
+
+    /**
+     * Store Request Letter
+     * 
+     */
+    public function requestLetterStore($request)
+    {
+        $response = [];
+        foreach (json_decode($request->input('letter_request'), true) as $key => $value) {
+            $find = RequestLetter::where('applicant_id', '=', $value['applicant_id'])->firstOrFail();
+            if (!$find) {
+
+                $request_letter = RequestLetter::create(
+                    [
+                    'outgoing_letter_id' => $request->input('outgoing_letter_id'), 
+                    'applicant_id' => $value['applicant_id']
+                    ]
+                );
+            }
+            $response[] = $request_letter;
+        }
+
+        return $response;
     }
 }
