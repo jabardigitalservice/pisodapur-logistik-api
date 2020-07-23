@@ -9,6 +9,7 @@ use Validator;
 use JWTAuth;
 use DB; 
 use App\LogisticRealizationItems;
+use App\Applicant;
 
 class RequestLetterController extends Controller
 {
@@ -126,6 +127,19 @@ class RequestLetterController extends Controller
         }
         
         return response()->format(200, 'success', $response);
+    }
+
+    public function searchByLetterNumber(Request $request)
+    {
+        $data = [];
+
+        try { 
+            $data = Applicant::select('id', 'application_letter_number')->where('application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%")->get();
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+
+        return response()->format(200, 'success', $data);
     }
 
     /**
