@@ -59,6 +59,41 @@ class RequestLetterController extends Controller
         return response()->format(200, 'success', $data);
     }
 
+    public function show($id)
+    {
+        $data = [];
+
+        try { 
+            $requestLetter = RequestLetter::select(
+                'request_letters.id',
+                'request_letters.outgoing_letter_id',
+                'request_letters.applicant_id',
+                'applicants.application_letter_number',
+                'applicants.agency_id',
+                'agency.agency_name',
+                'agency.location_district_code',
+                'districtcities.kemendagri_kabupaten_nama',
+                'applicants.applicant_name',
+                DB::raw('0 as realization_total'),
+                DB::raw('"" as realization_date')
+            )
+            ->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
+            ->join('agency', 'agency.id', '=', 'applicants.agency_id')
+            ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
+            ->where('request_letters.id', $id)
+            ->orderBy('request_letters.id')
+            ->get();
+
+            foreach ($requestLetter as $key => $val) {
+                $data[] = $this->getRealizationData($val);
+            }
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+
+        return response()->format(200, 'success', $data);
+    }
+
     /**
      * getRealizationData
      * 
