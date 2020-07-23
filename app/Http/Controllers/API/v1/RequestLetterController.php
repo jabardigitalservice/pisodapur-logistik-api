@@ -129,6 +129,31 @@ class RequestLetterController extends Controller
         return response()->format(200, 'success', $response);
     }
 
+    public function update(request $request, $id)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            array_merge(
+                [
+                    'applicant_id' => 'required|numeric',
+                ]
+            )
+        );
+
+        if ($validator->fails()) {
+            return response()->format(422, $validator->errors());
+        } else {
+            try {                  
+                $data = RequestLetter::find($id);
+                $data->applicant_id = $request->applicant_id;
+                $data->save();
+            } catch (\Exception $exception) {
+                return response()->format(400, $exception->getMessage());
+            }
+        }
+        return response()->format(200, 'success');
+    }
+
     public function searchByLetterNumber(Request $request)
     {
         $data = [];
@@ -173,7 +198,7 @@ class RequestLetterController extends Controller
     {
         $response = [];
         foreach (json_decode($request->input('letter_request'), true) as $key => $value) {
-            $find = RequestLetter::where('applicant_id', '=', $value['applicant_id'])->firstOrFail();
+            $find = RequestLetter::where('applicant_id', '=', $value['applicant_id'])->first();
             if (!$find) {
 
                 $request_letter = RequestLetter::create(
@@ -182,8 +207,8 @@ class RequestLetterController extends Controller
                     'applicant_id' => $value['applicant_id']
                     ]
                 );
+                $response[] = $request_letter;
             }
-            $response[] = $request_letter;
         }
 
         return $response;
