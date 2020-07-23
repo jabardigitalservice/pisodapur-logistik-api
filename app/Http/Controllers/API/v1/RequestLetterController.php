@@ -172,7 +172,9 @@ class RequestLetterController extends Controller
         $data = [];
 
         try { 
-            $data = Applicant::select('id', 'application_letter_number')->where('application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%")->get();
+            $list = Applicant::select('id', 'application_letter_number')->where('application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%")->get();
+            //filterization
+            $data = $this->checkAlreadyPicked($list);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -225,5 +227,22 @@ class RequestLetterController extends Controller
         }
 
         return $response;
+    }
+
+    /**
+     * This function is to check number letter already pick or not
+     * return array of object
+     */
+    public function checkAlreadyPicked($list)
+    {
+        $data = [];
+        foreach ($list as $key => $value) {
+            $find = RequestLetter::where('applicant_id', $value['id'])->first();
+            if (!$find) {
+                $data[] = $value;
+            }
+        }
+
+        return $data; 
     }
 }
