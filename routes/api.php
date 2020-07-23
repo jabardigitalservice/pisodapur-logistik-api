@@ -114,4 +114,11 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/outgoing-letter', 'OutgoingLetterController@store');
     Route::put('v1/outgoing-letter/{id}', 'OutgoingLetterController@update');
 
+    //Request Letter Management
+    Route::get('v1/application-letter', 'RequestLetterController@index');
+    Route::get('v1/application-letter/search-by-letter-number', 'RequestLetterController@searchByLetterNumber');
+    Route::get('v1/application-letter/{id}', 'RequestLetterController@show');
+    Route::post('v1/application-letter', 'RequestLetterController@store');
+    Route::put('v1/application-letter/{id}', 'RequestLetterController@update');
+    Route::delete('v1/application-letter/{id}', 'RequestLetterController@destroy');
 });
