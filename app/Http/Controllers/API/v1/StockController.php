@@ -47,7 +47,9 @@ class StockController extends Controller
         // Finalisasi data yang akan dilempar
         $dataFinal = [];
         foreach ($data as $loc => $val) {
-            $dataFinal[] = $val;
+            if ($val['stock_ok'] > 0 || $val['stock_nok'] > 0) {
+                $dataFinal[] = $val;
+            }
         }
 
         return response()->format(200, true, $dataFinal);
