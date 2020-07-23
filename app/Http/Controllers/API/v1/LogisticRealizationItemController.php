@@ -35,6 +35,7 @@ class LogisticRealizationItemController extends Controller
             $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
             unset($request['id']);
             $request['unit_id'] = $request->input('unit_id', 1);
+            $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
             $model->fill($request->input());
             if ($model->save()) {            
                 if ($findOne) {
@@ -74,7 +75,8 @@ class LogisticRealizationItemController extends Controller
             return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
         } else {
             DB::beginTransaction();
-            try {    
+            try {                    
+                $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
                 $realization = $this->realizationStore($request);
 
                 $response = array(
@@ -160,7 +162,8 @@ class LogisticRealizationItemController extends Controller
             return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
         } else {
             DB::beginTransaction();
-            try {   
+            try {                   
+                $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
                 $realization = $this->realizationUpdate($request, $id);
 
                 $response = array( 
@@ -207,6 +210,7 @@ class LogisticRealizationItemController extends Controller
             [ 
                 'need_id' => $request->input('need_id'),
                 'agency_id' => $request->input('agency_id'),
+                'applicant_id' => $request->input('applicant_id'),
                 'product_id' => $request->input('product_id'), 
                 'realization_quantity' => $request->input('realization_quantity'),
                 'unit_id' => $request->input('unit_id'),
@@ -227,6 +231,7 @@ class LogisticRealizationItemController extends Controller
             $findOne->fill(
                 [  
                     'agency_id' => $request->input('agency_id'),
+                    'applicant_id' => $request->input('applicant_id'),
                     'product_id' => $request->input('product_id'), 
                     'realization_quantity' => $request->input('realization_quantity'),
                     'unit_id' => $request->input('unit_id'),

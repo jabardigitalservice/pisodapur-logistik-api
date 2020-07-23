@@ -23,6 +23,7 @@ class LogisticRealizationItems extends Model
     protected $fillable = [
         'id',
         'agency_id',
+        'applicant_id',
         'need_id',
         'product_id',
         'realization_quantity',
