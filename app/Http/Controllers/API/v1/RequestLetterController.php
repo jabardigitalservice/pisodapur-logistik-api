@@ -154,6 +154,19 @@ class RequestLetterController extends Controller
         return response()->format(200, 'success');
     }
 
+    public function destroy($id)
+    {
+        DB::beginTransaction();
+        try {   
+            $deleteRealization = RequestLetter::where('id', $id)->delete();
+            DB::commit();
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            return response()->format(400, $exception->getMessage());
+        }
+        return response()->format(200, 'success', ['id' => $id]);
+    }
+
     public function searchByLetterNumber(Request $request)
     {
         $data = [];
