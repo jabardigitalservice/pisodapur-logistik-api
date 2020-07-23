@@ -416,8 +416,8 @@ class LogisticRequestController extends Controller
     public function requestSummary(Request $request)
     {
 
-        $startDate = $request->filled('start_date') ? $request->input('start_date') : '2020-01-01';
-        $endDate = $request->filled('end_date') ? $request->input('end_date') : date('Y-m-d');
+        $startDate = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
+        $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
 
         try {
             $total = Applicant::Select('applicants.id')
@@ -426,7 +426,11 @@ class LogisticRequestController extends Controller
                             ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
-            $lastUpdate = $endDate;
+            $lastUpdate = Applicant::Select('applicants.updated_at')
+                            ->where('verification_status', 'verified')
+                            ->where('is_deleted', '!=' , 1) 
+                            ->orderBy('updated_at', 'desc')
+                            ->first();
 
             $totalPikobar = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
@@ -446,7 +450,7 @@ class LogisticRequestController extends Controller
                 'total_request' => $total,
                 'total_pikobar' => $totalPikobar,
                 'total_dinkesprov' => $totalDinkesprov,
-                'last_update' => $lastUpdate
+                'last_update' => $lastUpdate ? date('Y-m-d H:i:s', strtotime($lastUpdate->updated_at)) : '2020-01-01 00:00:00'
             ];
             
         } catch (\Exception $exception) {
