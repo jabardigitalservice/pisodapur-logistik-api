@@ -121,4 +121,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/application-letter', 'RequestLetterController@store');
     Route::put('v1/application-letter/{id}', 'RequestLetterController@update');
     Route::delete('v1/application-letter/{id}', 'RequestLetterController@destroy');
+
+    //Logistic Realization Integrate with PosLog
+    Route::get('v1/logistic-realization/products', 'MaterialsController@index');
 });

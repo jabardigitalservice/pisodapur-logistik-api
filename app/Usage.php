@@ -191,4 +191,88 @@ class Usage
         }
     }
 
+    /**
+     * Request logistic stock data obtained from PT POS
+     *
+     * @return Array [ error, result_array ]
+     */
+    static function getMaterialPosLog()
+    {
+        $apiKey = env('WMS_JABAR_API_KEY');
+        $apiLink = env('WMS_JABAR_BASE_URL');
+        $apiFunction = '/api/material';
+        $url = $apiLink . $apiFunction; 
+        $res = static::getClient()->get($url, [
+            'headers' => [
+                'accept' => 'application/json',
+                'Content-Type' => 'application/json',
+                'api-key' => $apiKey, 
+            ], 
+        ]);
+
+        if ($res->getStatusCode() != 200) {
+            error_log("Error: WMS Jabar API returning status code ".$res->getStatusCode());
+            return [ response()->format(500, 'Internal server error'), null ];
+        } else {
+            return json_decode($res->getBody())->msg;
+        }
+    }
+
+    /**
+     * Request Material logistic stock data obtained from PT POS
+     *
+     * @return Array [ error, result_array ]
+     */
+    static function getMaterialStock($id)
+    {
+        $param = '{"material_id":"' . $id . '"}';
+        $apiKey = env('WMS_JABAR_API_KEY');
+        $apiLink = env('WMS_JABAR_BASE_URL');
+        $apiFunction = '/api/soh_fmaterial';
+        $url = $apiLink . $apiFunction; 
+        $res = static::getClient()->get($url, [
+            'headers' => [
+                'accept' => 'application/json',
+                'Content-Type' => 'application/json',
+                'api-key' => $apiKey, 
+            ],
+            'body' => $param
+        ]);
+
+        if ($res->getStatusCode() != 200) {
+            error_log("Error: WMS Jabar API returning status code ".$res->getStatusCode());
+            return [ response()->format(500, 'Internal server error'), null ];
+        } else {
+            return json_decode($res->getBody())->msg;
+        }
+    }
+
+    /**
+     * Request logistic stock data obtained from PT POS
+     *
+     * @return Array [ error, result_array ]
+     */
+    static function getLogisticStockByLocation($id)
+    {
+        $param = '{"soh_location":"' . $id . '"}';
+        $apiKey = env('WMS_JABAR_API_KEY');
+        $apiLink = env('WMS_JABAR_BASE_URL');
+        $apiFunction = '/api/soh_flocation';
+        $url = $apiLink . $apiFunction;
+        $res = static::getClient()->get($url, [
+            'headers' => [
+                'accept' => 'application/json',
+                'Content-Type' => 'application/json',
+                'api-key' => $apiKey, 
+            ],
+            'body' => $param
+        ]);
+
+        if ($res->getStatusCode() != 200) {
+            error_log("Error: WMS Jabar API returning status code ".$res->getStatusCode());
+            return [ response()->format(500, 'Internal server error'), null ];
+        } else {
+            return json_decode($res->getBody())->msg;
+        }
+    }
 }
