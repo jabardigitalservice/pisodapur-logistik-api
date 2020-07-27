@@ -124,5 +124,6 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
 
     //Logistic Realization Integrate with PosLog
     Route::get('v1/logistic-realization/products', 'MaterialsController@index');    
+    Route::get('v1/logistic-realization/product-units/{id}', 'MaterialsController@productUnitList');
     Route::get('v1/logistic-realization/sync', 'LogisticRealizationItemController@integrateMaterial');
 });

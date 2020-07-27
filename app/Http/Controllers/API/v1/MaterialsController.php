@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Usage;
 use App\SohLocation;
+use App\WmsJabarMaterial;
 
 class MaterialsController extends Controller
 {
@@ -25,8 +26,8 @@ class MaterialsController extends Controller
                 if (!isset($data[$material->material_id])) {
                     if ($material->stock_ok > 0) {
                         $data[$material->material_id] = [
-                            'material_id' => $material->material_id,
-                            'material_name' => $material->material_name,
+                            'id' => $material->material_id,
+                            'name' => $material->material_name,
                             'matg_id' => $material->matg_id,
                             'UoM' => $material->UoM,
                             'stock_ok' => $material->stock_ok
@@ -46,76 +47,15 @@ class MaterialsController extends Controller
         $data = $dataFinal;
         return response()->format(200, 'success', $data);
     }
-
+    
     /**
-     * Show the form for creating a new resource.
+     * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function productUnitList($id)
     {
-        $data = [];
-        return response()->format(200, 'success', $data);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        $data = [];
-        return response()->format(200, 'success', $data);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Material  $Material
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Material $Material)
-    {
-        $data = [];
-        return response()->format(200, 'success', $data);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Material  $Material
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Material $Material)
-    {
-        $data = [];
-        return response()->format(200, 'success', $data);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Material  $Material
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Material $Material)
-    {
-        $data = [];
-        return response()->format(200, 'success', $data);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Material  $Material
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Material $Material)
-    {
-        $data = [];
+        $data = WmsJabarMaterial::select('id', 'UoM as name')->where('material_id', $id)->get();
         return response()->format(200, 'success', $data);
     }
 }
