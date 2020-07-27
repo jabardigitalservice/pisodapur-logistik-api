@@ -14,12 +14,9 @@ class StockController extends Controller
         $product = [];
         $api = '';
         
-        if ($request->filled('id')) {
-            $product = Product::find($request->input('id'));
-            $materialGroupId = $product->material_group;
-            
-            $param = '{"material_group":"' . $materialGroupId . '"}';
-            $api = '/api/soh_fmaterialgroup';
+        if ($request->filled('id')) {            
+            $param = '{"material_id":"' . $request->input('id') . '"}';
+            $api = '/api/soh_fmaterial';
         }
 
         $retApi = Usage::getLogisticStock($param, $api);
