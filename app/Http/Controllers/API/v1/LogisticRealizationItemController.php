@@ -23,7 +23,8 @@ class LogisticRealizationItemController extends Controller
 
         $validator = Validator::make($request->all(), [
             'need_id' => 'numeric',
-            'quantity' => 'numeric',
+            'product_id' => 'string', //referring to material_id from WMS Jabar is string
+            'realization_quantity' => 'numeric',
             'unit_id' => 'numeric',
             'realization_date' => 'date',
             'status' => 'string'
@@ -38,6 +39,14 @@ class LogisticRealizationItemController extends Controller
             unset($request['id']);
             $request['unit_id'] = $request->input('unit_id', 1);
             $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
+
+            //Get Material from PosLog by Id
+            $material = WmsJabarMaterial::where('material_id', $request->product_id)->first();
+            if ($material) {
+                $request['product_name'] = $material->material_name;
+                $request['realization_unit'] = $material->uom;
+                $request['material_group'] = $material->matg_id;
+            }
             $model->fill($request->input());
             if ($model->save()) {            
                 if ($findOne) {
@@ -62,7 +71,7 @@ class LogisticRealizationItemController extends Controller
 
         $validator = Validator::make($request->all(), [             
             'agency_id' => 'numeric', 
-            'product_id' => 'numeric', 
+            'product_id' => 'string', 
             'unit_id' => 'numeric',
             'usage' => 'string',
             'priority' => 'string',
@@ -78,7 +87,16 @@ class LogisticRealizationItemController extends Controller
         } else {
             DB::beginTransaction();
             try {                    
+                $request['unit_id'] = $request->input('unit_id', 1);
                 $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
+    
+                //Get Material from PosLog by Id
+                $material = WmsJabarMaterial::where('material_id', $request->product_id)->first();
+                if ($material) {
+                    $request['product_name'] = $material->material_name;
+                    $request['realization_unit'] = $material->uom;
+                    $request['material_group'] = $material->matg_id;
+                }
                 $realization = $this->realizationStore($request);
 
                 $response = array(
@@ -116,18 +134,10 @@ class LogisticRealizationItemController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
             $limit = $request->input('limit', 10);
-            $data = LogisticRealizationItems::with([
-                    'product' => function ($query) {
-                        return $query->select(['id', 'name']);
-                    },
-                    'unit' => function ($query) {
-                        return $query->select(['id', 'unit']);
-                    }
-                ]) 
-                ->whereNotNull('created_by')
+            $data = LogisticRealizationItems::whereNotNull('created_by')
                 ->orderBy('logistic_realization_items.id') 
                 ->where('logistic_realization_items.agency_id', $request->agency_id)->paginate($limit);
-            $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
+            $logisticItemSummary = LogisticRealizationItems::where('agency_id', $request->agency_id)->sum('realization_quantity');
             $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
                 $item->status = !$item->status ? 'not_approved' : $item->status;
                 $item->logistic_item_summary = (int)$logisticItemSummary;
@@ -151,7 +161,7 @@ class LogisticRealizationItemController extends Controller
 
         $validator = Validator::make($request->all(), [    
             'agency_id' => 'numeric',  
-            'product_id' => 'numeric', 
+            'product_id' => 'string', 
             'unit_id' => 'numeric', 
             'realization_quantity' => 'numeric',
             'realization_date' => 'date',
@@ -165,7 +175,16 @@ class LogisticRealizationItemController extends Controller
         } else {
             DB::beginTransaction();
             try {                   
+                $request['unit_id'] = $request->input('unit_id', 1);
                 $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
+    
+                //Get Material from PosLog by Id
+                $material = WmsJabarMaterial::where('material_id', $request->product_id)->first();
+                if ($material) {
+                    $request['product_name'] = $material->material_name;
+                    $request['realization_unit'] = $material->uom;
+                    $request['material_group'] = $material->matg_id;
+                }
                 $realization = $this->realizationUpdate($request, $id);
 
                 $response = array( 
@@ -214,6 +233,9 @@ class LogisticRealizationItemController extends Controller
                 'agency_id' => $request->input('agency_id'),
                 'applicant_id' => $request->input('applicant_id'),
                 'product_id' => $request->input('product_id'), 
+                'product_name' => $request->input('product_name'), 
+                'realization_unit' => $request->input('realization_unit'), 
+                'material_group' => $request->input('material_group'), 
                 'realization_quantity' => $request->input('realization_quantity'),
                 'unit_id' => $request->input('unit_id'),
                 'realization_date' => $request->input('realization_date'),
@@ -235,6 +257,9 @@ class LogisticRealizationItemController extends Controller
                     'agency_id' => $request->input('agency_id'),
                     'applicant_id' => $request->input('applicant_id'),
                     'product_id' => $request->input('product_id'), 
+                    'product_name' => $request->input('product_name'), 
+                    'realization_unit' => $request->input('realization_unit'), 
+                    'material_group' => $request->input('material_group'), 
                     'realization_quantity' => $request->input('realization_quantity'),
                     'unit_id' => $request->input('unit_id'),
                     'realization_date' => $request->input('realization_date'),
