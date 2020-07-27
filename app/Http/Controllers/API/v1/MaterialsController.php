@@ -40,11 +40,7 @@ class MaterialsController extends Controller
         }
 
         // Finalisasi data yang akan dilempar
-        $dataFinal = [];
-        foreach ($data as $material_id => $material) {
-            $dataFinal[] = $material;
-        }
-        $data = $dataFinal;
+        $data = array_values($data);
         return response()->format(200, 'success', $data);
     }
     
