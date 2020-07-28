@@ -126,4 +126,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/logistic-realization/products', 'MaterialsController@index');    
     Route::get('v1/logistic-realization/product-units/{id}', 'MaterialsController@productUnitList');
     Route::get('v1/logistic-realization/sync', 'LogisticRealizationItemController@integrateMaterial');
+
+    //Incoming Letter Management
+    Route::get('v1/incoming-letter', 'IncomingLetterController@index');
 });
