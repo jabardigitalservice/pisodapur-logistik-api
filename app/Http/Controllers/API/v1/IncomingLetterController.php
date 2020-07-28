@@ -19,7 +19,7 @@ class IncomingLetterController extends Controller
     {
         $data = []; 
         $limit = $request->input('limit', 10);
-        $sort = $request->filled('sort') ? ['applicants.created_at ' . $request->input('sort') ] : ['applicants.created_at ASC'];
+        $sort = $request->filled('sort') ? ['applicants.application_letter_number ' . $request->input('sort') ] : ['applicants.created_at ASC'];
 
         try {
             $data = Applicant::select(
