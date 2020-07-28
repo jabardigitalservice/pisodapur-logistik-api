@@ -54,6 +54,14 @@ class IncomingLetterController extends Controller
                 $applicant->status = $find ? 'Ada Surat Keluar' : $applicant->status;
                 return $applicant;
             });
+            
+            if ($request->filled('status')) {
+                foreach ($data as $key => $applicant) {
+                    if ($applicant->status != $request->input('status')) {
+                        unset($data[$key]);
+                    }
+                }
+            }
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
