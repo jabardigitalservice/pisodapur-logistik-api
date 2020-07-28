@@ -37,7 +37,10 @@ class IncomingLetterController extends Controller
                     if ($request->filled('letter_date')) {
                         $query->whereDate('applicants.created_at', '=', $request->input('letter_date'));
                     }
-                })         
+                    if ($request->filled('district_code')) {
+                        $query->where('agency.location_district_code', '=', $request->input('district_code'));
+                    }
+                })
                 ->join('agency', 'agency.id', '=', 'applicants.agency_id')
                 ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
                 ->where('applicants.is_deleted', '!=', 1)
