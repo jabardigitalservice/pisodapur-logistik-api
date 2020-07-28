@@ -40,6 +40,9 @@ class IncomingLetterController extends Controller
                     if ($request->filled('district_code')) {
                         $query->where('agency.location_district_code', '=', $request->input('district_code'));
                     }
+                    if ($request->filled('agency_id')) {
+                        $query->where('applicants.agency_id', '=', $request->input('agency_id'));
+                    }
                 })
                 ->join('agency', 'agency.id', '=', 'applicants.agency_id')
                 ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
