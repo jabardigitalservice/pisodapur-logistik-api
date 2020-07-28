@@ -24,7 +24,7 @@ class IncomingLetterController extends Controller
         try {
             $data = Applicant::select(
                     'applicants.id',
-                    'applicants.application_letter_number',
+                    'applicants.application_letter_number as letter_number',
                     'applicants.agency_id',  
                     'agency.agency_name',  
                     'agency.location_district_code as district_code',  
@@ -42,6 +42,9 @@ class IncomingLetterController extends Controller
                     }
                     if ($request->filled('agency_id')) {
                         $query->where('applicants.agency_id', '=', $request->input('agency_id'));
+                    }
+                    if ($request->filled('letter_number')) {
+                        $query->where('applicants.application_letter_number', 'LIKE', "%{$request->input('letter_number')}%");
                     }
                 })
                 ->join('agency', 'agency.id', '=', 'applicants.agency_id')
