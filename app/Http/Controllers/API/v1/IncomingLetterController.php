@@ -33,6 +33,11 @@ class IncomingLetterController extends Controller
                     'applicants.created_at as letter_date',
                     DB::raw('"Belum Ada Surat Keluar" as status')
                 )
+                ->where(function ($query) use ($request) {
+                    if ($request->filled('letter_date')) {
+                        $query->whereDate('applicants.created_at', '=', $request->input('letter_date'));
+                    }
+                })         
                 ->join('agency', 'agency.id', '=', 'applicants.agency_id')
                 ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
                 ->where('applicants.is_deleted', '!=', 1)
