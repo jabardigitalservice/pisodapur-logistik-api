@@ -14,11 +14,17 @@ class StockController extends Controller
         $product = [];
         $api = '';
         
-        if ($request->filled('id')) {            
-            $param = '{"material_id":"' . $request->input('id') . '"}';
+        if ($request->filled('poslog_id')) {            
+            $param = '{"material_id":"' . $request->input('poslog_id') . '"}';
             $api = '/api/soh_fmaterial';
-        }
+        } else {
+            $product = Product::find($request->input('id'));
+            $materialGroupId = $product->material_group;
 
+            $param = '{"material_group":"' . $materialGroupId . '"}';
+            $api = '/api/soh_fmaterialgroup';
+        }
+            
         $retApi = Usage::getLogisticStock($param, $api);
         
         //grouping data berdasarkan soh_location-nya
