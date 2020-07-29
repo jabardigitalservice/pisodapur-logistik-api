@@ -8,18 +8,30 @@ use Illuminate\Http\Request;
 use App\Usage;
 use App\SohLocation;
 use App\WmsJabarMaterial;
+use App\Product;
 
 class MaterialsController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $data = [];
+        $material_group = '';
+        $status = '';
+        $product = [];
         $sohLocation = SohLocation::all();
+        $condition = false;
+        if ($request->filled('id') && $request->filled('status')) {
+            $product = $request->input('status') == 'approved' ? Product::find($request->input('id')) : $product;
+            $material_group = $product ? $product->material_group : $material_group;
+            $condition = true;
+        }
+
         foreach ($sohLocation as $val) {
             $materials = Usage::getLogisticStockByLocation($val['location_id']);
             foreach ($materials as $material) {
@@ -41,6 +53,13 @@ class MaterialsController extends Controller
 
         // Finalisasi data yang akan dilempar
         $data = array_values($data);
+        if ($condition) {
+            foreach ($data as $key => $val) {
+                if ($val['matg_id'] != $material_group) {
+                    unset($data[$key]);
+                } 
+            }
+        }
         return response()->format(200, 'success', $data);
     }
     
