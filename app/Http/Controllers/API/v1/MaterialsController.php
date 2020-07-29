@@ -52,7 +52,6 @@ class MaterialsController extends Controller
         }
 
         // Finalisasi data yang akan dilempar
-        $data = array_values($data);
         if ($condition) {
             foreach ($data as $key => $val) {
                 if ($val['matg_id'] != $material_group) {
@@ -60,6 +59,7 @@ class MaterialsController extends Controller
                 } 
             }
         }
+        $data = array_values($data);
         return response()->format(200, 'success', $data);
     }
     
