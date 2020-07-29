@@ -129,4 +129,5 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
 
     //Incoming Letter Management
     Route::get('v1/incoming-letter', 'IncomingLetterController@index');
+    Route::get('v1/incoming-letter/{id}', 'IncomingLetterController@show');
 });

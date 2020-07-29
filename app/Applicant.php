@@ -37,9 +37,34 @@ class Applicant extends Model
         'application_letter_number'
     ];
 
+    public function masterFaskesType()
+    {
+        return $this->hasOne('App\MasterFaskesType', 'id', 'agency_type');
+    }
+
     public function agency()
     {
-        return $this->belongsToOne('App\Agency', 'id', 'agency_id');
+        return $this->belongsTo('App\Agency', 'agency_id', 'id');
+    }
+
+    public function city()
+    {
+        return $this->belongsTo('App\City', 'location_district_code', 'kemendagri_kabupaten_kode');
+    }
+
+    public function letter()
+    {
+        return $this->hasOne('App\Letter', 'agency_id', 'id');
+    }
+
+    public function village()
+    {
+        return $this->belongsTo('App\Village', 'location_village_code', 'kemendagri_desa_kode');
+    }
+
+    public function subDistrict()
+    {
+        return $this->belongsTo('App\Subdistrict', 'location_subdistrict_code', 'kemendagri_kecamatan_kode');
     }
 
     public function getVerificationStatusAttribute($value)
