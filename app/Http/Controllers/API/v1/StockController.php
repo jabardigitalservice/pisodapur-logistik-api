@@ -55,15 +55,6 @@ class StockController extends Controller
             }
         }
 
-        if (!$dataFinal) {
-            $dataFinal = [
-                'api' => $api,
-                'param' => $param,
-                'product' => $product,
-                'retApi' => $retApi,
-            ];
-        }
-
         return response()->format(200, true, $dataFinal);
     }
 }
