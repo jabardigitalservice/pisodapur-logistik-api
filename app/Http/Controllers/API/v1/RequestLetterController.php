@@ -173,7 +173,11 @@ class RequestLetterController extends Controller
 
         try { 
             $list = Applicant::select('id', 'application_letter_number')
-                ->where('application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%")
+                ->where(function ($query) use ($request) {
+                    if ($request->filled('application_letter_number')) {
+                        $query->where('application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%");
+                    }
+                }) 
                 ->where('is_deleted', '!=', 1)
                 ->where('application_letter_number', '!=', '')
                 ->get();
