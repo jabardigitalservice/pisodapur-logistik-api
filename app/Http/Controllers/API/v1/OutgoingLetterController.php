@@ -22,7 +22,7 @@ class OutgoingLetterController extends Controller
     {
         $data = []; 
         $limit = $request->input('limit', 10);
-        $sort = $request->filled('sort') ? ['letter_date ' . $request->input('sort') ] : ['letter_date ASC'];
+        $sort = $request->filled('sort') ? ['letter_date ' . $request->input('sort') ] : ['letter_date DESC'];
 
         try {
             $data = OutgoingLetter::select(
