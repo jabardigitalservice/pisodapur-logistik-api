@@ -222,7 +222,7 @@ class OutgoingLetterController extends Controller
 
     public function getRequestLetterTotal($id)
     {
-        return $data = RequestLetter::where('outgoing_letter_id', $id)
+        return RequestLetter::where('outgoing_letter_id', $id)
         ->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
         ->where('applicants.verification_status', '=', Applicant::STATUS_VERIFIED)
         ->count();
