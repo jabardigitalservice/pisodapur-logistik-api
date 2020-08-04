@@ -11,6 +11,15 @@ class User extends Authenticatable implements JWTSubject {
     use Notifiable;
 
     /**
+     * Constanta for Admin Previledge Roles
+     */
+    const ADMIN_ROLE = [
+        'superadmin',
+        'admin',
+        'dinkesprov',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array

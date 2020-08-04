@@ -34,7 +34,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, Wit
             'applicant' => function ($query) {
                 return $query->select([
                     'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
-                ]);
+                ])->where('is_deleted', '!=' , 1);
             },
             'city' => function ($query) {
                 return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
@@ -56,7 +56,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, Wit
             }
         ])->whereHas('applicant', function ($query){
             if ($this->request->verification_status) {
-                $query->where('verification_status', $this->request->verification_status);
+                $query->where('is_deleted', '!=' , 1)->where('verification_status', $this->request->verification_status);
             }
 
             if ($this->request->date) {

@@ -21,6 +21,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
+use App\LogisticRealizationItems;
+use App\Product;
 
 class LogisticRequestController extends Controller
 {
@@ -41,7 +43,7 @@ class LogisticRequestController extends Controller
                 'applicant' => function ($query) {
                     return $query->select([
                         'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
-                    ]);
+                    ])->where('is_deleted', '!=' , 1);
                 },
                 'city' => function ($query) {
                     return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
@@ -73,7 +75,7 @@ class LogisticRequestController extends Controller
             ])
                 ->whereHas('applicant', function ($query) use ($request) {
                     if ($request->filled('verification_status')) {
-                        $query->where('verification_status', $request->input('verification_status'));
+                        $query->where('is_deleted', '!=' , 1)->where('verification_status', $request->input('verification_status'));
                     }
 
                     if ($request->filled('date')) {
@@ -279,7 +281,7 @@ class LogisticRequestController extends Controller
             'applicant' => function ($query) {
                 return $query->select([
                     'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
-                ]);
+                ])->where('is_deleted', '!=' , 1);
             },
             'letter' => function ($query) {
                 return $query->select(['id', 'agency_id', 'letter']);
@@ -312,7 +314,10 @@ class LogisticRequestController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
-            $applicant = Applicant::findOrFail($request->applicant_id);
+            $applicant = Applicant::where('id', $request->applicant_id)
+                ->where('is_deleted', '!=' , 1)
+                ->firstOrFail();
+
             $applicant->verification_status = $request->verification_status;
             $applicant->note = $request->note;
             $applicant->save();
@@ -334,7 +339,7 @@ class LogisticRequestController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
-            $limit = $request->filled('limit') ? $request->input('limit') : 10;
+            $limit = $request->input('limit', 10);
             $data = Needs::select(
                 'needs.id',
                 'needs.agency_id',
@@ -344,14 +349,19 @@ class LogisticRequestController extends Controller
                 'needs.brand',
                 'needs.quantity',
                 'needs.unit',
+                'needs.unit as unit_id',
                 'needs.usage',
                 'needs.priority',
                 'needs.created_at',
                 'needs.updated_at',
                 'logistic_realization_items.need_id',
+                'logistic_realization_items.product_id as realization_product_id',
+                'logistic_realization_items.product_name as realization_product_name',
+                'logistic_realization_items.unit_id as realization_unit_id',
+                'logistic_realization_items.realization_unit',
                 'logistic_realization_items.realization_quantity',
-                'logistic_realization_items.unit_id',
                 'logistic_realization_items.realization_date',
+                'logistic_realization_items.material_group',
                 'logistic_realization_items.status',
                 'logistic_realization_items.realization_quantity',
                 'logistic_realization_items.created_by',
@@ -365,10 +375,15 @@ class LogisticRequestController extends Controller
                         return $query->select(['id', 'unit']);
                     }
                 ])
-                ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
+                ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
+                ->orderBy('needs.id')
                 ->where('needs.agency_id', $request->agency_id)->paginate($limit);
             $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
-            $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
+            $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) { 
+                if (!$item->realization_product_name) {
+                    $product = Product::where('id', $item->realization_product_id)->first();
+                    $item->realization_product_name = $product ? $product->name : '';
+                }
                 $item->status = !$item->status ? 'not_approved' : $item->status;
                 $item->logistic_item_summary = (int)$logisticItemSummary;
                 return $item;
@@ -411,26 +426,33 @@ class LogisticRequestController extends Controller
     public function requestSummary(Request $request)
     {
 
-        $startDate = $request->filled('start_date') ? $request->input('start_date') : '2020-01-01';
-        $endDate = $request->filled('end_date') ? $request->input('end_date') : date('Y-m-d');
+        $startDate = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
+        $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
 
         try {
             $total = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
+                            ->where('is_deleted', '!=' , 1)
                             ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
-            $lastUpdate = $endDate;
+            $lastUpdate = Applicant::Select('applicants.updated_at')
+                            ->where('verification_status', 'verified')
+                            ->where('is_deleted', '!=' , 1) 
+                            ->orderBy('updated_at', 'desc')
+                            ->first();
 
             $totalPikobar = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'pikobar')
+                            ->where('is_deleted', '!=' , 1)
                             ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
             $totalDinkesprov = Applicant::Select('applicants.id')
                             ->where('verification_status', 'verified')
                             ->where('source_data', 'dinkes_provinsi')
+                            ->where('is_deleted', '!=' , 1)
                             ->whereBetween('updated_at', [$startDate, $endDate])
                             ->count();
 
@@ -438,7 +460,7 @@ class LogisticRequestController extends Controller
                 'total_request' => $total,
                 'total_pikobar' => $totalPikobar,
                 'total_dinkesprov' => $totalDinkesprov,
-                'last_update' => $lastUpdate
+                'last_update' => $lastUpdate ? date('Y-m-d H:i:s', strtotime($lastUpdate->updated_at)) : '2020-01-01 00:00:00'
             ];
             
         } catch (\Exception $exception) {
@@ -451,7 +473,11 @@ class LogisticRequestController extends Controller
     public function sendEmailNotification($agencyId, $status)
     {
         try {
-            $agency = Agency::with('applicant')->findOrFail($agencyId);
+            $agency = Agency::with(['applicant' => function ($query) {
+                return $query->select([
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                ])->where('is_deleted', '!=' , 1);
+            }])->findOrFail($agencyId);
             Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));    
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
@@ -473,7 +499,7 @@ class LogisticRequestController extends Controller
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             } else {
-                $applicant = Applicant::findOrFail($request->applicant_id);
+                $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
                 $applicant->fill($request->input());
                 $applicant->save();
             }
@@ -497,7 +523,7 @@ class LogisticRequestController extends Controller
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             } else {
-                $applicant = Applicant::findOrFail($request->applicant_id);
+                $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
                 $applicant->fill($request->input());
                 $applicant->save();
             }

@@ -98,7 +98,36 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/logistic-request-non-public', 'LogisticRequestController@store')->name('non-public');
     Route::post('v1/logistic-request/approval', 'LogisticRequestController@approval');
     Route::post('v1/logistic-request/stock-checking', 'LogisticRequestController@stockCheking');
+
+    // Logistic Realization Items by Admin
+    Route::get('v1/logistic-admin-realization', 'LogisticRealizationItemController@list');
+    Route::post('v1/logistic-admin-realization', 'LogisticRealizationItemController@add');
+    Route::put('v1/logistic-admin-realization/{id}', 'LogisticRealizationItemController@update');
+    Route::delete('v1/logistic-admin-realization/{id}', 'LogisticRealizationItemController@destroy');
     
     // STOCK
     Route::get('v1/stock', 'StockController@index');
+
+    // Outgoing Letter Management
+    Route::get('v1/outgoing-letter', 'OutgoingLetterController@index');
+    Route::get('v1/outgoing-letter/{id}', 'OutgoingLetterController@show');
+    Route::post('v1/outgoing-letter', 'OutgoingLetterController@store');
+    Route::put('v1/outgoing-letter/{id}', 'OutgoingLetterController@update');
+
+    //Request Letter Management
+    Route::get('v1/application-letter', 'RequestLetterController@index');
+    Route::get('v1/application-letter/search-by-letter-number', 'RequestLetterController@searchByLetterNumber');
+    Route::get('v1/application-letter/{id}', 'RequestLetterController@show');
+    Route::post('v1/application-letter', 'RequestLetterController@store');
+    Route::put('v1/application-letter/{id}', 'RequestLetterController@update');
+    Route::delete('v1/application-letter/{id}', 'RequestLetterController@destroy');
+
+    //Logistic Realization Integrate with PosLog
+    Route::get('v1/logistic-realization/products', 'MaterialsController@index');    
+    Route::get('v1/logistic-realization/product-units/{id}', 'MaterialsController@productUnitList');
+    Route::get('v1/logistic-realization/sync', 'LogisticRealizationItemController@integrateMaterial');
+
+    //Incoming Letter Management
+    Route::get('v1/incoming-letter', 'IncomingLetterController@index');
+    Route::get('v1/incoming-letter/{id}', 'IncomingLetterController@show');
 });

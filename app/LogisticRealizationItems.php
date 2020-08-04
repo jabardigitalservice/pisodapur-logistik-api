@@ -3,15 +3,19 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LogisticRealizationItems extends Model
 {
+    use SoftDeletes;
+    
     const STATUS = [
         'delivered',
         'not_delivered',
         'approved',
         'not_approved',
-        'not_avalivable'
+        'not_available',
+        'replaced'
     ];
 
     protected $table = 'logistic_realization_items';
@@ -19,8 +23,12 @@ class LogisticRealizationItems extends Model
     protected $fillable = [
         'id',
         'agency_id',
+        'applicant_id',
         'need_id',
         'product_id',
+        'product_name',
+        'realization_unit',
+        'material_group',
         'realization_quantity',
         'unit_id',
         'status',

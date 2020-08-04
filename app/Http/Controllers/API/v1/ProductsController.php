@@ -29,6 +29,7 @@ class ProductsController extends Controller
             }
 
             $query->where('products.is_imported', false);
+            $query->where('products.material_group_status', 1);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -44,19 +45,26 @@ class ProductsController extends Controller
      */
     public function show($id)
     {
-        return Product::findOrFail($id);
+        return Product::where('id', $id)->firstOrFail();
     }
 
     public function productUnit($id)
     {
-        return Product::select('products.id', 'products.name', 'product_unit.unit_id', 'master_unit.unit')
-            ->join('product_unit', 'product_unit.product_id', '=', 'products.id')
-            ->join('master_unit', function ($join) {
+        $data = Product::select(
+                'products.id', 
+                'products.name',  
+                DB::raw('IFNULL(product_unit.unit_id, 1) as unit_id'),
+                DB::raw('IFNULL(master_unit.unit, "PCS") as unit')
+            )
+            ->leftJoin('product_unit', 'product_unit.product_id', '=', 'products.id')
+            ->leftJoin('master_unit', function ($join) {
                 $join->on('product_unit.unit_id', '=', 'master_unit.id')
                     ->where('master_unit.is_imported', false);
             })
-            ->where('products.id', $id)
+            ->where('products.id', $id) 
             ->get();
+            
+        return $data;
     }
 
     public function productRequest(Request $request)
@@ -79,6 +87,7 @@ class ProductsController extends Controller
                 $join->on('product_unit.unit_id', '=', 'master_unit.id');
             })
             ->where('applicants.verification_status', 'verified')
+            ->where('products.material_group_status', 1)
             ->whereBetween('applicants.updated_at', [$startDate, $endDate])
             ->groupBy('products.id');
 
