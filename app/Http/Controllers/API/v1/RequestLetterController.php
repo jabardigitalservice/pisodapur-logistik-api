@@ -30,6 +30,7 @@ class RequestLetterController extends Controller
                     'request_letters.applicant_id',
                     'applicants.application_letter_number',
                     'applicants.agency_id',
+                    'applicants.verification_status',
                     'agency.agency_name',
                     'agency.location_district_code',
                     'districtcities.kemendagri_kabupaten_nama',
@@ -46,6 +47,7 @@ class RequestLetterController extends Controller
                         $query->where('applicants.application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%");
                     }    
                 })
+                ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
                 ->orderBy('request_letters.id')
                 ->paginate($limit);
  
@@ -172,13 +174,14 @@ class RequestLetterController extends Controller
         $data = [];
 
         try { 
-            $list = Applicant::select('id', 'application_letter_number')
+            $list = Applicant::select('id', 'application_letter_number, verification_status')
                 ->where(function ($query) use ($request) {
                     if ($request->filled('application_letter_number')) {
                         $query->where('application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%");
                     }
                 }) 
                 ->where('is_deleted', '!=', 1)
+                ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
                 ->where('application_letter_number', '!=', '')
                 ->get();
             //filterization

@@ -10,6 +10,7 @@ use Validator;
 use JWTAuth;
 use DB;
 use App\Needs;
+use App\Applicant;
 
 class OutgoingLetterController extends Controller
 {
@@ -22,7 +23,7 @@ class OutgoingLetterController extends Controller
     {
         $data = []; 
         $limit = $request->input('limit', 10);
-        $sort = $request->filled('sort') ? ['letter_date ' . $request->input('sort') ] : ['letter_date ASC'];
+        $sort = $request->filled('sort') ? ['letter_date ' . $request->input('sort') ] : ['letter_date DESC'];
 
         try {
             $data = OutgoingLetter::select(
@@ -221,7 +222,9 @@ class OutgoingLetterController extends Controller
 
     public function getRequestLetterTotal($id)
     {
-        $data = RequestLetter::where('outgoing_letter_id', $id)->get();
-        return count($data);
+        return RequestLetter::where('outgoing_letter_id', $id)
+        ->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
+        ->where('applicants.verification_status', '=', Applicant::STATUS_VERIFIED)
+        ->count();
     }
 }
