@@ -11,6 +11,8 @@ use JWTAuth;
 use DB;
 use App\Needs;
 use App\Applicant;
+use App\FileUpload;
+use Illuminate\Support\Facades\Storage;
 
 class OutgoingLetterController extends Controller
 {
@@ -162,6 +164,26 @@ class OutgoingLetterController extends Controller
 
         return response()->format(200, 'success', $data);
     }
+
+    public function upload(Request $request)
+    {        
+        try{
+            //Put File to folder 'outgoing_letter'
+            $path = Storage::disk('s3')->put('outgoing_letter', $request->outgoing_letter_file);
+            //Create fileupload data
+            $fileUpload = FileUpload::create(['name' => $path]);
+            //Get ID
+            $fileUploadId = $fileUpload->id;
+            //Get File Path
+            $filePath = Storage::disk('s3')->url($fileUpload->name);
+            //Update file to Outgoing Letter by ID 
+            $update = OutgoingLetter::where('id', $request->id)->update(['file' => $filePath]);
+        } catch (\Exception $exception) {
+            //Return Error Exception
+            return response()->format(400, $exception->getMessage());
+        }
+    }
+
 
     /**
      * Store Outgoing Letter
