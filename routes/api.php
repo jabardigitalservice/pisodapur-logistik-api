@@ -112,6 +112,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/outgoing-letter', 'OutgoingLetterController@index');
     Route::get('v1/outgoing-letter/{id}', 'OutgoingLetterController@show');
     Route::post('v1/outgoing-letter', 'OutgoingLetterController@store');
+    Route::post('v1/outgoing-letter/upload', 'OutgoingLetterController@upload');
     Route::put('v1/outgoing-letter/{id}', 'OutgoingLetterController@update');
 
     //Request Letter Management
