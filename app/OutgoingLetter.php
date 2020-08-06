@@ -52,8 +52,8 @@ class OutgoingLetter extends Model
     /**
      * Function to return Request Letter Total
      *
-     * @param [int] $value
-     * @return string / null
+     * @param [int] $this->id
+     * @return integer
      */
     public function getRequestLetterTotalAttribute()
     {
