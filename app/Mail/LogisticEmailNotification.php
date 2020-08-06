@@ -35,15 +35,25 @@ class LogisticEmailNotification extends Mailable
      */
     public function build()
     {
+        $subject = '[Pikobar] Permohonan Logistik Alkes';
+        $text = '';
+        $note = '';
         if ($this->status === Applicant::STATUS_REJECTED) {
-            $text = 'Terima kasih anda sudah melakukan permohonan pada aplikasi Logistik Alat Kesehatan Pikobar. Akan tetapi, mohon maaf permohonan logistik anda kami TOLAK. Dengan alasan penolakan sebagai berikut:';
+            $subject = '[Pikobar] Penolakan Permohonan Logistik Alkes';
+            $text = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Logistik Alat Kesehatan Pikobar.';
+            $text .= '<br><br>';
+            $text .= 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' tidak bisa kami penuhi.';
+            $text .= '<br><br>';
+            $text .= 'Dengan alasan penolakan sebagai berikut:'; 
             $note = $this->agency->applicant->note;
+            $note .= '<br><br>';
+            $note .= 'Mohon maaf atas ketidaknyamanan ini.';
         } else {
             $text = 'Terima kasih anda sudah melakukan permohonan pada aplikasi Logistik Alat Kesehatan Pikobar. Permohonan logistik anda kami TERIMA. Untuk pengecekan permohonan logistik anda, hubungi nomor berikut ini:';
             $note = env('HOTLINE_PIKOBAR');
         }
         return $this->view('email.logisticemailnotification')
-                    ->subject('Penolakan Permohonan Logistik Alkes')
+                    ->subject($subject)
                     ->with([
                         'applicantName' => $this->agency->applicant->applicant_name,
                         'note' => $note,
