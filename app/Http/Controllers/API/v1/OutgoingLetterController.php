@@ -118,21 +118,38 @@ class OutgoingLetterController extends Controller
     }
 
     public function upload(Request $request)
-    {        
-        try{
-            //Put File to folder 'outgoing_letter'
-            $path = Storage::disk('s3')->put('outgoing_letter', $request->outgoing_letter_file);
-            //Create fileupload data
-            $fileUpload = FileUpload::create(['name' => $path]);
-            //Get ID
-            $fileUploadId = $fileUpload->id;
-            //Get File Path
-            $filePath = Storage::disk('s3')->url($fileUpload->name);
-            //Update file to Outgoing Letter by ID 
-            $update = OutgoingLetter::where('id', $request->id)->update(['file' => $filePath]);
-        } catch (\Exception $exception) {
-            //Return Error Exception
-            return response()->format(400, $exception->getMessage());
+    {         
+        $validator = Validator::make(
+            $request->all(),
+            array_merge(
+                [
+                    'id' => 'numeric|required',
+                    'outgoing_letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+                ]
+            )
+        );
+
+        if ($validator->fails()) {
+            return response()->format(422, $validator->errors());
+        } else {
+            try{
+                //Put File to folder 'outgoing_letter'
+                $path = Storage::disk('s3')->put('outgoing_letter', $request->outgoing_letter_file);
+                //Create fileupload data
+                $fileUpload = FileUpload::create(['name' => $path]);
+                //Get ID
+                $fileUploadId = $fileUpload->id;
+                //Get File Path
+                $filePath = Storage::disk('s3')->url($fileUpload->name);
+                //Update file to Outgoing Letter by ID  
+                $update = OutgoingLetter::where('id', $request->id)->update([
+                    'file' => $fileUploadId,
+                    'status' => OutgoingLetter::APPROVED //Asumsi bahwa file yang diupload sudah bertandatangan basah
+                ]);
+            } catch (\Exception $exception) {
+                //Return Error Exception
+                return response()->format(400, $exception->getMessage());
+            }
         }
     }
 
