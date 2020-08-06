@@ -119,6 +119,7 @@ class OutgoingLetterController extends Controller
 
     public function upload(Request $request)
     {         
+        $data = [];
         $validator = Validator::make(
             $request->all(),
             array_merge(
@@ -151,6 +152,7 @@ class OutgoingLetterController extends Controller
                 return response()->format(400, $exception->getMessage());
             }
         }
+        return response()->format(200, 'success', $data);
     }
 
 
