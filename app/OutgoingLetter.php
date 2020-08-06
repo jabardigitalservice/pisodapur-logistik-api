@@ -28,4 +28,18 @@ class OutgoingLetter extends Model
     {
         return $this->hasMany('App\RequestLetter', 'outgoing_letter_id', 'id');
     }
+
+    /**
+     * Function to return Request Letter Total
+     *
+     * @param [int] $value
+     * @return string / null
+     */
+    public function getRequestLetterTotalAttribute()
+    {
+        return RequestLetter::where('outgoing_letter_id', $this->id)
+        ->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
+        ->where('applicants.verification_status', '=', Applicant::STATUS_VERIFIED)
+        ->count();
+    }
 }
