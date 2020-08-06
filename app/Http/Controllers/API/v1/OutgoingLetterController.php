@@ -34,7 +34,6 @@ class OutgoingLetterController extends Controller
                 'letter_date', 
                 DB::raw('0 as request_letter_total'), 
                 'status', 
-                'filename', 
                 'created_at', 
                 'updated_at'
             ) 
