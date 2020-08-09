@@ -181,7 +181,7 @@ class OutgoingLetterController extends Controller
     {
         $response = [];
         foreach (json_decode($request->input('letter_request'), true) as $key => $value) {
-            $request_letter = RequestLetter::create(
+            $request_letter = RequestLetter::firstOrCreate(
                 [
                     'outgoing_letter_id' => $request->input('outgoing_letter_id'), 
                     'applicant_id' => $value['applicant_id']

@@ -224,17 +224,13 @@ class RequestLetterController extends Controller
     {
         $response = [];
         foreach (json_decode($request->input('letter_request'), true) as $key => $value) {
-            $find = RequestLetter::where('applicant_id', '=', $value['applicant_id'])->first();
-            if (!$find) {
-
-                $request_letter = RequestLetter::create(
-                    [
+            $request_letter = RequestLetter::firstOrCreate(
+                [
                     'outgoing_letter_id' => $request->input('outgoing_letter_id'), 
                     'applicant_id' => $value['applicant_id']
-                    ]
-                );
-                $response[] = $request_letter;
-            }
+                ]
+            );
+            $response[] = $request_letter;
         }
 
         return $response;
