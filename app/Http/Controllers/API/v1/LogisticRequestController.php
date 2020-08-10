@@ -544,7 +544,7 @@ class LogisticRequestController extends Controller
      */
     public function track(Request $request)
     { 
-        $data = Agency::with([
+        $list = Agency::with([
             'masterFaskesType' => function ($query) {
                 return $query->select(['id', 'name']);
             },
@@ -573,6 +573,11 @@ class LogisticRequestController extends Controller
             $query->orWhere('secondary_phone_number', '=', $request->input('search'));
         })
         ->get();
+
+        $data = [
+            'total' => count($list),
+            'application' => $list
+        ];
         return response()->format(200, 'success', $data);
     }
 
