@@ -572,3 +572,67 @@ class LogisticRequestController extends Controller
         ->toSql();
         return response()->format(200, 'success', $data);
     }
+
+    /**
+     * Track Detail function
+     * - Bersifat pagination sehingga dapat menerima parameter limit, page, sorting dan filterisasi/pencarian
+     * 
+     *
+     * @return void
+     */
+    public function trackDetail(Request $request, $id)
+    {
+        
+        $limit = $request->input('limit', 10);
+        $data = Needs::select(
+            'needs.id',
+            'needs.agency_id',
+            'needs.applicant_id',
+            'needs.product_id',
+            'needs.item',
+            'needs.brand',
+            'needs.quantity',
+            'needs.unit',
+            'needs.unit as unit_id',
+            'needs.usage',
+            'needs.priority',
+            'needs.created_at',
+            'needs.updated_at',
+            'logistic_realization_items.need_id',
+            'logistic_realization_items.product_id as realization_product_id',
+            'logistic_realization_items.product_name as realization_product_name',
+            'logistic_realization_items.unit_id as realization_unit_id',
+            'logistic_realization_items.realization_unit',
+            'logistic_realization_items.realization_quantity',
+            'logistic_realization_items.realization_date',
+            'logistic_realization_items.material_group',
+            'logistic_realization_items.status',
+            'logistic_realization_items.realization_quantity',
+            'logistic_realization_items.created_by',
+            'logistic_realization_items.updated_by'
+        )
+            ->with([
+                'product' => function ($query) {
+                    return $query->select(['id', 'name']);
+                },
+                'unit' => function ($query) {
+                    return $query->select(['id', 'unit']);
+                }
+            ])
+            ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
+            ->orderBy('needs.id')
+            ->where('needs.applicant_id', $id)->paginate($limit);
+        $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
+        $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) { 
+            if (!$item->realization_product_name) {
+                $product = Product::where('id', $item->realization_product_id)->first();
+                $item->realization_product_name = $product ? $product->name : '';
+            }
+            $item->status = !$item->status ? 'not_approved' : $item->status;
+            $item->logistic_item_summary = (int)$logisticItemSummary;
+            return $item;
+        });
+
+        return response()->format(200, 'success', $data);
+    }
+}
