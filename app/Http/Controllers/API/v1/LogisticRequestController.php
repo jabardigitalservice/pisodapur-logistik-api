@@ -564,10 +564,13 @@ class LogisticRequestController extends Controller
             },  
         ])
         ->whereHas('applicant', function ($query) use ($request) {
-            $query->where('id', $request->input('search'));
-            $query->orWhere('email', $request->input('search'));
-            $query->orWhere('primary_phone_number', $request->input('search'));
-            $query->orWhere('secondary_phone_number', $request->input('search'));
+            $query->where('is_deleted', '!=', 1);
+        })
+        ->whereHas('applicant', function ($query) use ($request) { 
+            $query->where('id', '=', $request->input('search'));
+            $query->orWhere('email', '=', $request->input('search'));
+            $query->orWhere('primary_phone_number', '=', $request->input('search'));
+            $query->orWhere('secondary_phone_number', '=', $request->input('search'));
         })
         ->get();
         return response()->format(200, 'success', $data);
