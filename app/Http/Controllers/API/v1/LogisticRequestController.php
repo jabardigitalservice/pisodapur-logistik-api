@@ -569,7 +569,7 @@ class LogisticRequestController extends Controller
             $query->orWhere('primary_phone_number', $request->input('search'));
             $query->orWhere('secondary_phone_number', $request->input('search'));
         })
-        ->toSql();
+        ->get();
         return response()->format(200, 'success', $data);
     }
 
