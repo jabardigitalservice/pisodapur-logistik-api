@@ -1,5 +1,12 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>E-Mail PIKOBAR</title>
+</head>
+<body>
     <div>
         <div>Kepada Yth</div>
         <div>{{ $applicantName }}</div>
@@ -8,8 +15,6 @@
         <div>dari</div>
         <div>{{ $agency }}</div>
     </div>
-</head>
-<body>
     <div>
         <p>{{ $text }}</p>
         <p>{{ $note }}</p>

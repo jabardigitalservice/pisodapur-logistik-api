@@ -66,9 +66,14 @@ class OutgoingLetterController extends Controller
                 ]
             )
         );
+        
+        // Validasi Nomor Surat Keluar harus unik
+        $validLetterNumber = OutgoingLetter::where('letter_number', $request->input('letter_number'))->exists();
 
         if ($validator->fails()) {
             return response()->format(422, $validator->errors());
+        } if ($validLetterNumber) {
+            return response()->format(422, 'Nomor Surat Keluar sudah digunakan.');
         } else {
             DB::beginTransaction();
             try {
@@ -176,7 +181,7 @@ class OutgoingLetterController extends Controller
     {
         $response = [];
         foreach (json_decode($request->input('letter_request'), true) as $key => $value) {
-            $request_letter = RequestLetter::create(
+            $request_letter = RequestLetter::firstOrCreate(
                 [
                     'outgoing_letter_id' => $request->input('outgoing_letter_id'), 
                     'applicant_id' => $value['applicant_id']
