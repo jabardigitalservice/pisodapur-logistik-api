@@ -531,5 +531,44 @@ class LogisticRequestController extends Controller
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
+    }    
+
+    /**
+     * Track Function
+     * Melakukan pencarian data permohonan berdasarkan (ID, No. HP, atau email pemohon)
+     * Jika permohonan ditemukan, maka terdapat data permohonan dengan informasi sebagai berikut:
+     * - Identitas Pemohon berisi: Jenis instansi, nama instansi, nama pemohon, jabatan pemohon, dan alamat lengkap
+     * - Status Pemohon berisi informasi tracking status dari permohonan
+     * @param Request $request
+     * @return array of Applicant $data
+     */
+    public function track(Request $request)
+    { 
+        $data = Agency::with([
+            'masterFaskesType' => function ($query) {
+                return $query->select(['id', 'name']);
+            },
+            'applicant' => function ($query) {
+                return $query->select([
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                ])->where('is_deleted', '!=' , 1);
+            },
+            'city' => function ($query) {
+                return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
+            },
+            'subDistrict' => function ($query) {
+                return $query->select(['kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
+            },
+            'village' => function ($query) {
+                return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
+            },  
+        ])
+        ->whereHas('applicant', function ($query) use ($request) {
+            $query->where('id', $request->input('search'));
+            $query->orWhere('email', $request->input('search'));
+            $query->orWhere('primary_phone_number', $request->input('search'));
+            $query->orWhere('secondary_phone_number', $request->input('search'));
+        })
+        ->toSql();
+        return response()->format(200, 'success', $data);
     }
-}
