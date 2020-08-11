@@ -16,8 +16,12 @@
         <div>{{ $agency }}</div>
     </div>
     <div>
+        @foreach ($texts as $text)
         <p>{{ $text }}</p>
+        @endforeach
+        @foreach ($notes as $note)
         <p>{{ $note }}</p>
+        @endforeach
     </div>
     <div>
         <div>Salam,</div>

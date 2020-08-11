@@ -35,30 +35,28 @@ class LogisticEmailNotification extends Mailable
      */
     public function build()
     {
-        $subject = '[Pikobar] Permohonan Logistik Alkes';
-        $text = '';
-        $note = '';
+        $subject = '[Pikobar] Persetujuan Permohonan Logistik';
+        $texts = [];
+        $notes = [];
         if ($this->status === Applicant::STATUS_REJECTED) {
-            $subject = '[Pikobar] Penolakan Permohonan Logistik Alkes';
-            $text = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Logistik Alat Kesehatan Pikobar.';
-            $text .= '<br/><br/>';
-            $text .= 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' tidak bisa kami penuhi.';
-            $text .= '<br/><br/>';
-            $text .= 'Dengan alasan penolakan sebagai berikut:'; 
-            $note = $this->agency->applicant->note;
-            $note .= '<br/><br/>';
-            $note .= 'Mohon maaf atas ketidaknyamanan ini.';
+            $subject = '[Pikobar] Penolakan Permohonan Logistik';
+            $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.'; 
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' tidak bisa kami penuhi.';
+            $texts[] = 'Dengan alasan penolakan sebagai berikut:'; 
+            $notes[] = $this->agency->applicant->note;
+            $notes[] = 'Mohon maaf atas ketidaknyamanan ini.';
         } else {
-            $text = 'Terima kasih anda sudah melakukan permohonan pada aplikasi Logistik Alat Kesehatan Pikobar. Permohonan logistik anda kami TERIMA. Untuk pengecekan permohonan logistik anda, hubungi nomor berikut ini:';
-            $note = env('HOTLINE_PIKOBAR');
+            $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' sudah kami setujui.';
+            $notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan konfirmasi dan pengecekan terhadap permohonan tersebut.';
         }
         return $this->view('email.logisticemailnotification')
                     ->subject($subject)
                     ->with([
                         'applicantName' => $this->agency->applicant->applicant_name,
-                        'note' => $note,
+                        'notes' => $notes,
                         'agency' => $this->agency->agency_name,
-                        'text' => $text,
+                        'texts' => $texts,
                         'hotLine' => env('HOTLINE_PIKOBAR')
                     ]);
     }
