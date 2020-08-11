@@ -582,6 +582,7 @@ class LogisticRequestController extends Controller
      * Track Detail function
      * - return data is pagination so it can receive the parameter limit, page, sorting and filtering / searching
      * @param Request $request
+     * @param integer $id
      * @return array of Applicant $data
      */
     public function trackDetail(Request $request, $id)
