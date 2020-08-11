@@ -35,6 +35,10 @@ Route::namespace('API\v1')->group(function () {
 
     Route::get('/products', 'ProductsController@index');
     Route::get('/product-unit/{id}', 'ProductsController@productUnit');
+
+    //Tracking Application
+    Route::get('/tracking', 'LogisticRequestController@track');
+    Route::get('/tracking/{id}', 'LogisticRequestController@trackDetail');
   });
   
     Route::post('v1/logistic-request', 'LogisticRequestController@store');

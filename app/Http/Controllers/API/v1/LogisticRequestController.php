@@ -531,5 +531,113 @@ class LogisticRequestController extends Controller
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
+    }    
+
+    /**
+     * Track Function
+     * Show application list based on ID, No. HP, or applicant email
+     * @param Request $request
+     * @return array of Applicant $data
+     */
+    public function track(Request $request)
+    { 
+        $list = Agency::with([
+            'masterFaskesType' => function ($query) {
+                return $query->select(['id', 'name']);
+            },
+            'applicant' => function ($query) {
+                return $query->select([
+                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                ])->where('is_deleted', '!=' , 1);
+            },
+            'city' => function ($query) {
+                return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
+            },
+            'subDistrict' => function ($query) {
+                return $query->select(['kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
+            },
+            'village' => function ($query) {
+                return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
+            },  
+        ])
+        ->whereHas('applicant', function ($query) use ($request) {
+            $query->where('is_deleted', '!=', 1);
+        })
+        ->whereHas('applicant', function ($query) use ($request) { 
+            $query->where('id', '=', $request->input('search'));
+            $query->orWhere('email', '=', $request->input('search'));
+            $query->orWhere('primary_phone_number', '=', $request->input('search'));
+            $query->orWhere('secondary_phone_number', '=', $request->input('search'));
+        })
+        ->get();
+
+        $data = [
+            'total' => count($list),
+            'application' => $list
+        ];
+        return response()->format(200, 'success', $data);
+    }
+
+    /**
+     * Track Detail function
+     * - return data is pagination so it can receive the parameter limit, page, sorting and filtering / searching
+     * @param Request $request
+     * @param integer $id
+     * @return array of Applicant $data
+     */
+    public function trackDetail(Request $request, $id)
+    {
+        
+        $limit = $request->input('limit', 10);
+        $data = Needs::select(
+            'needs.id',
+            'needs.agency_id',
+            'needs.applicant_id',
+            'needs.product_id',
+            'needs.item',
+            'needs.brand',
+            'needs.quantity',
+            'needs.unit',
+            'needs.unit as unit_id',
+            'needs.usage',
+            'needs.priority',
+            'needs.created_at',
+            'needs.updated_at',
+            'logistic_realization_items.need_id',
+            'logistic_realization_items.product_id as realization_product_id',
+            'logistic_realization_items.product_name as realization_product_name',
+            'logistic_realization_items.unit_id as realization_unit_id',
+            'logistic_realization_items.realization_unit',
+            'logistic_realization_items.realization_quantity',
+            'logistic_realization_items.realization_date',
+            'logistic_realization_items.material_group',
+            'logistic_realization_items.status',
+            'logistic_realization_items.realization_quantity',
+            'logistic_realization_items.created_by',
+            'logistic_realization_items.updated_by'
+        )
+            ->with([
+                'product' => function ($query) {
+                    return $query->select(['id', 'name']);
+                },
+                'unit' => function ($query) {
+                    return $query->select(['id', 'unit']);
+                }
+            ])
+            ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
+            ->orderBy('needs.id')
+            ->where('needs.applicant_id', $id)->paginate($limit);
+        $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
+        $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) { 
+            if (!$item->realization_product_name) {
+                $product = Product::where('id', $item->realization_product_id)->first();
+                $item->realization_product_name = $product ? $product->name : '';
+            }
+            $item->status = !$item->status ? 'not_approved' : $item->status;
+            $item->logistic_item_summary = (int)$logisticItemSummary;
+            return $item;
+        });
+
+        return response()->format(200, 'success', $data);
     }
 }
