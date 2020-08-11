@@ -535,10 +535,7 @@ class LogisticRequestController extends Controller
 
     /**
      * Track Function
-     * Melakukan pencarian data permohonan berdasarkan (ID, No. HP, atau email pemohon)
-     * Jika permohonan ditemukan, maka terdapat data permohonan dengan informasi sebagai berikut:
-     * - Identitas Pemohon berisi: Jenis instansi, nama instansi, nama pemohon, jabatan pemohon, dan alamat lengkap
-     * - Status Pemohon berisi informasi tracking status dari permohonan
+     * Show application list based on ID, No. HP, or applicant email
      * @param Request $request
      * @return array of Applicant $data
      */
@@ -583,10 +580,9 @@ class LogisticRequestController extends Controller
 
     /**
      * Track Detail function
-     * - Bersifat pagination sehingga dapat menerima parameter limit, page, sorting dan filterisasi/pencarian
-     * 
-     *
-     * @return void
+     * - return data is pagination so it can receive the parameter limit, page, sorting and filtering / searching
+     * @param Request $request
+     * @return array of Applicant $data
      */
     public function trackDetail(Request $request, $id)
     {
