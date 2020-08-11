@@ -25,7 +25,7 @@ class OutgoingLetterController extends Controller
     {
         $data = []; 
         $limit = $request->input('limit', 10);
-        $sort = $request->filled('sort') ? ['letter_date ' . $request->input('sort') ] : ['letter_date DESC'];
+        $sortType = $request->input('sort', 'DESC');
 
         try {
             $data = OutgoingLetter::where('user_id',  JWTAuth::user()->id)
@@ -38,7 +38,8 @@ class OutgoingLetterController extends Controller
                     $query->where('letter_date', $request->input('letter_date'));
                 }
             })         
-            ->orderByRaw(implode($sort))
+            ->orderBy('letter_date', $sortType)
+            ->orderBy('created_at', $sortType)
             ->paginate($limit);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
