@@ -431,33 +431,50 @@ class LogisticRequestController extends Controller
 
         try {
             $total = Applicant::Select('applicants.id')
-                            ->where('verification_status', 'verified')
-                            ->where('is_deleted', '!=' , 1)
-                            ->whereBetween('updated_at', [$startDate, $endDate])
-                            ->count();
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
 
-            $lastUpdate = Applicant::Select('applicants.updated_at')
-                            ->where('verification_status', 'verified')
-                            ->where('is_deleted', '!=' , 1) 
-                            ->orderBy('updated_at', 'desc')
-                            ->first();
+            $lastUpdate = Applicant::Select('applicants.updated_at') 
+            ->where('is_deleted', '!=' , 1) 
+            ->orderBy('updated_at', 'desc')
+            ->first();
 
-            $totalPikobar = Applicant::Select('applicants.id')
-                            ->where('verification_status', 'verified')
-                            ->where('source_data', 'pikobar')
-                            ->where('is_deleted', '!=' , 1)
-                            ->whereBetween('updated_at', [$startDate, $endDate])
-                            ->count();
+            $totalPikobar = Applicant::Select('applicants.id') 
+            ->where('source_data', 'pikobar')
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
 
-            $totalDinkesprov = Applicant::Select('applicants.id')
-                            ->where('verification_status', 'verified')
-                            ->where('source_data', 'dinkes_provinsi')
-                            ->where('is_deleted', '!=' , 1)
-                            ->whereBetween('updated_at', [$startDate, $endDate])
-                            ->count();
+            $totalDinkesprov = Applicant::Select('applicants.id') 
+            ->where('source_data', 'dinkes_provinsi')
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+
+            $totalApproved = Applicant::Select('applicants.id') 
+            ->where('verification_status', Applicant::STATUS_APPROVED) 
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+
+            $totalVerified = Applicant::Select('applicants.id') 
+            ->where('verification_status', Applicant::STATUS_VERIFIED) 
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+
+            $totalRejected = Applicant::Select('applicants.id') 
+            ->where('verification_status', Applicant::STATUS_REJECTED)
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
 
             $data = [
                 'total_request' => $total,
+                'total_approved' => $totalApproved,
+                'total_verified' => $totalVerified,
+                'total_rejected' => $totalRejected,
                 'total_pikobar' => $totalPikobar,
                 'total_dinkesprov' => $totalDinkesprov,
                 'last_update' => $lastUpdate ? date('Y-m-d H:i:s', strtotime($lastUpdate->updated_at)) : '2020-01-01 00:00:00'

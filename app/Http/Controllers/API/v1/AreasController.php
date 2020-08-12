@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\City;
 use App\Subdistrict;
 use App\Village;
+use App\Applicant;
 
 class AreasController extends Controller
 {
@@ -90,7 +91,7 @@ class AreasController extends Controller
             $query = City::withCount([
                 'agency' => function ($query) use ($startDate, $endDate){
                     return $query->join('applicants', 'applicants.agency_id', 'agency.id')
-                            ->where('applicants.verification_status', 'verified')
+                            ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
                             ->where('applicants.is_deleted', '!=', 1)
                             ->whereBetween('applicants.updated_at', [$startDate, $endDate]);
                 }
