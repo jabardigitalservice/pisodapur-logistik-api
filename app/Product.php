@@ -20,4 +20,9 @@ class Product extends Model
     {
         return $this->belongsToOne('App\Needs', 'product_id', 'id');
     }
+
+    public function unit()
+    {
+        return $this->hasOne('App\MasterUnit', 'id', 'unit');
+    }
 }
