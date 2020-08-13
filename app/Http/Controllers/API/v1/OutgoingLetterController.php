@@ -11,6 +11,8 @@ use JWTAuth;
 use DB;
 use App\Needs;
 use App\Applicant;
+use App\Usage;
+use App\LogisticRealizationItems;
 use App\FileUpload;
 use Illuminate\Support\Facades\Storage;
 
@@ -123,6 +125,55 @@ class OutgoingLetterController extends Controller
         return response()->format(200, 'success', $data);
     }
 
+    /**
+     * Print Function
+     * Return spesific data for print outgoing letter format
+     *
+     * @param  integer $id
+     * @return \Illuminate\Http\Response
+     */
+    public function print($id)
+    {
+        $data = [];
+        try {
+            $outgoingLetter = OutgoingLetter::select(
+                'id',
+                'letter_number',
+                'letter_date'
+            )->find($id);
+
+            $requestLetter = RequestLetter::select(
+                'request_letters.id',
+                'request_letters.outgoing_letter_id',
+                'request_letters.applicant_id',
+                'applicants.application_letter_number',
+                'applicants.agency_id',
+                'agency.agency_name',
+                'agency.location_district_code',
+                'districtcities.kemendagri_kabupaten_nama',
+                'applicants.applicant_name'
+            )
+            ->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
+            ->join('agency', 'agency.id', '=', 'applicants.agency_id')
+            ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
+            ->where('request_letters.outgoing_letter_id', $id)
+            ->orderBy('request_letters.id')
+            ->get();
+
+            $materials = $this->getAllMaterials($requestLetter);
+
+            $data = [
+                'outgoing_letter' => $outgoingLetter,
+                'request_letter' => $requestLetter,
+                'material' => $materials,
+            ];
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+
+        return response()->format(200, 'success', $data);
+    }
+
     public function upload(Request $request)
     {         
         $data = [];
@@ -192,5 +243,52 @@ class OutgoingLetterController extends Controller
         }
 
         return $response;
+    }
+
+    /**
+     * Get All Materials from Selected Application Letters function
+     *
+     * @param App\RequestLetter $requestLetter
+     * @return array $data
+     */
+    public function getAllMaterials($requestLetter)
+    {
+        $requestLetterList = [];
+        foreach ($requestLetter as $key => $value) {
+            $requestLetterList[] = $value['applicant_id'];
+        }
+
+        $data = LogisticRealizationItems::select(
+            'product_id',
+            'product_name',
+            'realization_unit',
+            'material_group',
+            DB::raw('sum(realization_quantity) as realization_quantity'),
+            DB::raw('"" as location')
+        )
+        ->whereIn('applicant_id', $requestLetterList)
+        ->whereIn('status', ['approved', 'replaced'])
+        ->groupBy(
+            'product_id',
+            'product_name',
+            'realization_unit',
+            'material_group',
+            'realization_quantity'
+        )->get();
+        
+        foreach ($data as $key => $val) {        
+            $param = '{"material_id":"' . $val['product_id'] . '"}';
+            $api = '/api/soh_fmaterial';
+            $location = "";
+            $retApi = Usage::getLogisticStock($param, $api);
+            if (is_array($retApi) || is_object($retApi)) {  
+                foreach ($retApi as $val) {
+                    $location = $val->soh_location_name;
+                    break;
+                }
+            }
+            $data[$key]['location'] = $location;
+        }
+        return $data;
     }
 }
