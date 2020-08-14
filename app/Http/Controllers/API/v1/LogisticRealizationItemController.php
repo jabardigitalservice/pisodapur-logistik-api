@@ -94,27 +94,34 @@ class LogisticRealizationItemController extends Controller
         } elseif (!in_array($request->status, LogisticRealizationItems::STATUS)) {
             return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
         } else {
-            DB::beginTransaction();
-            try {                    
-                $request['unit_id'] = $request->input('unit_id', 1);
-                $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
-    
-                //Get Material from PosLog by Id
-                $material = WmsJabarMaterial::where('material_id', $request->product_id)->first();
-                if ($material) {
-                    $request['product_name'] = $material->material_name;
-                    $request['realization_unit'] = $material->uom;
-                    $request['material_group'] = $material->matg_id;
-                }
-                $realization = $this->realizationStore($request);
+            //Validate applicant verification status must VERIFIED  
+            $applicantCheck = Applicant::where('agency_id', $request->agency_id)->where('verification_status', '=', Applicant::STATUS_VERIFIED)->exists();
 
-                $response = array(
-                    'realization' => $realization
-                );
-                DB::commit();
-            } catch (\Exception $exception) {
-                DB::rollBack();
-                return response()->format(400, $exception->getMessage());
+            if (!$applicantCheck) {
+                return response()->format(422, 'application verification status is not verified');
+            } else {
+                DB::beginTransaction();
+                try {                    
+                    $request['unit_id'] = $request->input('unit_id', 1);
+                    $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
+        
+                    //Get Material from PosLog by Id
+                    $material = WmsJabarMaterial::where('material_id', $request->product_id)->first();
+                    if ($material) {
+                        $request['product_name'] = $material->material_name;
+                        $request['realization_unit'] = $material->uom;
+                        $request['material_group'] = $material->matg_id;
+                    }
+                    $realization = $this->realizationStore($request);
+
+                    $response = array(
+                        'realization' => $realization
+                    );
+                    DB::commit();
+                } catch (\Exception $exception) {
+                    DB::rollBack();
+                    return response()->format(400, $exception->getMessage());
+                }
             }
         }
 
