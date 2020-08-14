@@ -35,7 +35,7 @@ class LogisticRealizationItemController extends Controller
         } elseif (!in_array($request->status, LogisticRealizationItems::STATUS)) {
             return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
         } else {
-            //Validate applicant
+            //Validate applicant verification status must VERIFIED 
             $need = Needs::findOrFail($request->need_id);
             $applicantCheck = Applicant::where('id', $need->applicant_id)->where('verification_status', '=', Applicant::STATUS_VERIFIED)->exists();
 
