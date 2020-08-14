@@ -167,7 +167,7 @@ class LogisticRequestController extends Controller
                     'location_address' => 'required|string',
                     'applicant_name' => 'required|string',
                     'applicants_office' => 'required|string',
-                    'applicant_file' => 'required|mimes:jpeg,jpg,png|max:5000',
+                    'applicant_file' => 'required|mimes:jpeg,jpg,png|max:10240',
                     'email' => 'required|email',
                     'primary_phone_number' => 'required|numeric',
                     'secondary_phone_number' => 'required|numeric',
