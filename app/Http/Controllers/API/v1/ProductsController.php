@@ -20,7 +20,7 @@ class ProductsController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Product::orderBy('products.name', 'ASC');
+            $query = Product::orderBy('products.sort', 'ASC')->orderBy('products.name', 'ASC');
             if ($request->filled('limit')) {
                 $query->paginate($request->input('limit'));
             }
