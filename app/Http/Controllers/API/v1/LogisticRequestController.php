@@ -369,7 +369,7 @@ class LogisticRequestController extends Controller
             )
                 ->with([
                     'product' => function ($query) {
-                        return $query->select(['id', 'name']);
+                        return $query->select(['id', 'name', 'category']);
                     },
                     'unit' => function ($query) {
                         return $query->select(['id', 'unit']);
