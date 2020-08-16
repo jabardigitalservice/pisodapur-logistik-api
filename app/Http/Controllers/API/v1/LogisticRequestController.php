@@ -246,7 +246,7 @@ class LogisticRequestController extends Controller
                     'quantity' => $value['quantity'],
                     'unit' => $value['unit'],
                     'usage' => $value['usage'],
-                    'priority' => $value['priority']
+                    'priority' => $value['priority'] ? $value['priority'] : 'Menengah'
                 ]
             );
             $response[] = $need;
