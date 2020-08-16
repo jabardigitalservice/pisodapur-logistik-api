@@ -29,6 +29,10 @@ class ProductsController extends Controller
                 $query->where('products.name', 'LIKE', "%{$request->input('name')}%");
             }
 
+            if ($request->filled('user_filter')) {
+                $query->where('products.user_filter', '=', $request->input('user_filter'));
+            }
+
             $query->where('products.is_imported', false);
             $query->where('products.material_group_status', 1);
         } catch (\Exception $exception) {
