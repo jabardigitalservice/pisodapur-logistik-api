@@ -373,6 +373,9 @@ class LogisticRequestController extends Controller
                     },
                     'unit' => function ($query) {
                         return $query->select(['id', 'unit']);
+                    },
+                    'user' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
                     }
                 ])
                 ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')

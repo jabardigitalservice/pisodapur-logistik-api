@@ -47,5 +47,10 @@ class Needs extends Model
     {
         return $this->hasOne('App\MasterUnit', 'id', 'unit');
     }
+
+    public function user()
+    {
+        return $this->hasOne('App\User', 'id', 'created_by');
+    }
     
 }
