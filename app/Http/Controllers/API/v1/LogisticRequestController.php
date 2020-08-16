@@ -194,7 +194,7 @@ class LogisticRequestController extends Controller
                 $letter = $this->letterStore($request);
   
                 $applicant->save();
-                $email = $this->sendApplicationRequestEmailNotification($agency->id, $request->input('email'));
+                $email = $this->sendApplicationRequestEmailNotification($agency->id);
 
                 $response = array(
                     'agency' => $agency,
