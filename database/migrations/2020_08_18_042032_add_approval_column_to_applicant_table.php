@@ -19,15 +19,11 @@ class AddApprovalColumnToApplicantTable extends Migration
             $table->dateTime('approved_at')->nullable()->after('approved_by');
         });
 
-        $userId = 70;
-        $user = DB::table('users')->where('username', '=', 'gtlog')->first();
-        if ($user) {
-            $userId = $user->id; 
-        }
+        $user = DB::table('users')->where('username', '=', 'gtlog')->firstOrFail();
 
         //If data has been verified, set verified_by default value to GTLog        
         DB::table('applicants')->where('verification_status', '!=', 'not_verified')->update([
-            'verified_by' => $userId,
+            'verified_by' => $user->id,
             'verified_at' => date('Y-m-d H:i:s')
         ]);
 
@@ -39,7 +35,7 @@ class AddApprovalColumnToApplicantTable extends Migration
 
         //If data has been approved, set approved_by default value to GTLog        
         DB::table('applicants')->whereNotNull('approval_status')->update([
-            'approved_by' => $userId,
+            'approved_by' => $user->id,
             'approved_at' => date('Y-m-d H:i:s')
         ]);
     }
