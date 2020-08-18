@@ -21,6 +21,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
+use App\Mail\ApplicationRequestEmailNotification;
 use App\LogisticRealizationItems;
 use App\Product;
 
@@ -167,7 +168,7 @@ class LogisticRequestController extends Controller
                     'location_address' => 'required|string',
                     'applicant_name' => 'required|string',
                     'applicants_office' => 'required|string',
-                    'applicant_file' => 'required|mimes:jpeg,jpg,png|max:5000',
+                    'applicant_file' => 'required|mimes:jpeg,jpg,png|max:10240',
                     'email' => 'required|email',
                     'primary_phone_number' => 'required|numeric',
                     'secondary_phone_number' => 'required|numeric',
@@ -191,6 +192,9 @@ class LogisticRequestController extends Controller
 
                 $need = $this->needStore($request);
                 $letter = $this->letterStore($request);
+  
+                $applicant->save();
+                $email = $this->sendApplicationRequestEmailNotification($agency->id);
 
                 $response = array(
                     'agency' => $agency,
@@ -246,7 +250,7 @@ class LogisticRequestController extends Controller
                     'quantity' => $value['quantity'],
                     'unit' => $value['unit'],
                     'usage' => $value['usage'],
-                    'priority' => $value['priority']
+                    'priority' => $value['priority'] ? $value['priority'] : 'Menengah'
                 ]
             );
             $response[] = $need;
@@ -280,7 +284,11 @@ class LogisticRequestController extends Controller
             },
             'applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by'
+                ])->with([
+                    'verifiedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
+                    }
                 ])->where('is_deleted', '!=' , 1);
             },
             'letter' => function ($query) {
@@ -320,6 +328,7 @@ class LogisticRequestController extends Controller
 
             $applicant->verification_status = $request->verification_status;
             $applicant->note = $request->note;
+            $applicant->verified_by = JWTAuth::user()->id;
             $applicant->save();
             $email = $this->sendEmailNotification($applicant->agency_id, $request->verification_status);
         }
@@ -369,10 +378,13 @@ class LogisticRequestController extends Controller
             )
                 ->with([
                     'product' => function ($query) {
-                        return $query->select(['id', 'name']);
+                        return $query->select(['id', 'name', 'category']);
                     },
                     'unit' => function ($query) {
                         return $query->select(['id', 'unit']);
+                    },
+                    'verifiedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
                     }
                 ])
                 ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
@@ -496,6 +508,20 @@ class LogisticRequestController extends Controller
                 ])->where('is_deleted', '!=' , 1);
             }])->findOrFail($agencyId);
             Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));    
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+    }
+
+    public function sendApplicationRequestEmailNotification($agencyId)
+    {
+        try {
+            $agency = Agency::with(['applicant' => function ($query) {
+                return $query->select([
+                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                ])->where('is_deleted', '!=' , 1);
+            }])->findOrFail($agencyId);
+            Mail::to($agency->applicant['email'])->send(new ApplicationRequestEmailNotification($agency));
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }

@@ -162,7 +162,19 @@ class OutgoingLetterController extends Controller
 
             $materials = $this->getAllMaterials($requestLetter);
 
+            //Return Image to base64 format
+            $pathPemprov = env('AWS_CLOUDFRONT_URL') . 'logo/pemprov_jabar.png';
+            $pathDivLog = env('AWS_CLOUDFRONT_URL') . 'logo/divisi_managemen_logistik.png';
+            $dataPemprov = file_get_contents($pathPemprov);
+            $dataDivlog = file_get_contents($pathDivLog);
+            $pemprovLogo = 'data:image/png;base64,' . base64_encode($dataPemprov);
+            $divlogLogo = 'data:image/png;base64,' . base64_encode($dataDivlog);
+
             $data = [
+                'image' => [
+                    'pemprov' => $pemprovLogo,
+                    'divlog' => $divlogLogo,
+                ],
                 'outgoing_letter' => $outgoingLetter,
                 'request_letter' => $requestLetter,
                 'material' => $materials,

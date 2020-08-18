@@ -67,6 +67,11 @@ class Applicant extends Model
         return $this->belongsTo('App\Subdistrict', 'location_subdistrict_code', 'kemendagri_kecamatan_kode');
     }
 
+    public function verifiedBy()
+    {
+        return $this->hasOne('App\User', 'id', 'verified_by');
+    }
+
     public function getVerificationStatusAttribute($value)
     {
         $status = $value === self::STATUS_NOT_VERIFIED ? 'Belum Terverifikasi' : ($value === self::STATUS_VERIFIED ? 'Terverifikasi' : ($value === self::STATUS_REJECTED ? 'Pengajuan Ditolak' : ''));
