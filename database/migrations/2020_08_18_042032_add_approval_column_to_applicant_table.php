@@ -19,7 +19,7 @@ class AddApprovalColumnToApplicantTable extends Migration
             $table->dateTime('approved_at')->nullable()->after('approved_by');
         });
 
-        $user = DB::table('users')->where('username', '=', 'gtlog')->firstOrFail();
+        $user = DB::table('users')->where('username', '=', 'gtlog')->first();
 
         //If data has been verified, set verified_by default value to GTLog        
         DB::table('applicants')->where('verification_status', '!=', 'not_verified')->update([
