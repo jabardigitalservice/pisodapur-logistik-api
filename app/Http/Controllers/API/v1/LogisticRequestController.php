@@ -43,7 +43,14 @@ class LogisticRequestController extends Controller
                 },
                 'applicant' => function ($query) {
                     return $query->select([
-                        'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                        'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at'
+                ])->with([
+                    'verifiedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
+                    },
+                    'approvedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
+                    }
                     ])->where('is_deleted', '!=' , 1);
                 },
                 'city' => function ($query) {
@@ -192,8 +199,6 @@ class LogisticRequestController extends Controller
 
                 $need = $this->needStore($request);
                 $letter = $this->letterStore($request);
-  
-                $applicant->save();
                 $email = $this->sendApplicationRequestEmailNotification($agency->id);
 
                 $response = array(
@@ -284,9 +289,12 @@ class LogisticRequestController extends Controller
             },
             'applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by'
+                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at'
                 ])->with([
                     'verifiedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
+                    },                    
+                    'approvedBy' => function ($query) {
                         return $query->select(['id', 'name', 'agency_name']);
                     }
                 ])->where('is_deleted', '!=' , 1);
@@ -329,6 +337,7 @@ class LogisticRequestController extends Controller
             $applicant->verification_status = $request->verification_status;
             $applicant->note = $request->note;
             $applicant->verified_by = JWTAuth::user()->id;
+            $applicant->verified_at = date('Y-m-d H:i:s');
             $applicant->save();
             $email = $this->sendEmailNotification($applicant->agency_id, $request->verification_status);
         }
@@ -544,7 +553,10 @@ class LogisticRequestController extends Controller
             } else {
                 $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
                 $applicant->fill($request->input());
+                $applicant->approved_by = JWTAuth::user()->id;
+                $applicant->approved_at = date('Y-m-d H:i:s');
                 $applicant->save();
+                $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
             }
             return response()->format(200, 'success', $applicant);
         } catch (\Exception $exception) {
