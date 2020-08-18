@@ -30,9 +30,12 @@ class Applicant extends Model
         'created_by',
         'updated_by',
         'verified_by',
+        'verified_at',
         'note',
         'approval_status',
         'approval_note',
+        'approved_by',
+        'approved_at',
         'stock_checking_status',
         'application_letter_number'
     ];
@@ -70,6 +73,11 @@ class Applicant extends Model
     public function verifiedBy()
     {
         return $this->hasOne('App\User', 'id', 'verified_by');
+    }
+
+    public function approvedBy()
+    {
+        return $this->hasOne('App\User', 'id', 'approved_by');
     }
 
     public function getVerificationStatusAttribute($value)
