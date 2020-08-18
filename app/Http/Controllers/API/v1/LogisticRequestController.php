@@ -556,6 +556,7 @@ class LogisticRequestController extends Controller
                 $applicant->approved_by = JWTAuth::user()->id;
                 $applicant->approved_at = date('Y-m-d H:i:s');
                 $applicant->save();
+                $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
             }
             return response()->format(200, 'success', $applicant);
         } catch (\Exception $exception) {
