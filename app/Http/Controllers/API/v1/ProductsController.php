@@ -20,21 +20,22 @@ class ProductsController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Product::orderBy('products.sort', 'ASC')->orderBy('products.name', 'ASC');
-            if ($request->filled('limit')) {
-                $query->paginate($request->input('limit'));
-            }
-
-            if ($request->filled('name')) {
-                $query->where('products.name', 'LIKE', "%{$request->input('name')}%");
-            }
-
-            if ($request->filled('user_filter')) {
-                $query->where('products.user_filter', '=', $request->input('user_filter'));
-            }
-
-            $query->where('products.is_imported', false);
-            $query->where('products.material_group_status', 1);
+            $query = Product::where('products.is_imported', false)
+            ->where('products.material_group_status', 1)
+            ->where(function ($query) use ($request) {
+                if ($request->filled('limit')) {
+                    $query->paginate($request->input('limit'));
+                }
+    
+                if ($request->filled('name')) {
+                    $query->where('products.name', 'LIKE', "%{$request->input('name')}%");
+                }
+    
+                if ($request->filled('user_filter')) {
+                    $query->where('products.user_filter', '=', $request->input('user_filter'));
+                }
+            })
+            ->orderBy('products.sort', 'ASC')->orderBy('products.name', 'ASC');
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
