@@ -38,7 +38,12 @@ class LogisticEmailNotification extends Mailable
         $subject = '[Pikobar] Persetujuan Permohonan Logistik';
         $texts = [];
         $notes = [];
-        if ($this->status === Applicant::STATUS_REJECTED) {
+        if ($this->status === Applicant::STATUS_NOT_VERIFIED) {
+            $subject = '[Pikobar] Permohonan Logistik Diterima';
+            $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.'; 
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' sudah kami terima.';
+            $notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan pengecekan terhadap permohonan tersebut.';
+        } elseif ($this->status === Applicant::STATUS_REJECTED) {
             $subject = '[Pikobar] Penolakan Permohonan Logistik';
             $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.'; 
             $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' tidak bisa kami penuhi.';
