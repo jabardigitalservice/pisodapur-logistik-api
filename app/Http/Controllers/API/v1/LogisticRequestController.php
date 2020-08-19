@@ -199,7 +199,7 @@ class LogisticRequestController extends Controller
 
                 $need = $this->needStore($request);
                 $letter = $this->letterStore($request);
-                $email = $this->sendApplicationRequestEmailNotification($agency->id);
+                $email = $this->sendEmailNotification($agency->id, Applicant::STATUS_NOT_VERIFIED);
 
                 $response = array(
                     'agency' => $agency,
@@ -517,20 +517,6 @@ class LogisticRequestController extends Controller
                 ])->where('is_deleted', '!=' , 1);
             }])->findOrFail($agencyId);
             Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));    
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
-        }
-    }
-
-    public function sendApplicationRequestEmailNotification($agencyId)
-    {
-        try {
-            $agency = Agency::with(['applicant' => function ($query) {
-                return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
-                ])->where('is_deleted', '!=' , 1);
-            }])->findOrFail($agencyId);
-            Mail::to($agency->applicant['email'])->send(new ApplicationRequestEmailNotification($agency));
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
