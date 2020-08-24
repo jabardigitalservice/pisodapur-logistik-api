@@ -588,7 +588,7 @@ class LogisticRequestController extends Controller
             },
             'applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
                 ])->where('is_deleted', '!=' , 1);
             },
             'city' => function ($query) {
@@ -610,6 +610,8 @@ class LogisticRequestController extends Controller
             $query->orWhere('primary_phone_number', '=', $request->input('search'));
             $query->orWhere('secondary_phone_number', '=', $request->input('search'));
         })
+        ->orderBy('agency.created_at', 'desc')
+        ->limit(5)
         ->get();
 
         $data = [
