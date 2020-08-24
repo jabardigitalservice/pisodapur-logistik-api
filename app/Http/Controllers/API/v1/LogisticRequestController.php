@@ -21,6 +21,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
+use App\Mail\ApplicationRequestEmailNotification;
 use App\LogisticRealizationItems;
 use App\Product;
 
@@ -42,7 +43,14 @@ class LogisticRequestController extends Controller
                 },
                 'applicant' => function ($query) {
                     return $query->select([
-                        'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                        'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at'
+                ])->with([
+                    'verifiedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
+                    },
+                    'approvedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
+                    }
                     ])->where('is_deleted', '!=' , 1);
                 },
                 'city' => function ($query) {
@@ -167,7 +175,7 @@ class LogisticRequestController extends Controller
                     'location_address' => 'required|string',
                     'applicant_name' => 'required|string',
                     'applicants_office' => 'required|string',
-                    'applicant_file' => 'required|mimes:jpeg,jpg,png|max:5000',
+                    'applicant_file' => 'required|mimes:jpeg,jpg,png|max:10240',
                     'email' => 'required|email',
                     'primary_phone_number' => 'required|numeric',
                     'secondary_phone_number' => 'required|numeric',
@@ -191,6 +199,7 @@ class LogisticRequestController extends Controller
 
                 $need = $this->needStore($request);
                 $letter = $this->letterStore($request);
+                $email = $this->sendEmailNotification($agency->id, Applicant::STATUS_NOT_VERIFIED);
 
                 $response = array(
                     'agency' => $agency,
@@ -246,7 +255,7 @@ class LogisticRequestController extends Controller
                     'quantity' => $value['quantity'],
                     'unit' => $value['unit'],
                     'usage' => $value['usage'],
-                    'priority' => $value['priority']
+                    'priority' => $value['priority'] ? $value['priority'] : 'Menengah'
                 ]
             );
             $response[] = $need;
@@ -280,7 +289,14 @@ class LogisticRequestController extends Controller
             },
             'applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at'
+                ])->with([
+                    'verifiedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
+                    },                    
+                    'approvedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
+                    }
                 ])->where('is_deleted', '!=' , 1);
             },
             'letter' => function ($query) {
@@ -320,6 +336,8 @@ class LogisticRequestController extends Controller
 
             $applicant->verification_status = $request->verification_status;
             $applicant->note = $request->note;
+            $applicant->verified_by = JWTAuth::user()->id;
+            $applicant->verified_at = date('Y-m-d H:i:s');
             $applicant->save();
             $email = $this->sendEmailNotification($applicant->agency_id, $request->verification_status);
         }
@@ -369,10 +387,13 @@ class LogisticRequestController extends Controller
             )
                 ->with([
                     'product' => function ($query) {
-                        return $query->select(['id', 'name']);
+                        return $query->select(['id', 'name', 'category']);
                     },
                     'unit' => function ($query) {
                         return $query->select(['id', 'unit']);
+                    },
+                    'verifiedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
                     }
                 ])
                 ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
@@ -431,33 +452,50 @@ class LogisticRequestController extends Controller
 
         try {
             $total = Applicant::Select('applicants.id')
-                            ->where('verification_status', 'verified')
-                            ->where('is_deleted', '!=' , 1)
-                            ->whereBetween('updated_at', [$startDate, $endDate])
-                            ->count();
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
 
-            $lastUpdate = Applicant::Select('applicants.updated_at')
-                            ->where('verification_status', 'verified')
-                            ->where('is_deleted', '!=' , 1) 
-                            ->orderBy('updated_at', 'desc')
-                            ->first();
+            $lastUpdate = Applicant::Select('applicants.updated_at') 
+            ->where('is_deleted', '!=' , 1) 
+            ->orderBy('updated_at', 'desc')
+            ->first();
 
-            $totalPikobar = Applicant::Select('applicants.id')
-                            ->where('verification_status', 'verified')
-                            ->where('source_data', 'pikobar')
-                            ->where('is_deleted', '!=' , 1)
-                            ->whereBetween('updated_at', [$startDate, $endDate])
-                            ->count();
+            $totalPikobar = Applicant::Select('applicants.id') 
+            ->where('source_data', 'pikobar')
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
 
-            $totalDinkesprov = Applicant::Select('applicants.id')
-                            ->where('verification_status', 'verified')
-                            ->where('source_data', 'dinkes_provinsi')
-                            ->where('is_deleted', '!=' , 1)
-                            ->whereBetween('updated_at', [$startDate, $endDate])
-                            ->count();
+            $totalDinkesprov = Applicant::Select('applicants.id') 
+            ->where('source_data', 'dinkes_provinsi')
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+
+            $totalApproved = Applicant::Select('applicants.id') 
+            ->where('verification_status', Applicant::STATUS_APPROVED) 
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+
+            $totalVerified = Applicant::Select('applicants.id') 
+            ->where('verification_status', Applicant::STATUS_VERIFIED) 
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+
+            $totalRejected = Applicant::Select('applicants.id') 
+            ->where('verification_status', Applicant::STATUS_REJECTED)
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
 
             $data = [
                 'total_request' => $total,
+                'total_approved' => $totalApproved,
+                'total_verified' => $totalVerified,
+                'total_rejected' => $totalRejected,
                 'total_pikobar' => $totalPikobar,
                 'total_dinkesprov' => $totalDinkesprov,
                 'last_update' => $lastUpdate ? date('Y-m-d H:i:s', strtotime($lastUpdate->updated_at)) : '2020-01-01 00:00:00'
@@ -475,7 +513,7 @@ class LogisticRequestController extends Controller
         try {
             $agency = Agency::with(['applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
                 ])->where('is_deleted', '!=' , 1);
             }])->findOrFail($agencyId);
             Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));    
@@ -501,7 +539,10 @@ class LogisticRequestController extends Controller
             } else {
                 $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
                 $applicant->fill($request->input());
+                $applicant->approved_by = JWTAuth::user()->id;
+                $applicant->approved_at = date('Y-m-d H:i:s');
                 $applicant->save();
+                $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
             }
             return response()->format(200, 'success', $applicant);
         } catch (\Exception $exception) {
@@ -531,5 +572,115 @@ class LogisticRequestController extends Controller
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
+    }    
+
+    /**
+     * Track Function
+     * Show application list based on ID, No. HP, or applicant email
+     * @param Request $request
+     * @return array of Applicant $data
+     */
+    public function track(Request $request)
+    { 
+        $list = Agency::with([
+            'masterFaskesType' => function ($query) {
+                return $query->select(['id', 'name']);
+            },
+            'applicant' => function ($query) {
+                return $query->select([
+                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
+                ])->where('is_deleted', '!=' , 1);
+            },
+            'city' => function ($query) {
+                return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
+            },
+            'subDistrict' => function ($query) {
+                return $query->select(['kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
+            },
+            'village' => function ($query) {
+                return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
+            },  
+        ])
+        ->whereHas('applicant', function ($query) use ($request) {
+            $query->where('is_deleted', '!=', 1);
+        })
+        ->whereHas('applicant', function ($query) use ($request) { 
+            $query->where('id', '=', $request->input('search'));
+            $query->orWhere('email', '=', $request->input('search'));
+            $query->orWhere('primary_phone_number', '=', $request->input('search'));
+            $query->orWhere('secondary_phone_number', '=', $request->input('search'));
+        })
+        ->orderBy('agency.created_at', 'desc')
+        ->limit(5)
+        ->get();
+
+        $data = [
+            'total' => count($list),
+            'application' => $list
+        ];
+        return response()->format(200, 'success', $data);
+    }
+
+    /**
+     * Track Detail function
+     * - return data is pagination so it can receive the parameter limit, page, sorting and filtering / searching
+     * @param Request $request
+     * @param integer $id
+     * @return array of Applicant $data
+     */
+    public function trackDetail(Request $request, $id)
+    {
+        
+        $limit = $request->input('limit', 10);
+        $data = Needs::select(
+            'needs.id',
+            'needs.agency_id',
+            'needs.applicant_id',
+            'needs.product_id',
+            'needs.item',
+            'needs.brand',
+            'needs.quantity',
+            'needs.unit',
+            'needs.unit as unit_id',
+            'needs.usage',
+            'needs.priority',
+            'needs.created_at',
+            'needs.updated_at',
+            'logistic_realization_items.need_id',
+            'logistic_realization_items.product_id as realization_product_id',
+            'logistic_realization_items.product_name as realization_product_name',
+            'logistic_realization_items.unit_id as realization_unit_id',
+            'logistic_realization_items.realization_unit',
+            'logistic_realization_items.realization_quantity',
+            'logistic_realization_items.realization_date',
+            'logistic_realization_items.material_group',
+            'logistic_realization_items.status',
+            'logistic_realization_items.realization_quantity',
+            'logistic_realization_items.created_by',
+            'logistic_realization_items.updated_by'
+        )
+            ->with([
+                'product' => function ($query) {
+                    return $query->select(['id', 'name']);
+                },
+                'unit' => function ($query) {
+                    return $query->select(['id', 'unit']);
+                }
+            ])
+            ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
+            ->orderBy('needs.id')
+            ->where('needs.applicant_id', $id)->paginate($limit);
+        $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
+        $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) { 
+            if (!$item->realization_product_name) {
+                $product = Product::where('id', $item->realization_product_id)->first();
+                $item->realization_product_name = $product ? $product->name : '';
+            }
+            $item->status = !$item->status ? 'not_approved' : $item->status;
+            $item->logistic_item_summary = (int)$logisticItemSummary;
+            return $item;
+        });
+
+        return response()->format(200, 'success', $data);
     }
 }

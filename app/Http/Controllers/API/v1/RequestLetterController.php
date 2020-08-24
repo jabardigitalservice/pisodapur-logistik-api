@@ -30,6 +30,7 @@ class RequestLetterController extends Controller
                     'request_letters.applicant_id',
                     'applicants.application_letter_number',
                     'applicants.agency_id',
+                    'applicants.verification_status',
                     'agency.agency_name',
                     'agency.location_district_code',
                     'districtcities.kemendagri_kabupaten_nama',
@@ -46,6 +47,7 @@ class RequestLetterController extends Controller
                         $query->where('applicants.application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%");
                     }    
                 })
+                ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
                 ->orderBy('request_letters.id')
                 ->paginate($limit);
  
@@ -167,22 +169,32 @@ class RequestLetterController extends Controller
         return response()->format(200, 'success', ['id' => $id]);
     }
 
+    /**
+     * searchByLetterNumber function
+     *
+     * Menampilkan list surat permohonan yang belum didaftarkan di surat keluar.
+     * opsional, jika parameter request_letter_id dikirim, maka surat permohonan dengan ID tersebut akan tetap muncul di list
+     * 
+     * @param Request $request
+     * @return void
+     */
     public function searchByLetterNumber(Request $request)
     {
         $data = [];
-
+        $request_letter_ignore = $request->input('request_letter_id');
         try { 
-            $list = Applicant::select('id', 'application_letter_number')
+            $list = Applicant::select('id', 'application_letter_number', 'verification_status')
                 ->where(function ($query) use ($request) {
                     if ($request->filled('application_letter_number')) {
                         $query->where('application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%");
                     }
                 }) 
                 ->where('is_deleted', '!=', 1)
+                ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
                 ->where('application_letter_number', '!=', '')
                 ->get();
             //filterization
-            $data = $this->checkAlreadyPicked($list);
+            $data = $this->checkAlreadyPicked($list, $request_letter_ignore);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -221,17 +233,13 @@ class RequestLetterController extends Controller
     {
         $response = [];
         foreach (json_decode($request->input('letter_request'), true) as $key => $value) {
-            $find = RequestLetter::where('applicant_id', '=', $value['applicant_id'])->first();
-            if (!$find) {
-
-                $request_letter = RequestLetter::create(
-                    [
+            $request_letter = RequestLetter::firstOrCreate(
+                [
                     'outgoing_letter_id' => $request->input('outgoing_letter_id'), 
                     'applicant_id' => $value['applicant_id']
-                    ]
-                );
-                $response[] = $request_letter;
-            }
+                ]
+            );
+            $response[] = $request_letter;
         }
 
         return $response;
@@ -241,13 +249,19 @@ class RequestLetterController extends Controller
      * This function is to check number letter already pick or not
      * return array of object
      */
-    public function checkAlreadyPicked($list)
+    public function checkAlreadyPicked($list, $request_letter_ignore)
     {
         $data = [];
         foreach ($list as $key => $value) {
-            $find = RequestLetter::where('applicant_id', $value['id'])->first();
-            if (!$find) {
+            if ($request_letter_ignore == $value['id']) {
                 $data[] = $value;
+            } else {
+                $find = RequestLetter::where('applicant_id', $value['id'])->first();                
+            $find = RequestLetter::where('applicant_id', $value['id'])->first();
+                $find = RequestLetter::where('applicant_id', $value['id'])->first();                
+                if (!$find) {
+                    $data[] = $value;
+                }
             }
         }
 

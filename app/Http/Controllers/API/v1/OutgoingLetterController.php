@@ -10,6 +10,11 @@ use Validator;
 use JWTAuth;
 use DB;
 use App\Needs;
+use App\Applicant;
+use App\Usage;
+use App\LogisticRealizationItems;
+use App\FileUpload;
+use Illuminate\Support\Facades\Storage;
 
 class OutgoingLetterController extends Controller
 {
@@ -22,20 +27,10 @@ class OutgoingLetterController extends Controller
     {
         $data = []; 
         $limit = $request->input('limit', 10);
-        $sort = $request->filled('sort') ? ['letter_date ' . $request->input('sort') ] : ['letter_date ASC'];
+        $sortType = $request->input('sort', 'DESC');
 
         try {
-            $data = OutgoingLetter::select(
-                'id', 
-                'letter_number', 
-                'letter_date', 
-                DB::raw('0 as request_letter_total'), 
-                'status', 
-                'filename', 
-                'created_at', 
-                'updated_at'
-            ) 
-            ->where('user_id',  JWTAuth::user()->id)
+            $data = OutgoingLetter::where('user_id',  JWTAuth::user()->id)
             ->where(function ($query) use ($request) {
                 if ($request->filled('letter_number')) {
                     $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
@@ -45,12 +40,9 @@ class OutgoingLetterController extends Controller
                     $query->where('letter_date', $request->input('letter_date'));
                 }
             })         
-            ->orderByRaw(implode($sort))
+            ->orderBy('letter_date', $sortType)
+            ->orderBy('created_at', $sortType)
             ->paginate($limit);
-
-            foreach ($data as $key => $value) {
-                $data[$key]['request_letter_total'] = $this->getRequestLetterTotal($value['id']);
-            }
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -77,9 +69,14 @@ class OutgoingLetterController extends Controller
                 ]
             )
         );
+        
+        // Validasi Nomor Surat Keluar harus unik
+        $validLetterNumber = OutgoingLetter::where('letter_number', $request->input('letter_number'))->exists();
 
         if ($validator->fails()) {
             return response()->format(422, $validator->errors());
+        } if ($validLetterNumber) {
+            return response()->format(422, 'Nomor Surat Keluar sudah digunakan.');
         } else {
             DB::beginTransaction();
             try {
@@ -117,7 +114,34 @@ class OutgoingLetterController extends Controller
 
         $limit = $request->input('limit', 10);
         try {
-            $outgoingLetter = OutgoingLetter::find($id);
+            $outgoingLetter = OutgoingLetter::find($id);  
+            $data = [
+                'outgoing_letter' => $outgoingLetter 
+            ];
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+
+        return response()->format(200, 'success', $data);
+    }
+
+    /**
+     * Print Function
+     * Return spesific data for print outgoing letter format
+     *
+     * @param  integer $id
+     * @return \Illuminate\Http\Response
+     */
+    public function print($id)
+    {
+        $data = [];
+        try {
+            $outgoingLetter = OutgoingLetter::select(
+                'id',
+                'letter_number',
+                'letter_date'
+            )->find($id);
+
             $requestLetter = RequestLetter::select(
                 'request_letters.id',
                 'request_letters.outgoing_letter_id',
@@ -127,33 +151,33 @@ class OutgoingLetterController extends Controller
                 'agency.agency_name',
                 'agency.location_district_code',
                 'districtcities.kemendagri_kabupaten_nama',
-                'applicants.applicant_name',
-                DB::raw('0 as realization_total'),
-                DB::raw('"" as realization_date')
+                'applicants.applicant_name'
             )
             ->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
             ->join('agency', 'agency.id', '=', 'applicants.agency_id')
             ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
-            ->where(function ($query) use ($request) {
-                if ($request->filled('application_letter_number')) {
-                    $query->where('applicants.application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%");
-                }
-
-            })
             ->where('request_letters.outgoing_letter_id', $id)
             ->orderBy('request_letters.id')
-            ->paginate($limit);
+            ->get();
 
-            $requestLetterProcess = [];
-            foreach ($requestLetter as $key => $val) {
-                $requestLetterProcess[] = $this->getRealizationData($val);
-            }
+            $materials = $this->getAllMaterials($requestLetter);
 
-            $requestLetter = $requestLetterProcess;
+            //Return Image to base64 format
+            $pathPemprov = env('AWS_CLOUDFRONT_URL') . 'logo/pemprov_jabar.png';
+            $pathDivLog = env('AWS_CLOUDFRONT_URL') . 'logo/divisi_managemen_logistik.png';
+            $dataPemprov = file_get_contents($pathPemprov);
+            $dataDivlog = file_get_contents($pathDivLog);
+            $pemprovLogo = 'data:image/png;base64,' . base64_encode($dataPemprov);
+            $divlogLogo = 'data:image/png;base64,' . base64_encode($dataDivlog);
 
             $data = [
+                'image' => [
+                    'pemprov' => $pemprovLogo,
+                    'divlog' => $divlogLogo,
+                ],
                 'outgoing_letter' => $outgoingLetter,
-                'request_letter' => $requestLetter
+                'request_letter' => $requestLetter,
+                'material' => $materials,
             ];
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
@@ -161,6 +185,45 @@ class OutgoingLetterController extends Controller
 
         return response()->format(200, 'success', $data);
     }
+
+    public function upload(Request $request)
+    {         
+        $data = [];
+        $validator = Validator::make(
+            $request->all(),
+            array_merge(
+                [
+                    'id' => 'numeric|required',
+                    'outgoing_letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+                ]
+            )
+        );
+
+        if ($validator->fails()) {
+            return response()->format(422, $validator->errors());
+        } else {
+            try{
+                //Put File to folder 'outgoing_letter'
+                $path = Storage::disk('s3')->put('outgoing_letter', $request->outgoing_letter_file);
+                //Create fileupload data
+                $fileUpload = FileUpload::create(['name' => $path]);
+                //Get ID
+                $fileUploadId = $fileUpload->id;
+                //Get File Path
+                $filePath = Storage::disk('s3')->url($fileUpload->name);
+                //Update file to Outgoing Letter by ID  
+                $update = OutgoingLetter::where('id', $request->id)->update([
+                    'file' => $fileUploadId,
+                    'status' => OutgoingLetter::APPROVED //Asumsi bahwa file yang diupload sudah bertandatangan basah
+                ]);
+            } catch (\Exception $exception) {
+                //Return Error Exception
+                return response()->format(400, $exception->getMessage());
+            }
+        }
+        return response()->format(200, 'success', $data);
+    }
+
 
     /**
      * Store Outgoing Letter
@@ -182,7 +245,7 @@ class OutgoingLetterController extends Controller
     {
         $response = [];
         foreach (json_decode($request->input('letter_request'), true) as $key => $value) {
-            $request_letter = RequestLetter::create(
+            $request_letter = RequestLetter::firstOrCreate(
                 [
                     'outgoing_letter_id' => $request->input('outgoing_letter_id'), 
                     'applicant_id' => $value['applicant_id']
@@ -195,33 +258,49 @@ class OutgoingLetterController extends Controller
     }
 
     /**
-     * getRealizationData
-     * 
+     * Get All Materials from Selected Application Letters function
+     *
+     * @param App\RequestLetter $requestLetter
+     * @return array $data
      */
-    public function getRealizationData($request_letter)
+    public function getAllMaterials($requestLetter)
     {
-        $realization_total = Needs::join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
-        ->where('needs.agency_id', $request_letter->agency_id)
-        ->where('needs.applicant_id', $request_letter->applicant_id)
-        ->sum('logistic_realization_items.realization_quantity');
+        $requestLetterList = [];
+        foreach ($requestLetter as $key => $value) {
+            $requestLetterList[] = $value['applicant_id'];
+        }
 
+        $data = LogisticRealizationItems::select(
+            'product_id',
+            'product_name',
+            'realization_unit',
+            'material_group',
+            DB::raw('sum(realization_quantity) as realization_quantity'),
+            DB::raw('"" as location')
+        )
+        ->whereIn('applicant_id', $requestLetterList)
+        ->whereIn('status', ['approved', 'replaced'])
+        ->groupBy(
+            'product_id',
+            'product_name',
+            'realization_unit',
+            'material_group',
+            'realization_quantity'
+        )->get();
         
-        $realization = Needs::select('logistic_realization_items.realization_date')
-        ->join('logistic_realization_items', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
-        ->where('needs.agency_id', $request_letter->agency_id)
-        ->where('needs.applicant_id', $request_letter->applicant_id)
-        ->whereNotNull('logistic_realization_items.realization_date')
-        ->first();
-        
-        $request_letter->realization_date = $realization['realization_date'];
-        
-        $data = $request_letter;
+        foreach ($data as $key => $val) {        
+            $param = '{"material_id":"' . $val['product_id'] . '"}';
+            $api = '/api/soh_fmaterial';
+            $location = "";
+            $retApi = Usage::getLogisticStock($param, $api);
+            if (is_array($retApi) || is_object($retApi)) {  
+                foreach ($retApi as $val) {
+                    $location = $val->soh_location_name;
+                    break;
+                }
+            }
+            $data[$key]['location'] = $location;
+        }
         return $data;
-    }
-
-    public function getRequestLetterTotal($id)
-    {
-        $data = RequestLetter::where('outgoing_letter_id', $id)->get();
-        return count($data);
     }
 }

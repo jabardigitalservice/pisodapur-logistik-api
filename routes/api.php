@@ -35,6 +35,10 @@ Route::namespace('API\v1')->group(function () {
 
     Route::get('/products', 'ProductsController@index');
     Route::get('/product-unit/{id}', 'ProductsController@productUnit');
+
+    //Tracking Application
+    Route::get('/tracking', 'LogisticRequestController@track');
+    Route::get('/tracking/{id}', 'LogisticRequestController@trackDetail');
   });
   
     Route::post('v1/logistic-request', 'LogisticRequestController@store');
@@ -110,8 +114,10 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
 
     // Outgoing Letter Management
     Route::get('v1/outgoing-letter', 'OutgoingLetterController@index');
+    Route::get('v1/outgoing-letter-print/{id}', 'OutgoingLetterController@print');
     Route::get('v1/outgoing-letter/{id}', 'OutgoingLetterController@show');
     Route::post('v1/outgoing-letter', 'OutgoingLetterController@store');
+    Route::post('v1/outgoing-letter/upload', 'OutgoingLetterController@upload');
     Route::put('v1/outgoing-letter/{id}', 'OutgoingLetterController@update');
 
     //Request Letter Management

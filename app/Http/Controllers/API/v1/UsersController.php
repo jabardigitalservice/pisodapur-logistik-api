@@ -43,6 +43,7 @@ class UsersController extends ApiController {
             'email' => 'required | email | unique:users',
             'password' => 'required',
             'roles' => 'required',
+            'agency_name' => 'required',
             'code_district_city' => 'required',
             'name_district_city' => 'required',
         ]);
@@ -55,6 +56,7 @@ class UsersController extends ApiController {
                 'name' => $request->name,
                 'password' => bcrypt($request->password),
                 'roles' => $request->roles,
+                'agency_name' => $request->agency_name,
                 'code_district_city' => $request->code_district_city,
                 'name_district_city' => $request->name_district_city,
             ]);
