@@ -606,7 +606,7 @@ class LogisticRequestController extends Controller
                     'agency_id',
                     DB::raw('applicant_name as request'),
                     DB::raw('IFNULL(verified_at, FALSE) as verification'),
-                    DB::raw('approval_status as approval'),
+                    DB::raw('IF(approval_status, approval_status, verification_status) as approval'),
                     DB::raw('FALSE as delivering'), // Waiting for Integration data with POSLOG
                     DB::raw('FALSE as delivered'), // Waiting for Integration data with POSLOG
                     DB::raw('IF(approval_status, approval_status, verification_status) as status')
@@ -673,7 +673,7 @@ class LogisticRequestController extends Controller
         )
             ->with([
                 'product' => function ($query) {
-                    return $query->select(['id', 'name']);
+                    return $query->select(['id', 'name', 'category']);
                 },
                 'unit' => function ($query) {
                     return $query->select(['id', 'unit']);
