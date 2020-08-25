@@ -119,7 +119,6 @@ class Applicant extends Model
     // Cast for Tracking Module
     public function getStatusAttribute($value)
     {
-        // $status = $value;
         $status = 'Permohonan Diterima';
         if ($value == self::STATUS_REJECTED) {
             $status = 'Permohonan Ditolak';
