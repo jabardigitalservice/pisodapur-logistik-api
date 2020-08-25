@@ -599,7 +599,19 @@ class LogisticRequestController extends Controller
             },
             'village' => function ($query) {
                 return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
-            },  
+            },
+            'tracking' => function ($query) {                
+                return $query->select([
+                    'id',
+                    'agency_id',
+                    DB::raw('applicant_name as request'),
+                    DB::raw('IFNULL(verified_at, FALSE) as verification'),
+                    DB::raw('approval_status as approval'),
+                    DB::raw('FALSE as delivering'), // Waiting for Integration data with POSLOG
+                    DB::raw('FALSE as delivered'), // Waiting for Integration data with POSLOG
+                    DB::raw('IF(approval_status, approval_status, verification_status) as status')
+                ])->where('is_deleted', '!=' , 1);
+            }
         ])
         ->whereHas('applicant', function ($query) use ($request) {
             $query->where('is_deleted', '!=', 1);
