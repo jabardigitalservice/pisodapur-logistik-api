@@ -40,6 +40,13 @@ class Applicant extends Model
         'application_letter_number'
     ];
 
+    protected $casts = [
+        'request' => 'boolean',
+        'verification' => 'boolean',
+        'delivering' => 'boolean',
+        'delivered' => 'boolean'
+    ];
+
     public function masterFaskesType()
     {
         return $this->hasOne('App\MasterFaskesType', 'id', 'agency_type');
@@ -99,6 +106,28 @@ class Applicant extends Model
     public function getApprovalStatusAttribute($value)
     {
         $status = $value === self::STATUS_APPROVED ? 'Telah Disetujui' : '';
+        return $status;
+    }
+
+    // Cast for Tracking Module
+    public function getApprovalAttribute($value)
+    {
+        $status = $value === self::STATUS_APPROVED ? TRUE : ($value === self::STATUS_REJECTED ? "reject" : FALSE);
+        return $status;
+    }
+
+    // Cast for Tracking Module
+    public function getStatusAttribute($value)
+    {
+        // $status = $value;
+        $status = 'Permohonan Diterima';
+        if ($value == self::STATUS_REJECTED) {
+            $status = 'Ditolak';
+        } elseif ($value == self::STATUS_APPROVED) {
+            $status = 'Disetujui';
+        } elseif ($value == self::STATUS_VERIFIED) {
+            $status = 'Administrasi Terverifikasi';
+        } 
         return $status;
     }
 }
