@@ -122,9 +122,9 @@ class Applicant extends Model
         // $status = $value;
         $status = 'Permohonan Diterima';
         if ($value == self::STATUS_REJECTED) {
-            $status = 'Ditolak';
+            $status = 'Permohonan Ditolak';
         } elseif ($value == self::STATUS_APPROVED) {
-            $status = 'Disetujui';
+            $status = 'Permohonan Disetujui';
         } elseif ($value == self::STATUS_VERIFIED) {
             $status = 'Administrasi Terverifikasi';
         } 
