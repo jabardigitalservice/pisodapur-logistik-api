@@ -48,6 +48,7 @@ class RequestLetterController extends Controller
                     }    
                 })
                 ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
+                ->where('applicants.approval_status', '=', Applicant::STATUS_APPROVED)
                 ->orderBy('request_letters.id')
                 ->paginate($limit);
  
@@ -183,7 +184,7 @@ class RequestLetterController extends Controller
         $data = [];
         $request_letter_ignore = $request->input('request_letter_id');
         try { 
-            $list = Applicant::select('id', 'application_letter_number', 'verification_status')
+            $list = Applicant::select('id', 'application_letter_number', 'verification_status', 'approval_status')
                 ->where(function ($query) use ($request) {
                     if ($request->filled('application_letter_number')) {
                         $query->where('application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%");
@@ -191,6 +192,7 @@ class RequestLetterController extends Controller
                 }) 
                 ->where('is_deleted', '!=', 1)
                 ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
+                ->where('approval_status', '=', Applicant::STATUS_APPROVED)
                 ->where('application_letter_number', '!=', '')
                 ->get();
             //filterization
