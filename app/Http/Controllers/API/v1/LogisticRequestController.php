@@ -645,54 +645,81 @@ class LogisticRequestController extends Controller
     {
         
         $limit = $request->input('limit', 10);
-        $data = Needs::select(
-            'needs.id',
-            'needs.agency_id',
-            'needs.applicant_id',
-            'needs.product_id',
-            'needs.item',
-            'needs.brand',
-            'needs.quantity',
-            'needs.unit',
-            'needs.unit as unit_id',
-            'needs.usage',
-            'needs.priority',
-            'needs.created_at',
-            'needs.updated_at',
-            'logistic_realization_items.need_id',
+
+        $select = [
+            DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
+            'needs.id as need_id',
+            'logistic_realization_items.id as realization_id',
+            DB::raw('IFNULL(logistic_realization_items.product_id, needs.product_id) as product_id'),
+            'needs.product_id as need_product_id',
             'logistic_realization_items.product_id as realization_product_id',
+            DB::raw('IFNULL(logistic_realization_items.product_name, products.name) as product_name'),
+            'products.name as need_product_name',
             'logistic_realization_items.product_name as realization_product_name',
-            'logistic_realization_items.unit_id as realization_unit_id',
-            'logistic_realization_items.realization_unit',
+            'needs.brand as need_description',
+            DB::raw('IFNULL(logistic_realization_items.realization_quantity, needs.quantity) as quantity'),
+            DB::raw('IFNULL(logistic_realization_items.realization_unit, master_unit.unit) as unit_name'),
+            'needs.quantity as need_quantity',
+            'needs.unit as need_unit_id',
+            'master_unit.unit as need_unit_name',
+            'needs.usage as need_usage',
+            'products.category',
             'logistic_realization_items.realization_quantity',
-            'logistic_realization_items.realization_date',
-            'logistic_realization_items.material_group',
-            'logistic_realization_items.status',
-            'logistic_realization_items.realization_quantity',
-            'logistic_realization_items.created_by',
-            'logistic_realization_items.updated_by'
+            'realization_unit as realization_unit_name',
+            'logistic_realization_items.created_at as realized_at',
+            DB::raw('IFNULL(logistic_realization_items.status, "not_approved") as status')
+        ];
+        
+        $logisticRealizationItems = LogisticRealizationItems::select($select)        
+        ->join(
+            'needs', 
+            'logistic_realization_items.need_id', '=', 'needs.id', 
+            'left'
         )
-            ->with([
-                'product' => function ($query) {
-                    return $query->select(['id', 'name', 'category']);
-                },
-                'unit' => function ($query) {
-                    return $query->select(['id', 'unit']);
-                }
-            ])
-            ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
-            ->orderBy('needs.id')
-            ->where('needs.applicant_id', $id)->paginate($limit);
-        $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
-        $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) { 
-            if (!$item->realization_product_name) {
-                $product = Product::where('id', $item->realization_product_id)->first();
-                $item->realization_product_name = $product ? $product->name : '';
-            }
-            $item->status = !$item->status ? 'not_approved' : $item->status;
-            $item->logistic_item_summary = (int)$logisticItemSummary;
-            return $item;
-        });
+        ->join(
+            'products', 
+            'needs.product_id', '=', 'products.id', 
+            'left'
+        )
+        ->join(
+            'master_unit', 
+            'needs.unit', '=', 'master_unit.id', 
+            'left'
+        )
+        ->join(
+            'wms_jabar_material', 
+            'logistic_realization_items.product_id', '=', 'wms_jabar_material.material_id', 
+            'left'
+        )
+        ->whereNotNull('logistic_realization_items.created_by')
+        ->orderBy('logistic_realization_items.id') 
+        ->where('logistic_realization_items.applicant_id', $id);
+
+        $data = LogisticRealizationItems::select($select)
+        ->join(
+            'needs', 
+            'logistic_realization_items.need_id', '=', 'needs.id', 
+            'right'
+        )
+        ->join(
+            'products', 
+            'needs.product_id', '=', 'products.id', 
+            'left'
+        )
+        ->join(
+            'master_unit', 
+            'needs.unit', '=', 'master_unit.id', 
+            'left'
+        )
+        ->join(
+            'wms_jabar_material', 
+            'logistic_realization_items.product_id', '=', 'wms_jabar_material.material_id', 
+            'left'
+        )
+        ->orderBy('needs.id')
+        ->union($logisticRealizationItems)
+        ->where('needs.applicant_id', $id);
+        $data = $data->paginate($limit);
 
         return response()->format(200, 'success', $data);
     }
