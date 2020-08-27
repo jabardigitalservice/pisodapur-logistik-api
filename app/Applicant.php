@@ -42,7 +42,6 @@ class Applicant extends Model
 
     protected $casts = [
         'request' => 'boolean',
-        'verification' => 'boolean',
         'delivering' => 'boolean',
         'delivered' => 'boolean'
     ];
@@ -106,6 +105,13 @@ class Applicant extends Model
     public function getApprovalStatusAttribute($value)
     {
         $status = $value === self::STATUS_APPROVED ? 'Telah Disetujui' : ($value === self::STATUS_REJECTED ? 'Permohonan Ditolak' : '');
+        return $status;
+    }
+
+    // Cast for Tracking Module
+    public function getVerificationAttribute($value)
+    {
+        $status = $value === self::STATUS_APPROVED ? TRUE : ($value === self::STATUS_REJECTED ? "reject" : FALSE);
         return $status;
     }
 
