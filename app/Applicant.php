@@ -42,6 +42,7 @@ class Applicant extends Model
 
     protected $casts = [
         'request' => 'boolean',
+        'verification' => 'boolean',
         'delivering' => 'boolean',
         'delivered' => 'boolean'
     ];
@@ -95,10 +96,12 @@ class Applicant extends Model
     public function getFileAttribute($value)
     {
         $data = FileUpload::find($value);
-        if (substr($data->name, 0, 12) === 'registration') {
-            return env('AWS_CLOUDFRONT_URL') . $data->name;
-        } else {
-            return $data->name;
+        if (isset($data->name)) {
+            if (substr($data->name, 0, 12) === 'registration') {
+                return env('AWS_CLOUDFRONT_URL') . $data->name;
+            } else {
+                return $data->name;
+            }
         }
     }
 
