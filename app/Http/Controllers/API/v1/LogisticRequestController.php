@@ -644,7 +644,7 @@ class LogisticRequestController extends Controller
     public function trackDetail(Request $request, $id)
     {
         
-        $limit = $request->input('limit', 10);
+        $limit = $request->input('limit', 3);
 
         $select = [
             DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
