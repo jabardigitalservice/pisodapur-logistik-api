@@ -605,11 +605,12 @@ class LogisticRequestController extends Controller
                     'id',
                     'agency_id',
                     DB::raw('applicant_name as request'),
-                    DB::raw('IFNULL(verified_at, FALSE) as verification'),
-                    DB::raw('IF(approval_status, approval_status, verification_status) as approval'),
+                    DB::raw('IFNULL(verification_status, FALSE) as verification'),
+                    DB::raw('IFNULL(approval_status, FALSE) as approval'),
                     DB::raw('FALSE as delivering'), // Waiting for Integration data with POSLOG
                     DB::raw('FALSE as delivered'), // Waiting for Integration data with POSLOG
-                    DB::raw('IF(approval_status, approval_status, verification_status) as status')
+                    DB::raw('IFNULL(approval_status, concat("verification_", IFNULL(verification_status, FALSE))) as status'),
+                    DB::raw('IFNULL(approval_note, IFNULL(note, FALSE)) as reject_note')
                 ])->where('is_deleted', '!=' , 1);
             }
         ])

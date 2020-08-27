@@ -105,7 +105,7 @@ class Applicant extends Model
 
     public function getApprovalStatusAttribute($value)
     {
-        $status = $value === self::STATUS_APPROVED ? 'Telah Disetujui' : '';
+        $status = $value === self::STATUS_APPROVED ? 'Telah Disetujui' : ($value === self::STATUS_REJECTED ? 'Permohonan Ditolak' : '');
         return $status;
     }
 
@@ -122,6 +122,8 @@ class Applicant extends Model
         $status = 'Permohonan Diterima';
         if ($value == self::STATUS_REJECTED) {
             $status = 'Permohonan Ditolak';
+        } elseif ($value == 'verification_' . self::STATUS_REJECTED) {
+            $status = 'Administrasi Ditolak';
         } elseif ($value == self::STATUS_APPROVED) {
             $status = 'Permohonan Disetujui';
         } elseif ($value == self::STATUS_VERIFIED) {
