@@ -96,16 +96,25 @@ class Applicant extends Model
     public function getFileAttribute($value)
     {
         $data = FileUpload::find($value);
-        if (substr($data->name, 0, 12) === 'registration') {
-            return env('AWS_CLOUDFRONT_URL') . $data->name;
-        } else {
-            return $data->name;
+        if (isset($data->name)) {
+            if (substr($data->name, 0, 12) === 'registration') {
+                return env('AWS_CLOUDFRONT_URL') . $data->name;
+            } else {
+                return $data->name;
+            }
         }
     }
 
     public function getApprovalStatusAttribute($value)
     {
-        $status = $value === self::STATUS_APPROVED ? 'Telah Disetujui' : '';
+        $status = $value === self::STATUS_APPROVED ? 'Telah Disetujui' : ($value === self::STATUS_REJECTED ? 'Permohonan Ditolak' : '');
+        return $status;
+    }
+
+    // Cast for Tracking Module
+    public function getVerificationAttribute($value)
+    {
+        $status = $value === self::STATUS_APPROVED ? TRUE : ($value === self::STATUS_REJECTED ? "reject" : FALSE);
         return $status;
     }
 
@@ -122,6 +131,8 @@ class Applicant extends Model
         $status = 'Permohonan Diterima';
         if ($value == self::STATUS_REJECTED) {
             $status = 'Permohonan Ditolak';
+        } elseif ($value == 'verification_' . self::STATUS_REJECTED) {
+            $status = 'Administrasi Ditolak';
         } elseif ($value == self::STATUS_APPROVED) {
             $status = 'Permohonan Disetujui';
         } elseif ($value == self::STATUS_VERIFIED) {
