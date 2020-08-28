@@ -537,12 +537,25 @@ class LogisticRequestController extends Controller
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             } else {
-                $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
-                $applicant->fill($request->input());
-                $applicant->approved_by = JWTAuth::user()->id;
-                $applicant->approved_at = date('Y-m-d H:i:s');
-                $applicant->save();
-                $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                //check the list of applications that have not been approved
+                $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
+                $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNull('created_by')->count();
+                if ($realizationSum != $needsSum) {
+                    $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak n item';
+                    return response()->json([
+                        'status' => 422, 
+                        'error' => true,
+                        'message' => $message,
+                        'total_item_need_update' => ($needsSum - $realizationSum)
+                    ], 422);
+                } else {
+                    $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
+                    $applicant->fill($request->input());
+                    $applicant->approved_by = JWTAuth::user()->id;
+                    $applicant->approved_at = date('Y-m-d H:i:s');
+                    $applicant->save();
+                    $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                }
             }
             return response()->format(200, 'success', $applicant);
         } catch (\Exception $exception) {
@@ -605,12 +618,12 @@ class LogisticRequestController extends Controller
                     'id',
                     'agency_id',
                     DB::raw('applicant_name as request'),
-                    DB::raw('IFNULL(verification_status, FALSE) as verification'),
-                    DB::raw('IFNULL(approval_status, FALSE) as approval'),
+                    DB::raw('verification_status as verification'),
+                    DB::raw('approval_status as approval'),
                     DB::raw('FALSE as delivering'), // Waiting for Integration data with POSLOG
                     DB::raw('FALSE as delivered'), // Waiting for Integration data with POSLOG
                     DB::raw('IFNULL(approval_status, concat("verification_", IFNULL(verification_status, FALSE))) as status'),
-                    DB::raw('IFNULL(approval_note, IFNULL(note, FALSE)) as reject_note')
+                    DB::raw('IFNULL(approval_note, note) as reject_note')
                 ])->where('is_deleted', '!=' , 1);
             }
         ])
