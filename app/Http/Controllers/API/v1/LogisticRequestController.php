@@ -537,12 +537,24 @@ class LogisticRequestController extends Controller
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             } else {
-                $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
-                $applicant->fill($request->input());
-                $applicant->approved_by = JWTAuth::user()->id;
-                $applicant->approved_at = date('Y-m-d H:i:s');
-                $applicant->save();
-                $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                //check the list of applications that have not been approved
+                $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
+                $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNull('created_by')->count();
+                if ($realizationSum != $needsSum) {
+                    $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak n item';
+                    return response()->json([
+                        'status' => 422, 
+                        'error' => true,
+                        'message' => $message
+                    ], 422);
+                } else {
+                    $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
+                    $applicant->fill($request->input());
+                    $applicant->approved_by = JWTAuth::user()->id;
+                    $applicant->approved_at = date('Y-m-d H:i:s');
+                    $applicant->save();
+                    $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                }
             }
             return response()->format(200, 'success', $applicant);
         } catch (\Exception $exception) {
