@@ -682,7 +682,34 @@ class LogisticRequestController extends Controller
             'logistic_realization_items.created_at as realized_at',
             DB::raw('IFNULL(logistic_realization_items.status, "not_approved") as status')
         ];
+
+        //List of unverified item(s)
+        $unverifiedData = LogisticRealizationItems::select($select)
+        ->join(
+            'needs', 
+            'logistic_realization_items.need_id', '=', 'needs.id',
+            'right'
+        )
+        ->join(
+            'products', 
+            'needs.product_id', '=', 'products.id', 
+            'left'
+        )
+        ->join(
+            'master_unit', 
+            'needs.unit', '=', 'master_unit.id', 
+            'left'
+        )
+        ->join(
+            'wms_jabar_material', 
+            'logistic_realization_items.product_id', '=', 'wms_jabar_material.material_id', 
+            'left'
+        )
+        ->whereNull('logistic_realization_items.status')
+        ->where('needs.applicant_id', $id)
+        ->orderBy('logistic_realization_items.id', 'needs.id');
         
+        //List of item(s) added from admin
         $logisticRealizationItems = LogisticRealizationItems::select($select)        
         ->join(
             'needs', 
@@ -708,11 +735,11 @@ class LogisticRequestController extends Controller
         ->orderBy('logistic_realization_items.id') 
         ->where('logistic_realization_items.applicant_id', $id);
 
+        //List of updated item(s)
         $data = LogisticRealizationItems::select($select)
         ->join(
             'needs', 
-            'logistic_realization_items.need_id', '=', 'needs.id', 
-            'right'
+            'logistic_realization_items.need_id', '=', 'needs.id'
         )
         ->join(
             'products', 
@@ -731,6 +758,7 @@ class LogisticRequestController extends Controller
         )
         ->orderBy('needs.id')
         ->union($logisticRealizationItems)
+        ->union($unverifiedData)
         ->where('needs.applicant_id', $id);
         $data = $data->paginate($limit);
 
