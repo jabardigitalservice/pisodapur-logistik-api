@@ -545,7 +545,8 @@ class LogisticRequestController extends Controller
                     return response()->json([
                         'status' => 422, 
                         'error' => true,
-                        'message' => $message
+                        'message' => $message,
+                        'total_item_need_update' => ($needsSum - $realizationSum)
                     ], 422);
                 } else {
                     $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
