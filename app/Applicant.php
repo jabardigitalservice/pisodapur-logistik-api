@@ -41,10 +41,9 @@ class Applicant extends Model
     ];
 
     protected $casts = [
-        'request' => 'boolean',
-        'verification' => 'boolean',
+        'request' => 'boolean', 
         'delivering' => 'boolean',
-        'delivered' => 'boolean'
+        'delivered' => 'boolean' 
     ];
 
     public function masterFaskesType()
@@ -114,15 +113,23 @@ class Applicant extends Model
     // Cast for Tracking Module
     public function getVerificationAttribute($value)
     {
-        $status = $value === self::STATUS_APPROVED ? TRUE : ($value === self::STATUS_REJECTED ? "reject" : FALSE);
-        return $status;
+        $status = $value === self::STATUS_VERIFIED ? TRUE : ($value === self::STATUS_REJECTED ? TRUE : FALSE); 
+        $result = [
+            'status' => $status,
+            'is_reject' => $value === self::STATUS_REJECTED ? TRUE : FALSE,
+        ];
+        return $result;
     }
 
     // Cast for Tracking Module
     public function getApprovalAttribute($value)
     {
-        $status = $value === self::STATUS_APPROVED ? TRUE : ($value === self::STATUS_REJECTED ? "reject" : FALSE);
-        return $status;
+        $status = $value === self::STATUS_APPROVED ? TRUE : ($value === self::STATUS_REJECTED ? TRUE : FALSE);
+        $result = [
+            'status' => $status,
+            'is_reject' => $value === self::STATUS_REJECTED ? TRUE : FALSE,
+        ];
+        return $result;
     }
 
     // Cast for Tracking Module
