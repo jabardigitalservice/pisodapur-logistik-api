@@ -540,7 +540,7 @@ class LogisticRequestController extends Controller
                 //check the list of applications that have not been approved
                 $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
                 $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNull('created_by')->count();
-                if ($realizationSum != $needsSum) {
+                if ($realizationSum != $needsSum && $request->approval_status === Applicant::STATUS_APPROVED) {
                     $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . ($needsSum - $realizationSum) .' item';
                     return response()->json([
                         'status' => 200, 
