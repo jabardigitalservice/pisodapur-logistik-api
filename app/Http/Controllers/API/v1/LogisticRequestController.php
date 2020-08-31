@@ -541,13 +541,13 @@ class LogisticRequestController extends Controller
                 $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
                 $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNull('created_by')->count();
                 if ($realizationSum != $needsSum) {
-                    $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak n item';
+                    $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . ($needsSum - $realizationSum) .' item';
                     return response()->json([
-                        'status' => 422, 
+                        'status' => 200, 
                         'error' => true,
                         'message' => $message,
                         'total_item_need_update' => ($needsSum - $realizationSum)
-                    ], 422);
+                    ], 200);
                 } else {
                     $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
                     $applicant->fill($request->input());
