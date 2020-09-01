@@ -543,11 +543,11 @@ class LogisticRequestController extends Controller
                 if ($realizationSum != $needsSum && $request->approval_status === Applicant::STATUS_APPROVED) {
                     $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . ($needsSum - $realizationSum) .' item';
                     return response()->json([
-                        'status' => 200, 
+                        'status' => 422, 
                         'error' => true,
                         'message' => $message,
                         'total_item_need_update' => ($needsSum - $realizationSum)
-                    ], 200);
+                    ], 422);
                 } else {
                     $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
                     $applicant->fill($request->input());

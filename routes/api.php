@@ -48,6 +48,7 @@ Route::namespace('API\v1')->group(function () {
     Route::get('v1/master-faskes/{id}', 'MasterFaskesController@show');
     Route::post('v1/verify-master-faskes/{id}', 'MasterFaskesController@verify');
     Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
+    Route::get('v1/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
     Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
 });
 
@@ -65,6 +66,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/products', 'ProductsController@index');
     Route::get('v1/products/{id}', 'ProductsController@show');
     Route::get('v1/products-total-request', 'ProductsController@productRequest');
+    Route::get('v1/products-top-request', 'ProductsController@productTopRequest');
 
     // TRANSACTIONS
     Route::prefix('v1/transactions')->group(function() {

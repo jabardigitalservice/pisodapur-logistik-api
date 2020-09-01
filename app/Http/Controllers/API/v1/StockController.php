@@ -18,7 +18,7 @@ class StockController extends Controller
             $param = '{"material_id":"' . $request->input('poslog_id') . '"}';
             $api = '/api/soh_fmaterial';
         } else {
-            $product = Product::find($request->input('id'));
+            $product = Product::findOrFail($request->input('id'));
             $materialGroupId = $product->material_group;
 
             $param = '{"material_group":"' . $materialGroupId . '"}';
