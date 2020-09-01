@@ -38,7 +38,8 @@ class MasterFaskesTypeController extends Controller
 
             $query = MasterFaskesType::withCount([
                 'agency as total_request' => function ($query) use ($startDate, $endDate) {
-                    return $query->join('applicants', 'applicants.agency_id', 'agency.id') 
+                    return $query->join('applicants', 'applicants.agency_id', 'agency.id')
+                        ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
                         ->whereBetween('applicants.updated_at', [$startDate, $endDate]);
                 }
             ]);
@@ -67,22 +68,25 @@ class MasterFaskesTypeController extends Controller
             $startDate = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
             $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
 
-            $maskerType = MasterFaskesType::select(
+            $faskesType = MasterFaskesType::select(
                 'id',
                 'name'
             )
             ->withCount([
                 'agency as total' => function ($query) use ($startDate, $endDate) {
-                    return $query->whereBetween('created_at', [$startDate, $endDate]);
+                    return $query->join('applicants', 'applicants.agency_id', 'agency.id')
+                        ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
+                        ->whereBetween('applicants.updated_at', [$startDate, $endDate]);
                 }
             ])
             ->orderBy('total', 'desc')
-            ->first();
+            ->firstOrFail();
 
-            $agency_total = Agency::whereBetween('created_at', [$startDate, $endDate])->count();
+            $agency_total = Applicant::where('verification_status', Applicant::STATUS_VERIFIED)
+            ->whereBetween('created_at', [$startDate, $endDate])->count();
             $data = [
                 'total_agency' => $agency_total,
-                'total_max' => $maskerType
+                'total_max' => $faskesType
             ];
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
