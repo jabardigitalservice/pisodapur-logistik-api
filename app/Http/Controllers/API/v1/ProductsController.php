@@ -83,6 +83,7 @@ class ProductsController extends Controller
                 'products.id', 
                 'products.name',
                 'needs.unit',
+                'products.category',
                 DB::raw('SUM(REPLACE(needs.quantity, ".", "")) as total_request')
             )
             ->leftJoin('needs', function($join) {
@@ -106,11 +107,15 @@ class ProductsController extends Controller
             ->where('products.material_group_status', 1)
             ->whereBetween('applicants.updated_at', [$startDate, $endDate])
             ->where(function ($query) use ($request) {
+                if ($request->filled('category')) {
+                    $query->where('category', $request->input('category'));
+                }  
+
                 if ($request->filled('sort')) {
                     $query->orderBy('total_request', $request->input('sort'));
-                }  
+                }
             })
-            ->groupBy('products.id', 'products.name', 'needs.unit');
+            ->groupBy('products.id', 'products.name', 'products.category', 'needs.unit');
 
             if ($request->filled('limit')) {
                 $data = $query->paginate($request->input('limit'));
