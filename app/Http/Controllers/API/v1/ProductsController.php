@@ -86,18 +86,18 @@ class ProductsController extends Controller
                 'needs.unit',
                 DB::raw('SUM(needs.quantity) as total_request')
             )
-            ->leftJoin('needs', function($join) {
+            ->leftJoin('needs', function ($join) use ($startDate, $endDate) {
                 $join->on('needs.product_id', '=', 'products.id')
-                ->leftJoin('applicants', function($join) {
+                ->join('applicants', function($join) use ($startDate, $endDate) {
                     $join->on('needs.agency_id', '=', 'applicants.agency_id');
                 });
-            })   
+            })    
             ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
+            ->where('applicants.is_deleted', '!=', 1)
+            ->whereBetween('applicants.created_at', [$startDate, $endDate])
             ->where('products.material_group_status', 1)
-            ->whereBetween('applicants.updated_at', [$startDate, $endDate])
-            ->orderBy('total_request', $request->input('sort', 'desc'))
+            ->orderBy('total_request', $request->input('sort', 'desc'))            
             ->groupBy('products.id', 'products.name', 'needs.unit');
-
             if ($request->filled('limit')) {
                 $data = $query->paginate($request->input('limit'));
             } else {
@@ -127,47 +127,32 @@ class ProductsController extends Controller
         $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
         $sort = ['total DESC, ', 'products.name ASC'];
 
-        try {
+        try {             
             $totalMax = Product::select(
-                'products.id', 
-                'products.name',
-                DB::raw('SUM(needs.quantity) as total'),
-                'needs.unit',
-                'products.category'
+                    'products.id', 
+                    'products.name',
+                    DB::raw('SUM(needs.quantity) as total'),
+                    'needs.unit',
+                    'products.category'
             )
-            ->join('needs', function($join) {
-                $join->on('needs.product_id', '=', 'products.id');
-            })
-            ->join('applicants', function($join) use ($startDate, $endDate) {
-                $join->whereBetween('applicants.created_at', [$startDate, $endDate])
-                ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
-                ->on('needs.agency_id', '=', 'applicants.agency_id');
-            })
-            ->join('product_unit', function($join) {
-                $join->on('product_unit.product_id', '=', 'products.id');
-            })
-            ->join('master_unit', function($join) {
-                $join->on('product_unit.unit_id', '=', 'master_unit.id');
-            })
-            ->with([
-                'unit' => function ($query) {
-                    return $query->select(['id', 'unit']);
-                }
-            ])      
-            ->where('products.material_group_status', '=', 1)           
-            ->where(function ($query) use ($request) {
-                if ($request->filled('category')) {
-                    $query->where('category', $request->input('category'));
-                }  
-            })
+            ->leftJoin('needs', function ($join) use ($startDate, $endDate) {
+                $join->on('needs.product_id', '=', 'products.id')
+                ->join('applicants', function($join) use ($startDate, $endDate) {
+                    $join->on('needs.agency_id', '=', 'applicants.agency_id');
+                });
+            })    
+            ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
+            ->where('applicants.is_deleted', '!=', 1)
+            ->whereBetween('applicants.created_at', [$startDate, $endDate])
+            ->where('products.material_group_status', 1)
             ->orderByRaw(implode($sort))
-            ->groupBy('products.id', 'products.name', 'products.category', 'needs.unit')->first();
+            ->groupBy('products.id', 'products.name', 'needs.unit', 'products.category')->first();
 
-            $totalItems = Needs::join('applicants', function($join) use ($startDate, $endDate) {
-                $join->whereBetween('applicants.created_at', [$startDate, $endDate])
-                ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
-                ->on('needs.agency_id', '=', 'applicants.agency_id');
-            })->sum('quantity');
+            $totalItems = Needs::join('applicants', 'needs.agency_id', '=', 'applicants.agency_id') 
+            ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
+            ->where('applicants.is_deleted', '!=', 1)
+            ->whereBetween('applicants.created_at', [$startDate, $endDate])
+            ->sum('quantity');
             $data = [
                 'total_items' => $totalItems,
                 'total_max' => $totalMax
