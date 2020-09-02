@@ -78,43 +78,25 @@ class ProductsController extends Controller
     {
         $startDate = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
         $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
-        $sort = $request->filled('sort') ? ['total_request ' . $request->input('sort') . ', ', 'products.name ASC'] : ['products.name ASC'];
 
         try {
             $query = Product::select(
                 'products.id', 
                 'products.name',
                 'needs.unit',
-                'products.category',
                 DB::raw('SUM(needs.quantity) as total_request')
             )
-            ->join('needs', function($join) {
-                $join->on('needs.product_id', '=', 'products.id');
-            })
-            ->join('applicants', function($join) use ($startDate, $endDate) {
-                $join->whereBetween('applicants.created_at', [$startDate, $endDate])
-                ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
-                ->on('needs.agency_id', '=', 'applicants.agency_id');
-            })
-            ->join('product_unit', function($join) {
-                $join->on('product_unit.product_id', '=', 'products.id');
-            })
-            ->join('master_unit', function($join) {
-                $join->on('product_unit.unit_id', '=', 'master_unit.id');
-            })
-            ->with([
-                'unit' => function ($query) {
-                    return $query->select(['id', 'unit']);
-                }
-            ])          
-            ->where('products.material_group_status', '=', 1)                
-            ->where(function ($query) use ($request) {
-                if ($request->filled('category')) {
-                    $query->where('category', $request->input('category'));
-                }  
-            })
-            ->orderByRaw(implode($sort))
-            ->groupBy('products.id', 'products.name', 'products.category', 'needs.unit');
+            ->leftJoin('needs', function($join) {
+                $join->on('needs.product_id', '=', 'products.id')
+                ->leftJoin('applicants', function($join) {
+                    $join->on('needs.agency_id', '=', 'applicants.agency_id');
+                });
+            })   
+            ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
+            ->where('products.material_group_status', 1)
+            ->whereBetween('applicants.updated_at', [$startDate, $endDate])
+            ->orderBy('total_request', $request->input('sort', 'desc'))
+            ->groupBy('products.id', 'products.name', 'needs.unit');
 
             if ($request->filled('limit')) {
                 $data = $query->paginate($request->input('limit'));
