@@ -33,7 +33,7 @@ class LogisticRequestController extends Controller
             return response()->format(404, 'You cannot access this page', null);
         }
 
-        $limit = $request->filled('limit') ? $request->input('limit') : 20;
+        $limit = $request->filled('limit') ? $request->input('limit') : 10;
         $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'created_at DESC'] : ['created_at DESC, ', 'agency_name ASC'];
 
         try {
@@ -43,14 +43,15 @@ class LogisticRequestController extends Controller
                 },
                 'applicant' => function ($query) {
                     return $query->select([
-                        'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at'
-                ])->with([
-                    'verifiedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name']);
-                    },
-                    'approvedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name']);
-                    }
+                            'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', 
+                            DB::raw('IFNULL(approval_status, concat("verification_", IFNULL(verification_status, FALSE))) as status')
+                    ])->with([
+                        'verifiedBy' => function ($query) {
+                            return $query->select(['id', 'name', 'agency_name']);
+                        },
+                        'approvedBy' => function ($query) {
+                            return $query->select(['id', 'name', 'agency_name']);
+                        }
                     ])->where('is_deleted', '!=' , 1);
                 },
                 'city' => function ($query) {
@@ -61,67 +62,53 @@ class LogisticRequestController extends Controller
                 },
                 'village' => function ($query) {
                     return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
-                },
-                'logisticRequestItems' => function ($query) {
-                    return $query->select(['agency_id', 'product_id', 'brand', 'quantity', 'unit', 'usage', 'priority']);
-                },
-                'logisticRequestItems.product' => function ($query) {
-                    return $query->select(['id', 'name', 'material_group_status', 'material_group']);
-                },
-                'logisticRequestItems.unit' => function ($query) {
-                    return $query->select(['id', 'unit as name']);
-                },
-                'logisticRealizationItems' => function ($query) {
-                    return $query->select(['id', 'need_id', 'agency_id', 'product_id', 'realization_quantity', 'unit_id', 'realization_date', 'status']);
-                },
-                'logisticRealizationItems.product' => function ($query) {
-                    return $query->select(['id', 'name', 'material_group_status', 'material_group']);
-                },
-                'logisticRealizationItems.unit' => function ($query) {
-                    return $query->select(['id', 'unit as name']);
-                },
+                }
             ])
-                ->whereHas('applicant', function ($query) use ($request) {
+            ->whereHas('applicant', function ($query) use ($request) {
+                if ($request->filled('is_rejected')) {
+                    $query->where(function ($queries) {
+                        $queries->where('verification_status', Applicant::STATUS_REJECTED)
+                                ->orWhere('approval_status', Applicant::STATUS_REJECTED);
+                    });
+                } else {                        
                     if ($request->filled('verification_status')) {
-                        $query->where('is_deleted', '!=' , 1)->where('verification_status', $request->input('verification_status'));
-                    }
-
-                    if ($request->filled('date')) {
-                        $query->whereRaw("DATE(created_at) = '" . $request->input('date') . "'");
-                    }
-
-                    if ($request->filled('source_data')) {
-                        $query->where('source_data', $request->input('source_data'));
+                        $query->where('verification_status', $request->input('verification_status'));
                     }
 
                     if ($request->filled('approval_status')) {
-                        if ($request->input('approval_status') == Applicant::STATUS_APPROVED) {
-                            $query->where('approval_status', $request->input('approval_status'));
-                        } else {
-                            $query->where('approval_status', null);
-                        }
+                        $query->where('approval_status', $request->input('approval_status'));
                     }
+                }
 
-                    if ($request->filled('stock_checking_status')) {
-                        $query->where('stock_checking_status', $request->input('stock_checking_status'));
-                    }
-                })
-                ->whereHas('masterFaskesType', function ($query) use ($request) {
-                    if ($request->filled('faskes_type')) {
-                        $query->where('id', $request->input('faskes_type'));
-                    }
-                })
-                ->where(function ($query) use ($request) {
-                    if ($request->filled('agency_name')) {
-                        $query->where('agency_name', 'LIKE', "%{$request->input('agency_name')}%");
-                    }
+                if ($request->filled('date')) {
+                    $query->whereRaw("DATE(created_at) = '" . $request->input('date') . "'");
+                }
 
-                    if ($request->filled('city_code')) {
-                        $query->where('location_district_code', $request->input('city_code'));
-                    }
-                })
-                ->orderByRaw(implode($sort))
-                ->paginate($limit);
+                if ($request->filled('source_data')) {
+                    $query->where('source_data', $request->input('source_data'));
+                }
+
+                if ($request->filled('stock_checking_status')) {
+                    $query->where('stock_checking_status', $request->input('stock_checking_status'));
+                }
+                $query->where('is_deleted', '!=' , 1);
+            }) 
+            ->where(function ($query) use ($request) {
+                if ($request->filled('agency_name')) {
+                    $query->where('agency_name', 'LIKE', "%{$request->input('agency_name')}%");
+                }
+
+                if ($request->filled('city_code')) {
+                    $query->where('location_district_code', $request->input('city_code'));
+                }
+
+                if ($request->filled('faskes_type')) {
+                    $query->where('agency_type', $request->input('faskes_type'));
+                }
+            })
+            ->orderByRaw(implode($sort))
+            ->paginate($limit);
+
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
