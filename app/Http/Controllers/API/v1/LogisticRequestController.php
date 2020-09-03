@@ -44,7 +44,7 @@ class LogisticRequestController extends Controller
                 'applicant' => function ($query) {
                     return $query->select([
                             'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', 
-                            DB::raw('IFNULL(approval_status, concat("verification_", IFNULL(verification_status, FALSE))) as status')
+                            DB::raw('concat("approval_status", "-", "verification_status") as status')
                     ])->with([
                         'verifiedBy' => function ($query) {
                             return $query->select(['id', 'name', 'agency_name']);
@@ -609,7 +609,7 @@ class LogisticRequestController extends Controller
                     DB::raw('approval_status as approval'),
                     DB::raw('FALSE as delivering'), // Waiting for Integration data with POSLOG
                     DB::raw('FALSE as delivered'), // Waiting for Integration data with POSLOG
-                    DB::raw('IFNULL(approval_status, concat("verification_", IFNULL(verification_status, FALSE))) as status'),
+                    DB::raw('concat("approval_status", "-", "verification_status") as status'),
                     DB::raw('IFNULL(approval_note, note) as reject_note')
                 ])->where('is_deleted', '!=' , 1);
             }

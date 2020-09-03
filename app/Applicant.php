@@ -11,6 +11,7 @@ class Applicant extends Model
     protected $table = 'applicants';
 
     const STATUS_NOT_VERIFIED = 'not_verified';
+    const STATUS_NOT_APPROVED = 'not_approved';
     const STATUS_VERIFIED = 'verified';
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
@@ -136,15 +137,15 @@ class Applicant extends Model
     public function getStatusAttribute($value)
     {
         $status = 'Permohonan Diterima';
-        if ($value == self::STATUS_REJECTED) {
-            $status = 'Permohonan Ditolak';
-        } elseif ($value == 'verification_' . self::STATUS_REJECTED) {
-            $status = 'Administrasi Ditolak';
-        } elseif ($value == self::STATUS_APPROVED) {
-            $status = 'Permohonan Disetujui';
-        } elseif ($value == self::STATUS_VERIFIED) {
-            $status = 'Administrasi Terverifikasi';
-        } 
+        if ($value == self::STATUS_APPROVED . '-' . self::STATUS_VERIFIED) {
+                $status = 'Permohonan Disetujui';
+        } elseif ($value == self::STATUS_REJECTED . '-' . self::STATUS_VERIFIED) {
+                $status = 'Permohonan Ditolak';
+        } elseif ($value == self::STATUS_NOT_APPROVED . '-' . self::STATUS_VERIFIED) {
+                $status = 'Administrasi Terverifikasi';
+        } elseif ($value == self::STATUS_NOT_APPROVED . '-' . self::STATUS_REJECTED) {
+                $status = 'Administrasi Ditolak';
+        }
         return $status;
     }
 }
