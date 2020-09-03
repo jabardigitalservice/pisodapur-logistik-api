@@ -14,7 +14,14 @@ class Applicant extends Model
     const STATUS_NOT_APPROVED = 'not_approved';
     const STATUS_VERIFIED = 'verified';
     const STATUS_APPROVED = 'approved';
-    const STATUS_REJECTED = 'rejected';
+    const STATUS_REJECTED = 'rejected';    
+    
+    /**
+    * All of the relationships to be touched.
+    *
+    * @var array
+    */
+   protected $touches = ['agency'];
 
     protected $fillable = [
         'agency_id',

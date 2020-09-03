@@ -34,7 +34,7 @@ class LogisticRequestController extends Controller
         }
 
         $limit = $request->filled('limit') ? $request->input('limit') : 10;
-        $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'created_at DESC'] : ['created_at DESC, ', 'agency_name ASC'];
+        $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
 
         try {
             $data = Agency::with([
