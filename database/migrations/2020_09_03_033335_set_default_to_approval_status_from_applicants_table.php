@@ -14,7 +14,7 @@ class SetDefaultToApprovalStatusFromApplicantsTable extends Migration
     public function up()
     {
         Schema::table('applicants', function (Blueprint $table) {
-            $table->string('approval_status', 15)->default('not_approved')->change();
+            $table->string('approval_status', 15)->default('not_approved')->nullable(false)->change();
         });
 
         DB::table('applicants')->whereNull('approval_status')->update(['approval_status' => 'not_approved']);
