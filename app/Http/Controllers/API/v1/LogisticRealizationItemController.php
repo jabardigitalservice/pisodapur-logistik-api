@@ -288,6 +288,13 @@ class LogisticRealizationItemController extends Controller
         return $findOne;
     }
 
+    /**
+     * integrateMaterial function
+     *
+     * untuk menyimpan dan mengupdate seluruh data barang yang berasal dari PosLog agar tersimpan di database. 
+     * 
+     * @return void
+     */
     public function integrateMaterial()
     {
         $materials = Usage::getMaterialPosLog();
