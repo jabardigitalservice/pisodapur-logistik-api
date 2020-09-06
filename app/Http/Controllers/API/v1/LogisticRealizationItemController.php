@@ -23,11 +23,8 @@ class LogisticRealizationItemController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'need_id' => 'numeric',
-            // 'product_id' => 'string', //referring to material_id from WMS Jabar is string
-            // 'realization_quantity' => 'numeric',
-            'unit_id' => 'numeric',
-            // 'realization_date' => 'date',
+            'need_id' => 'numeric', 
+            'unit_id' => 'numeric', 
             'status' => 'string'
         ]);
         if ($validator->fails()) {
