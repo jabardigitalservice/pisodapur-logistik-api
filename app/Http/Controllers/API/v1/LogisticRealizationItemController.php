@@ -327,8 +327,8 @@ class LogisticRealizationItemController extends Controller
                 'donatur_id' => $val->donatur_id,
                 'donatur_name' => $val->donatur_name,
             ];
-            WmsJabarMaterial::updateOrInsert($where, $update);
         }
+        WmsJabarMaterial::insert($data);
         return response()->format(200, true, $materials); 
     }    
 }

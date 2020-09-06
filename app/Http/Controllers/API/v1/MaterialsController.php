@@ -65,12 +65,63 @@ class MaterialsController extends Controller
     
     /**
      * Display a listing of the resource.
+     * if did not exists in our database, system will update material list
      *
      * @return \Illuminate\Http\Response
      */
     public function productUnitList($id)
     {
-        $data = WmsJabarMaterial::select('id', 'UoM as name')->where('material_id', $id)->get();
-        return response()->format(200, 'success', $data);
+        $exists = WmsJabarMaterial::select('id', 'UoM as name')->where('material_id', $id)->exists();
+        if ($exists) {
+            $data = WmsJabarMaterial::select('id', 'UoM as name')->where('material_id', $id)->get();
+            return response()->format(200, 'success', $data);
+        } else {
+            $this->integrateMaterial();
+            $data = WmsJabarMaterial::select('id', 'UoM as name')->where('material_id', $id)->get();
+            return response()->format(200, 'success', $data);
+        }
+    }
+
+    /**
+     * integrateMaterial function
+     *
+     * untuk menyimpan dan mengupdate seluruh data barang yang berasal dari PosLog agar tersimpan di database. 
+     * 
+     * @return void
+     */
+    public function integrateMaterial()
+    {
+        $materials = Usage::getMaterialPosLog();
+        WmsJabarMaterial::truncate();
+
+        $data = [];
+        foreach ($materials as $val) {
+            $item = [
+                'material_id' => $val->material_id,
+                'uom' => $val->uom,
+                'material_name' => $val->material_name,
+                'matg_id' => $val->matg_id,
+                'matgsub_id' => $val->matgsub_id,
+                'material_desc' => $val->material_desc ? $val->material_desc : '-',
+                'donatur_id' => $val->donatur_id,
+                'donatur_name' => $val->donatur_name,
+            ];
+            $data[] = $item;
+
+            $where = [
+                'material_id' => $val->material_id,
+            ];
+
+            $update = [
+                'uom' => $val->uom,
+                'material_name' => $val->material_name,
+                'matg_id' => $val->matg_id,
+                'matgsub_id' => $val->matgsub_id,
+                'material_desc' => $val->material_desc ? $val->material_desc : '-',
+                'donatur_id' => $val->donatur_id,
+                'donatur_name' => $val->donatur_name,
+            ];
+        }
+        WmsJabarMaterial::insert($data);
     }
 }
