@@ -295,7 +295,7 @@ class LogisticRealizationItemController extends Controller
 
         $data = [];
         foreach ($materials as $val) {
-            $data[] = [
+            $item = [
                 'material_id' => $val->material_id,
                 'uom' => $val->uom,
                 'material_name' => $val->material_name,
@@ -305,9 +305,23 @@ class LogisticRealizationItemController extends Controller
                 'donatur_id' => $val->donatur_id,
                 'donatur_name' => $val->donatur_name,
             ];
-        }
+            $data[] = $item;
 
-        WmsJabarMaterial::insert($data);
+            $where = [
+                'material_id' => $val->material_id,
+            ];
+
+            $update = [
+                'uom' => $val->uom,
+                'material_name' => $val->material_name,
+                'matg_id' => $val->matg_id,
+                'matgsub_id' => $val->matgsub_id,
+                'material_desc' => $val->material_desc ? $val->material_desc : '-',
+                'donatur_id' => $val->donatur_id,
+                'donatur_name' => $val->donatur_name,
+            ];
+            WmsJabarMaterial::updateOrInsert($where, $update);
+        }
         return response()->format(200, true, $materials); 
     }    
 }
