@@ -47,9 +47,6 @@ Route::namespace('API\v1')->group(function () {
     Route::post('v1/master-faskes', 'MasterFaskesController@store');
     Route::get('v1/master-faskes/{id}', 'MasterFaskesController@show');
     Route::post('v1/verify-master-faskes/{id}', 'MasterFaskesController@verify');
-    Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
-    Route::get('v1/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
-    Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
 });
 
 Route::namespace('API\v1')->middleware('auth:api')->group(function () {
@@ -138,6 +135,11 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     //Incoming Letter Management
     Route::get('v1/incoming-letter', 'IncomingLetterController@index');
     Route::get('v1/incoming-letter/{id}', 'IncomingLetterController@show');
+    
+    //Dashboard
+    Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
+    Route::get('v1/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
+    Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
 });
 
 //Route for Another App that want integrate data

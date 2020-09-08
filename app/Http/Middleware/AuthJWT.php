@@ -23,7 +23,7 @@ class AuthJWT {
         } catch (TokenExpiredException $e) {
             $token = $request->token;
             $refreshedToken = JWTAuth::refresh($token);
-            return response()->format(200, "token_expired", ["new_token" => $refreshedToken]]);
+            return response()->format(200, "token_expired", ["new_token" => $refreshedToken]);
         } catch (JWTException $e) {
             return response()->format(422, $e->getMessage());
         } catch (Exception $exception) {

@@ -439,11 +439,6 @@ class LogisticRequestController extends Controller
         $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
 
         try {
-            $total = Applicant::Select('applicants.id')
-            ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
-            ->count();
-
             $lastUpdate = Applicant::Select('applicants.updated_at') 
             ->where('is_deleted', '!=' , 1) 
             ->orderBy('updated_at', 'desc')
@@ -461,27 +456,48 @@ class LogisticRequestController extends Controller
             ->whereBetween('updated_at', [$startDate, $endDate])
             ->count();
 
+            $totalUnverified = Applicant::Select('applicants.id') 
+            ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
+            ->where('verification_status', Applicant::STATUS_NOT_VERIFIED) 
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+
             $totalApproved = Applicant::Select('applicants.id') 
-            ->where('verification_status', Applicant::STATUS_APPROVED) 
+            ->where('approval_status', Applicant::STATUS_APPROVED) 
+            ->where('verification_status', Applicant::STATUS_VERIFIED)
             ->where('is_deleted', '!=' , 1)
             ->whereBetween('updated_at', [$startDate, $endDate])
             ->count();
 
             $totalVerified = Applicant::Select('applicants.id') 
+            ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
             ->where('verification_status', Applicant::STATUS_VERIFIED) 
             ->where('is_deleted', '!=' , 1)
             ->whereBetween('updated_at', [$startDate, $endDate])
             ->count();
 
-            $totalRejected = Applicant::Select('applicants.id') 
+            $totalVerificationRejected = Applicant::Select('applicants.id') 
+            ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
             ->where('verification_status', Applicant::STATUS_REJECTED)
             ->where('is_deleted', '!=' , 1)
             ->whereBetween('updated_at', [$startDate, $endDate])
             ->count();
 
+            $totalApprovalRejected = Applicant::Select('applicants.id') 
+            ->where('approval_status', Applicant::STATUS_REJECTED)
+            ->where('verification_status', Applicant::STATUS_VERIFIED)
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+
+            $totalRejected = $totalVerificationRejected + $totalApprovalRejected;
+            $total = $totalUnverified + $totalVerified + $totalApproved + $totalRejected;
+
             $data = [
                 'total_request' => $total,
                 'total_approved' => $totalApproved,
+                'total_unverified' => $totalUnverified,
                 'total_verified' => $totalVerified,
                 'total_rejected' => $totalRejected,
                 'total_pikobar' => $totalPikobar,
@@ -670,33 +686,7 @@ class LogisticRequestController extends Controller
             'realization_unit as realization_unit_name',
             'logistic_realization_items.created_at as realized_at',
             DB::raw('IFNULL(logistic_realization_items.status, "not_approved") as status')
-        ];
-
-        //List of unverified item(s)
-        $unverifiedData = LogisticRealizationItems::select($select)
-        ->join(
-            'needs', 
-            'logistic_realization_items.need_id', '=', 'needs.id',
-            'right'
-        )
-        ->join(
-            'products', 
-            'needs.product_id', '=', 'products.id', 
-            'left'
-        )
-        ->join(
-            'master_unit', 
-            'needs.unit', '=', 'master_unit.id', 
-            'left'
-        )
-        ->join(
-            'wms_jabar_material', 
-            'logistic_realization_items.product_id', '=', 'wms_jabar_material.material_id', 
-            'left'
-        )
-        ->whereNull('logistic_realization_items.status')
-        ->where('needs.applicant_id', $id)
-        ->orderBy('logistic_realization_items.id', 'needs.id');
+        ]; 
         
         //List of item(s) added from admin
         $logisticRealizationItems = LogisticRealizationItems::select($select)        
@@ -728,7 +718,8 @@ class LogisticRequestController extends Controller
         $data = LogisticRealizationItems::select($select)
         ->join(
             'needs', 
-            'logistic_realization_items.need_id', '=', 'needs.id'
+            'logistic_realization_items.need_id', '=', 'needs.id',
+            'right'
         )
         ->join(
             'products', 
@@ -747,7 +738,6 @@ class LogisticRequestController extends Controller
         )
         ->orderBy('needs.id')
         ->union($logisticRealizationItems)
-        ->union($unverifiedData)
         ->where('needs.applicant_id', $id);
         $data = $data->paginate($limit);
 
