@@ -138,10 +138,6 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     //Incoming Letter Management
     Route::get('v1/incoming-letter', 'IncomingLetterController@index');
     Route::get('v1/incoming-letter/{id}', 'IncomingLetterController@show');
-    
-    //Auth Key
-    Route::post('v1/auth-key/register', 'AuthKeysController@register');
-    Route::post('v1/auth-key/reset', 'AuthKeysController@reset');
 });
 
 //Route for Another App that want integrate data
