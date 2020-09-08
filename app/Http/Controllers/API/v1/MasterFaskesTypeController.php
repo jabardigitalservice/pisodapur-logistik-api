@@ -85,7 +85,7 @@ class MasterFaskesTypeController extends Controller
             $agency_total = Agency::select('agency_name')->join('applicants', 'applicants.agency_id', '=', 'agency.id')
             ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
             ->whereBetween('agency.created_at', [$startDate, $endDate])
-            ->groupBy('agency_name');
+            ->groupBy('agency_name')->get();
             $data = [
                 'total_agency' => count($agency_total),
                 'total_max' => $faskesType
