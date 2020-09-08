@@ -15,9 +15,8 @@ class AuthKey
      */
     public function handle($request, Closure $next)
     {
-        $name = $request->rqsfrom;
         $token = $request->header('Api-Key');
-        $authKey = \App\AuthKey::whereName($name)->whereToken($token)->first();
+        $authKey = \App\AuthKey::whereToken($token)->first();
         if (!isset($authKey)) {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
