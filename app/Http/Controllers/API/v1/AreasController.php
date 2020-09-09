@@ -93,7 +93,7 @@ class AreasController extends Controller
                     return $query->join('applicants', 'applicants.agency_id', 'agency.id')
                             ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
                             ->where('applicants.is_deleted', '!=', 1)
-                            ->whereBetween('applicants.updated_at', [$startDate, $endDate]);
+                            ->whereBetween('applicants.created_at', [$startDate, $endDate]);
                 }
                 ]);
             if ($request->filled('sort')) {
