@@ -447,48 +447,48 @@ class LogisticRequestController extends Controller
             $totalPikobar = Applicant::Select('applicants.id') 
             ->where('source_data', 'pikobar')
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
             $totalDinkesprov = Applicant::Select('applicants.id') 
             ->where('source_data', 'dinkes_provinsi')
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
             $totalUnverified = Applicant::Select('applicants.id') 
             ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
             ->where('verification_status', Applicant::STATUS_NOT_VERIFIED) 
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
             $totalApproved = Applicant::Select('applicants.id') 
             ->where('approval_status', Applicant::STATUS_APPROVED) 
             ->where('verification_status', Applicant::STATUS_VERIFIED)
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
             $totalVerified = Applicant::Select('applicants.id') 
             ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
             ->where('verification_status', Applicant::STATUS_VERIFIED) 
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
             $totalVerificationRejected = Applicant::Select('applicants.id') 
             ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
             ->where('verification_status', Applicant::STATUS_REJECTED)
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
             $totalApprovalRejected = Applicant::Select('applicants.id') 
             ->where('approval_status', Applicant::STATUS_REJECTED)
             ->where('verification_status', Applicant::STATUS_VERIFIED)
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
             $totalRejected = $totalVerificationRejected + $totalApprovalRejected;

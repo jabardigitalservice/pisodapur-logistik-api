@@ -40,7 +40,7 @@ class MasterFaskesTypeController extends Controller
                 'agency as total_request' => function ($query) use ($startDate, $endDate) {
                     return $query->join('applicants', 'applicants.agency_id', 'agency.id')
                         ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
-                        ->whereBetween('applicants.updated_at', [$startDate, $endDate]);
+                        ->whereBetween('applicants.created_at', [$startDate, $endDate]); 
                 }
             ]);
             if ($request->filled('sort')) {
@@ -76,7 +76,7 @@ class MasterFaskesTypeController extends Controller
                 'agency as total' => function ($query) use ($startDate, $endDate) {
                     return $query->join('applicants', 'applicants.agency_id', 'agency.id')
                         ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
-                        ->whereBetween('applicants.updated_at', [$startDate, $endDate]);
+                        ->whereBetween('applicants.created_at', [$startDate, $endDate]);
                 }
             ])
             ->orderBy('total', 'desc')
