@@ -149,4 +149,5 @@ Route::namespace('API\v1')->middleware('auth-key')->group(function () {
   Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
   Route::get('v1/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
   Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
+  Route::get('v1/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
 });
