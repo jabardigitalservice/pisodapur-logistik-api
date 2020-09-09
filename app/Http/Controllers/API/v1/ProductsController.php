@@ -94,7 +94,7 @@ class ProductsController extends Controller
             })    
             ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
             ->where('applicants.is_deleted', '!=', 1)
-            ->whereBetween('applicants.created_at', [$startDate, $endDate])
+            ->whereBetween('applicants.created_at', [$startDate, $endDate]) 
             ->where('products.material_group_status', 1)
             ->orderBy('total_request', $request->input('sort', 'desc'))            
             ->groupBy('products.id', 'products.name', 'needs.unit');
@@ -143,7 +143,7 @@ class ProductsController extends Controller
             })    
             ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
             ->where('applicants.is_deleted', '!=', 1)
-            ->whereBetween('applicants.created_at', [$startDate, $endDate])
+            ->whereBetween('applicants.created_at', [$startDate, $endDate]) 
             ->where('products.material_group_status', 1)
             ->orderByRaw(implode($sort))
             ->groupBy('products.id', 'products.name', 'needs.unit', 'products.category')->first();
@@ -151,7 +151,7 @@ class ProductsController extends Controller
             $totalItems = Needs::join('applicants', 'needs.agency_id', '=', 'applicants.agency_id') 
             ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
             ->where('applicants.is_deleted', '!=', 1)
-            ->whereBetween('applicants.created_at', [$startDate, $endDate])
+            ->whereBetween('applicants.created_at', [$startDate, $endDate]) 
             ->sum('quantity');
             $data = [
                 'total_items' => $totalItems,
