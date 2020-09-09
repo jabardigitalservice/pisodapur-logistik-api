@@ -26,7 +26,7 @@ class ChangeRealizationUnitToNullToLogisticRealizationItemsTable extends Migrati
     public function down()
     {
         Schema::table('logistic_realization_items', function (Blueprint $table) {
-            //
+            $table->string('realization_unit', 30)->nullable(false)->change();
         });
     }
 }
