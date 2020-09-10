@@ -40,6 +40,7 @@ class MasterFaskesTypeController extends Controller
                 'agency as total_request' => function ($query) use ($startDate, $endDate) {
                     return $query->join('applicants', 'applicants.agency_id', 'agency.id')
                         ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
+                        ->where('applicants.is_deleted', '!=', 1)
                         ->whereBetween('applicants.created_at', [$startDate, $endDate]); 
                 }
             ]);
@@ -76,6 +77,7 @@ class MasterFaskesTypeController extends Controller
                 'agency as total' => function ($query) use ($startDate, $endDate) {
                     return $query->join('applicants', 'applicants.agency_id', 'agency.id')
                         ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
+                        ->where('applicants.is_deleted', '!=', 1)
                         ->whereBetween('applicants.created_at', [$startDate, $endDate]);
                 }
             ])
@@ -84,6 +86,7 @@ class MasterFaskesTypeController extends Controller
 
             $agency_total = Agency::select('agency_name')->join('applicants', 'applicants.agency_id', '=', 'agency.id')
             ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
+            ->where('applicants.is_deleted', '!=', 1)
             ->whereBetween('agency.created_at', [$startDate, $endDate])
             ->groupBy('agency_name')->get();
             $data = [
