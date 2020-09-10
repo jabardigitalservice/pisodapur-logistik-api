@@ -500,6 +500,8 @@ class LogisticRequestController extends Controller
                 'total_unverified' => $totalUnverified,
                 'total_verified' => $totalVerified,
                 'total_rejected' => $totalRejected,
+                'total_approval_rejected' => $totalApprovalRejected,
+                'total_verification_rejected' => $totalVerificationRejected,
                 'total_pikobar' => $totalPikobar,
                 'total_dinkesprov' => $totalDinkesprov,
                 'last_update' => $lastUpdate ? date('Y-m-d H:i:s', strtotime($lastUpdate->updated_at)) : '2020-01-01 00:00:00'
