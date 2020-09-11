@@ -33,8 +33,8 @@ class LogisticRequestController extends Controller
             return response()->format(404, 'You cannot access this page', null);
         }
 
-        $limit = $request->filled('limit') ? $request->input('limit') : 20;
-        $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'created_at DESC'] : ['created_at DESC, ', 'agency_name ASC'];
+        $limit = $request->filled('limit') ? $request->input('limit') : 10;
+        $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
 
         try {
             $data = Agency::with([
@@ -43,14 +43,16 @@ class LogisticRequestController extends Controller
                 },
                 'applicant' => function ($query) {
                     return $query->select([
-                        'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at'
-                ])->with([
-                    'verifiedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name']);
-                    },
-                    'approvedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name']);
-                    }
+                            'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', 
+                            DB::raw('concat(approval_status, "-", verification_status) as status'),
+                            DB::raw('concat(approval_status, "-", verification_status) as statusDetail')
+                    ])->with([
+                        'verifiedBy' => function ($query) {
+                            return $query->select(['id', 'name', 'agency_name']);
+                        },
+                        'approvedBy' => function ($query) {
+                            return $query->select(['id', 'name', 'agency_name']);
+                        }
                     ])->where('is_deleted', '!=' , 1);
                 },
                 'city' => function ($query) {
@@ -61,67 +63,53 @@ class LogisticRequestController extends Controller
                 },
                 'village' => function ($query) {
                     return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
-                },
-                'logisticRequestItems' => function ($query) {
-                    return $query->select(['agency_id', 'product_id', 'brand', 'quantity', 'unit', 'usage', 'priority']);
-                },
-                'logisticRequestItems.product' => function ($query) {
-                    return $query->select(['id', 'name', 'material_group_status', 'material_group']);
-                },
-                'logisticRequestItems.unit' => function ($query) {
-                    return $query->select(['id', 'unit as name']);
-                },
-                'logisticRealizationItems' => function ($query) {
-                    return $query->select(['id', 'need_id', 'agency_id', 'product_id', 'realization_quantity', 'unit_id', 'realization_date', 'status']);
-                },
-                'logisticRealizationItems.product' => function ($query) {
-                    return $query->select(['id', 'name', 'material_group_status', 'material_group']);
-                },
-                'logisticRealizationItems.unit' => function ($query) {
-                    return $query->select(['id', 'unit as name']);
-                },
+                }
             ])
-                ->whereHas('applicant', function ($query) use ($request) {
+            ->whereHas('applicant', function ($query) use ($request) {
+                if ($request->filled('is_rejected')) {
+                    $query->where(function ($queries) {
+                        $queries->where('verification_status', Applicant::STATUS_REJECTED)
+                                ->orWhere('approval_status', Applicant::STATUS_REJECTED);
+                    });
+                } else {                        
                     if ($request->filled('verification_status')) {
-                        $query->where('is_deleted', '!=' , 1)->where('verification_status', $request->input('verification_status'));
-                    }
-
-                    if ($request->filled('date')) {
-                        $query->whereRaw("DATE(created_at) = '" . $request->input('date') . "'");
-                    }
-
-                    if ($request->filled('source_data')) {
-                        $query->where('source_data', $request->input('source_data'));
+                        $query->where('verification_status', $request->input('verification_status'));
                     }
 
                     if ($request->filled('approval_status')) {
-                        if ($request->input('approval_status') == Applicant::STATUS_APPROVED) {
-                            $query->where('approval_status', $request->input('approval_status'));
-                        } else {
-                            $query->where('approval_status', null);
-                        }
+                        $query->where('approval_status', $request->input('approval_status'));
                     }
+                }
 
-                    if ($request->filled('stock_checking_status')) {
-                        $query->where('stock_checking_status', $request->input('stock_checking_status'));
-                    }
-                })
-                ->whereHas('masterFaskesType', function ($query) use ($request) {
-                    if ($request->filled('faskes_type')) {
-                        $query->where('id', $request->input('faskes_type'));
-                    }
-                })
-                ->where(function ($query) use ($request) {
-                    if ($request->filled('agency_name')) {
-                        $query->where('agency_name', 'LIKE', "%{$request->input('agency_name')}%");
-                    }
+                if ($request->filled('date')) {
+                    $query->whereRaw("DATE(created_at) = '" . $request->input('date') . "'");
+                }
 
-                    if ($request->filled('city_code')) {
-                        $query->where('location_district_code', $request->input('city_code'));
-                    }
-                })
-                ->orderByRaw(implode($sort))
-                ->paginate($limit);
+                if ($request->filled('source_data')) {
+                    $query->where('source_data', $request->input('source_data'));
+                }
+
+                if ($request->filled('stock_checking_status')) {
+                    $query->where('stock_checking_status', $request->input('stock_checking_status'));
+                }
+                $query->where('is_deleted', '!=' , 1);
+            }) 
+            ->where(function ($query) use ($request) {
+                if ($request->filled('agency_name')) {
+                    $query->where('agency_name', 'LIKE', "%{$request->input('agency_name')}%");
+                }
+
+                if ($request->filled('city_code')) {
+                    $query->where('location_district_code', $request->input('city_code'));
+                }
+
+                if ($request->filled('faskes_type')) {
+                    $query->where('agency_type', $request->input('faskes_type'));
+                }
+            })
+            ->orderByRaw(implode($sort))
+            ->paginate($limit);
+
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -451,11 +439,6 @@ class LogisticRequestController extends Controller
         $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
 
         try {
-            $total = Applicant::Select('applicants.id')
-            ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
-            ->count();
-
             $lastUpdate = Applicant::Select('applicants.updated_at') 
             ->where('is_deleted', '!=' , 1) 
             ->orderBy('updated_at', 'desc')
@@ -464,38 +447,61 @@ class LogisticRequestController extends Controller
             $totalPikobar = Applicant::Select('applicants.id') 
             ->where('source_data', 'pikobar')
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
             $totalDinkesprov = Applicant::Select('applicants.id') 
             ->where('source_data', 'dinkes_provinsi')
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+            $totalUnverified = Applicant::Select('applicants.id') 
+            ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
+            ->where('verification_status', Applicant::STATUS_NOT_VERIFIED) 
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
             $totalApproved = Applicant::Select('applicants.id') 
-            ->where('verification_status', Applicant::STATUS_APPROVED) 
+            ->where('approval_status', Applicant::STATUS_APPROVED) 
+            ->where('verification_status', Applicant::STATUS_VERIFIED)
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
             $totalVerified = Applicant::Select('applicants.id') 
+            ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
             ->where('verification_status', Applicant::STATUS_VERIFIED) 
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
-            $totalRejected = Applicant::Select('applicants.id') 
+            $totalVerificationRejected = Applicant::Select('applicants.id') 
+            ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
             ->where('verification_status', Applicant::STATUS_REJECTED)
             ->where('is_deleted', '!=' , 1)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
+
+            $totalApprovalRejected = Applicant::Select('applicants.id') 
+            ->where('approval_status', Applicant::STATUS_REJECTED)
+            ->where('verification_status', Applicant::STATUS_VERIFIED)
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+            $totalRejected = $totalVerificationRejected + $totalApprovalRejected;
+            $total = $totalUnverified + $totalVerified + $totalApproved + $totalRejected;
 
             $data = [
                 'total_request' => $total,
                 'total_approved' => $totalApproved,
+                'total_unverified' => $totalUnverified,
                 'total_verified' => $totalVerified,
                 'total_rejected' => $totalRejected,
+                'total_approval_rejected' => $totalApprovalRejected,
+                'total_verification_rejected' => $totalVerificationRejected,
                 'total_pikobar' => $totalPikobar,
                 'total_dinkesprov' => $totalDinkesprov,
                 'last_update' => $lastUpdate ? date('Y-m-d H:i:s', strtotime($lastUpdate->updated_at)) : '2020-01-01 00:00:00'
@@ -537,12 +543,25 @@ class LogisticRequestController extends Controller
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             } else {
-                $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
-                $applicant->fill($request->input());
-                $applicant->approved_by = JWTAuth::user()->id;
-                $applicant->approved_at = date('Y-m-d H:i:s');
-                $applicant->save();
-                $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                //check the list of applications that have not been approved
+                $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
+                $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNull('created_by')->count();
+                if ($realizationSum != $needsSum && $request->approval_status === Applicant::STATUS_APPROVED) {
+                    $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . ($needsSum - $realizationSum) .' item';
+                    return response()->json([
+                        'status' => 422, 
+                        'error' => true,
+                        'message' => $message,
+                        'total_item_need_update' => ($needsSum - $realizationSum)
+                    ], 422);
+                } else {
+                    $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
+                    $applicant->fill($request->input());
+                    $applicant->approved_by = JWTAuth::user()->id;
+                    $applicant->approved_at = date('Y-m-d H:i:s');
+                    $applicant->save();
+                    $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                }
             }
             return response()->format(200, 'success', $applicant);
         } catch (\Exception $exception) {
@@ -599,7 +618,21 @@ class LogisticRequestController extends Controller
             },
             'village' => function ($query) {
                 return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
-            },  
+            },
+            'tracking' => function ($query) {                
+                return $query->select([
+                    'id',
+                    'agency_id',
+                    DB::raw('applicant_name as request'),
+                    DB::raw('verification_status as verification'),
+                    DB::raw('approval_status as approval'),
+                    DB::raw('FALSE as delivering'), // Waiting for Integration data with POSLOG
+                    DB::raw('FALSE as delivered'), // Waiting for Integration data with POSLOG
+                    DB::raw('concat(approval_status, "-", verification_status) as status'),
+                    DB::raw('concat(approval_status, "-", verification_status) as statusDetail'),
+                    DB::raw('IFNULL(approval_note, note) as reject_note')
+                ])->where('is_deleted', '!=' , 1);
+            }
         ])
         ->whereHas('applicant', function ($query) use ($request) {
             $query->where('is_deleted', '!=', 1);
@@ -631,55 +664,84 @@ class LogisticRequestController extends Controller
     public function trackDetail(Request $request, $id)
     {
         
-        $limit = $request->input('limit', 10);
-        $data = Needs::select(
-            'needs.id',
-            'needs.agency_id',
-            'needs.applicant_id',
-            'needs.product_id',
-            'needs.item',
-            'needs.brand',
-            'needs.quantity',
-            'needs.unit',
-            'needs.unit as unit_id',
-            'needs.usage',
-            'needs.priority',
-            'needs.created_at',
-            'needs.updated_at',
-            'logistic_realization_items.need_id',
+        $limit = $request->input('limit', 3);
+
+        $select = [
+            DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
+            'needs.id as need_id',
+            'logistic_realization_items.id as realization_id',
+            DB::raw('IFNULL(logistic_realization_items.product_id, needs.product_id) as product_id'),
+            'needs.product_id as need_product_id',
             'logistic_realization_items.product_id as realization_product_id',
+            DB::raw('IFNULL(logistic_realization_items.product_name, products.name) as product_name'),
+            'products.name as need_product_name',
             'logistic_realization_items.product_name as realization_product_name',
-            'logistic_realization_items.unit_id as realization_unit_id',
-            'logistic_realization_items.realization_unit',
+            'needs.brand as need_description',
+            DB::raw('IFNULL(logistic_realization_items.realization_quantity, needs.quantity) as quantity'),
+            DB::raw('IFNULL(logistic_realization_items.realization_unit, master_unit.unit) as unit_name'),
+            'needs.quantity as need_quantity',
+            'needs.unit as need_unit_id',
+            'master_unit.unit as need_unit_name',
+            'needs.usage as need_usage',
+            'products.category',
             'logistic_realization_items.realization_quantity',
-            'logistic_realization_items.realization_date',
-            'logistic_realization_items.material_group',
-            'logistic_realization_items.status',
-            'logistic_realization_items.realization_quantity',
-            'logistic_realization_items.created_by',
-            'logistic_realization_items.updated_by'
+            'realization_unit as realization_unit_name',
+            'logistic_realization_items.created_at as realized_at',
+            DB::raw('IFNULL(logistic_realization_items.status, "not_approved") as status')
+        ]; 
+        
+        //List of item(s) added from admin
+        $logisticRealizationItems = LogisticRealizationItems::select($select)        
+        ->join(
+            'needs', 
+            'logistic_realization_items.need_id', '=', 'needs.id', 
+            'left'
         )
-            ->with([
-                'product' => function ($query) {
-                    return $query->select(['id', 'name']);
-                },
-                'unit' => function ($query) {
-                    return $query->select(['id', 'unit']);
-                }
-            ])
-            ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
-            ->orderBy('needs.id')
-            ->where('needs.applicant_id', $id)->paginate($limit);
-        $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
-        $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) { 
-            if (!$item->realization_product_name) {
-                $product = Product::where('id', $item->realization_product_id)->first();
-                $item->realization_product_name = $product ? $product->name : '';
-            }
-            $item->status = !$item->status ? 'not_approved' : $item->status;
-            $item->logistic_item_summary = (int)$logisticItemSummary;
-            return $item;
-        });
+        ->join(
+            'products', 
+            'needs.product_id', '=', 'products.id', 
+            'left'
+        )
+        ->join(
+            'master_unit', 
+            'needs.unit', '=', 'master_unit.id', 
+            'left'
+        )
+        ->join(
+            'wms_jabar_material', 
+            'logistic_realization_items.product_id', '=', 'wms_jabar_material.material_id', 
+            'left'
+        )
+        ->whereNotNull('logistic_realization_items.created_by')
+        ->orderBy('logistic_realization_items.id') 
+        ->where('logistic_realization_items.applicant_id', $id);
+
+        //List of updated item(s)
+        $data = LogisticRealizationItems::select($select)
+        ->join(
+            'needs', 
+            'logistic_realization_items.need_id', '=', 'needs.id',
+            'right'
+        )
+        ->join(
+            'products', 
+            'needs.product_id', '=', 'products.id', 
+            'left'
+        )
+        ->join(
+            'master_unit', 
+            'needs.unit', '=', 'master_unit.id', 
+            'left'
+        )
+        ->join(
+            'wms_jabar_material', 
+            'logistic_realization_items.product_id', '=', 'wms_jabar_material.material_id', 
+            'left'
+        )
+        ->orderBy('needs.id')
+        ->union($logisticRealizationItems)
+        ->where('needs.applicant_id', $id);
+        $data = $data->paginate($limit);
 
         return response()->format(200, 'success', $data);
     }

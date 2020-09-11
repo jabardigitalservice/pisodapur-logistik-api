@@ -47,8 +47,6 @@ Route::namespace('API\v1')->group(function () {
     Route::post('v1/master-faskes', 'MasterFaskesController@store');
     Route::get('v1/master-faskes/{id}', 'MasterFaskesController@show');
     Route::post('v1/verify-master-faskes/{id}', 'MasterFaskesController@verify');
-    Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
-    Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
 });
 
 Route::namespace('API\v1')->middleware('auth:api')->group(function () {
@@ -65,6 +63,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/products', 'ProductsController@index');
     Route::get('v1/products/{id}', 'ProductsController@show');
     Route::get('v1/products-total-request', 'ProductsController@productRequest');
+    Route::get('v1/products-top-request', 'ProductsController@productTopRequest');
 
     // TRANSACTIONS
     Route::prefix('v1/transactions')->group(function() {
@@ -127,13 +126,28 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/application-letter', 'RequestLetterController@store');
     Route::put('v1/application-letter/{id}', 'RequestLetterController@update');
     Route::delete('v1/application-letter/{id}', 'RequestLetterController@destroy');
-
+    
     //Logistic Realization Integrate with PosLog
     Route::get('v1/logistic-realization/products', 'MaterialsController@index');    
     Route::get('v1/logistic-realization/product-units/{id}', 'MaterialsController@productUnitList');
     Route::get('v1/logistic-realization/sync', 'LogisticRealizationItemController@integrateMaterial');
-
+    
     //Incoming Letter Management
     Route::get('v1/incoming-letter', 'IncomingLetterController@index');
     Route::get('v1/incoming-letter/{id}', 'IncomingLetterController@show');
+    
+    //Dashboard
+    Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
+    Route::get('v1/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
+    Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
+});
+
+//Route for Another App that want integrate data
+Route::namespace('API\v1')->middleware('auth-key')->group(function () {
+  Route::get('v1/products-total-request', 'ProductsController@productRequest');
+  Route::get('v1/products-top-request', 'ProductsController@productTopRequest');
+  Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
+  Route::get('v1/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
+  Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
+  Route::get('v1/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
 });

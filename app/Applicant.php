@@ -11,9 +11,17 @@ class Applicant extends Model
     protected $table = 'applicants';
 
     const STATUS_NOT_VERIFIED = 'not_verified';
+    const STATUS_NOT_APPROVED = 'not_approved';
     const STATUS_VERIFIED = 'verified';
     const STATUS_APPROVED = 'approved';
-    const STATUS_REJECTED = 'rejected';
+    const STATUS_REJECTED = 'rejected';    
+    
+    /**
+    * All of the relationships to be touched.
+    *
+    * @var array
+    */
+   protected $touches = ['agency'];
 
     protected $fillable = [
         'agency_id',
@@ -38,6 +46,12 @@ class Applicant extends Model
         'approved_at',
         'stock_checking_status',
         'application_letter_number'
+    ];
+
+    protected $casts = [
+        'request' => 'boolean', 
+        'delivering' => 'boolean',
+        'delivered' => 'boolean' 
     ];
 
     public function masterFaskesType()
@@ -89,16 +103,56 @@ class Applicant extends Model
     public function getFileAttribute($value)
     {
         $data = FileUpload::find($value);
-        if (substr($data->name, 0, 12) === 'registration') {
-            return env('AWS_CLOUDFRONT_URL') . $data->name;
-        } else {
-            return $data->name;
+        if (isset($data->name)) {
+            if (substr($data->name, 0, 12) === 'registration') {
+                return env('AWS_CLOUDFRONT_URL') . $data->name;
+            } else {
+                return $data->name;
+            }
         }
     }
 
     public function getApprovalStatusAttribute($value)
     {
-        $status = $value === self::STATUS_APPROVED ? 'Telah Disetujui' : '';
+        $status = $value === self::STATUS_APPROVED ? 'Telah Disetujui' : ($value === self::STATUS_REJECTED ? 'Permohonan Ditolak' : '');
+        return $status;
+    }
+
+    // Cast for Tracking Module
+    public function getVerificationAttribute($value)
+    {
+        $status = $value === self::STATUS_VERIFIED ? TRUE : ($value === self::STATUS_REJECTED ? TRUE : FALSE); 
+        $result = [
+            'status' => $status,
+            'is_reject' => $value === self::STATUS_REJECTED ? TRUE : FALSE,
+        ];
+        return $result;
+    }
+
+    // Cast for Tracking Module
+    public function getApprovalAttribute($value)
+    {
+        $status = $value === self::STATUS_APPROVED ? TRUE : ($value === self::STATUS_REJECTED ? TRUE : FALSE);
+        $result = [
+            'status' => $status,
+            'is_reject' => $value === self::STATUS_REJECTED ? TRUE : FALSE,
+        ];
+        return $result;
+    }
+
+    // Cast for Tracking Module
+    public function getStatusAttribute($value)
+    {
+        $status = 'Permohonan Diterima';
+        if ($value == self::STATUS_APPROVED . '-' . self::STATUS_VERIFIED) {
+                $status = 'Permohonan Disetujui';
+        } elseif ($value == self::STATUS_REJECTED . '-' . self::STATUS_VERIFIED) {
+                $status = 'Permohonan Ditolak';
+        } elseif ($value == self::STATUS_NOT_APPROVED . '-' . self::STATUS_VERIFIED) {
+                $status = 'Administrasi Terverifikasi';
+        } elseif ($value == self::STATUS_NOT_APPROVED . '-' . self::STATUS_REJECTED) {
+                $status = 'Administrasi Ditolak';
+        }
         return $status;
     }
 }

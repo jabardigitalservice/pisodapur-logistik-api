@@ -23,11 +23,8 @@ class LogisticRealizationItemController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'need_id' => 'numeric',
-            'product_id' => 'string', //referring to material_id from WMS Jabar is string
-            'realization_quantity' => 'numeric',
-            'unit_id' => 'numeric',
-            'realization_date' => 'date',
+            'need_id' => 'numeric', 
+            'unit_id' => 'numeric', 
             'status' => 'string'
         ]);
         if ($validator->fails()) {
@@ -288,6 +285,13 @@ class LogisticRealizationItemController extends Controller
         return $findOne;
     }
 
+    /**
+     * integrateMaterial function
+     *
+     * untuk menyimpan dan mengupdate seluruh data barang yang berasal dari PosLog agar tersimpan di database. 
+     * 
+     * @return void
+     */
     public function integrateMaterial()
     {
         $materials = Usage::getMaterialPosLog();
@@ -295,7 +299,7 @@ class LogisticRealizationItemController extends Controller
 
         $data = [];
         foreach ($materials as $val) {
-            $data[] = [
+            $item = [
                 'material_id' => $val->material_id,
                 'uom' => $val->uom,
                 'material_name' => $val->material_name,
@@ -305,8 +309,8 @@ class LogisticRealizationItemController extends Controller
                 'donatur_id' => $val->donatur_id,
                 'donatur_name' => $val->donatur_name,
             ];
+            $data[] = $item;
         }
-
         WmsJabarMaterial::insert($data);
         return response()->format(200, true, $materials); 
     }    
