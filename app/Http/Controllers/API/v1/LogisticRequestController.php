@@ -360,6 +360,11 @@ class LogisticRequestController extends Controller
                 'needs.priority',
                 'needs.created_at',
                 'needs.updated_at',
+                
+                'logistic_realization_items.realization_quantity as allocation_quantity',
+                'logistic_realization_items.realization_unit as allocation_unit',
+                'logistic_realization_items.realization_date as allocation_date',
+
                 'logistic_realization_items.need_id',
                 'logistic_realization_items.product_id as realization_product_id',
                 'logistic_realization_items.product_name as realization_product_name',
@@ -684,6 +689,10 @@ class LogisticRequestController extends Controller
             'master_unit.unit as need_unit_name',
             'needs.usage as need_usage',
             'products.category',
+
+            'logistic_realization_items.realization_quantity as allocation_quantity',
+            'logistic_realization_items.created_at as allocated_at',
+            
             'logistic_realization_items.realization_quantity',
             'realization_unit as realization_unit_name',
             'logistic_realization_items.created_at as realized_at',
