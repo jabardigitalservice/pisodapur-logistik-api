@@ -154,19 +154,14 @@ class LogisticRequestController extends Controller
             array_merge(
                 [
                     'master_faskes_id' => 'required|numeric',
-                    'agency_type' => 'required|string',
-                    'agency_name' => 'required',
-                    'phone_number' => 'numeric',
+                    'agency_type' => 'required|numeric',
+                    'agency_name' => 'required|string',
                     'location_district_code' => 'required|string',
                     'location_subdistrict_code' => 'required|string',
                     'location_village_code' => 'required|string',
-                    'location_address' => 'required|string',
                     'applicant_name' => 'required|string',
                     'applicants_office' => 'required|string',
-                    'applicant_file' => 'required|mimes:jpeg,jpg,png|max:10240',
-                    'email' => 'required|email',
                     'primary_phone_number' => 'required|numeric',
-                    'secondary_phone_number' => 'required|numeric',
                     'logistic_request' => 'required',
                     'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
                     'application_letter_number' => 'required|string'
@@ -207,6 +202,7 @@ class LogisticRequestController extends Controller
 
     public function agencyStore($request)
     {
+        $request['location_address'] = $request->input('location_address') == 'undefined' ? '' : $request->input('location_address', '');
         $agency = Agency::create($request->all());
 
         return $agency;
@@ -214,6 +210,7 @@ class LogisticRequestController extends Controller
 
     public function applicantStore($request)
     {
+        $fileUpload = null;
         $fileUploadId = null;
 
         if ($request->hasFile('applicant_file')) {
@@ -223,9 +220,13 @@ class LogisticRequestController extends Controller
         }
 
         $request->request->add(['file' => $fileUploadId, 'verification_status' => Applicant::STATUS_NOT_VERIFIED]);
+        
+        $request['applicants_office'] = $request->input('applicants_office') == 'undefined' ? '' : $request->input('applicants_office', '');
+        $request['email'] = $request->input('email') == 'undefined' ? '' : $request->input('email', '');
+        $request['secondary_phone_number'] = $request->input('secondary_phone_number') == 'undefined' ? '' : $request->input('secondary_phone_number', '');
         $applicant = Applicant::create($request->all());
 
-        $applicant->file_path = Storage::disk('s3')->url($fileUpload->name);
+        $applicant->file_path = $fileUpload ? Storage::disk('s3')->url($fileUpload->name) : '';
 
         return $applicant;
     }
