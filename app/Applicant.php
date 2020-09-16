@@ -45,7 +45,9 @@ class Applicant extends Model
         'approved_by',
         'approved_at',
         'stock_checking_status',
-        'application_letter_number'
+        'application_letter_number',
+        'finalized_by',
+        'finalized_at'
     ];
 
     protected $casts = [
@@ -92,6 +94,11 @@ class Applicant extends Model
     public function approvedBy()
     {
         return $this->hasOne('App\User', 'id', 'approved_by');
+    }
+
+    public function finalizedBy()
+    {
+        return $this->hasOne('App\User', 'id', 'finalized_by');
     }
 
     public function getVerificationStatusAttribute($value)

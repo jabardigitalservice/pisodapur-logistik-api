@@ -18,6 +18,13 @@ class LogisticRealizationItems extends Model
         'replaced'
     ];
 
+    const STATUS_DELIVERED = 'delivered';
+    const STATUS_NOT_DELIVERED = 'not_delivered';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_NOT_APPROVED = 'not_approved';
+    const STATUS_NOT_AVAILABLE = 'not_available';
+    const STATUS_REPLACED = 'replaced';
+
     protected $table = 'logistic_realization_items';
 
     protected $fillable = [
@@ -34,7 +41,18 @@ class LogisticRealizationItems extends Model
         'status',
         'realization_date',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'recommendation_by',
+        'recommendation_at',
+        'final_product_id',
+        'final_product_name',
+        'final_quantity',
+        'final_unit',
+        'final_date',
+        'final_status',
+        'final_unit_id',
+        'final_by',
+        'final_at',
     ];
 
     public function agency()
@@ -50,5 +68,20 @@ class LogisticRealizationItems extends Model
     public function unit()
     {
         return $this->hasOne('App\MasterUnit', 'id', 'unit_id');
+    }
+
+    public function verifiedBy()
+    {
+        return $this->hasOne('App\User', 'id', 'created_by');
+    }
+
+    public function recommendBy()
+    {
+        return $this->hasOne('App\User', 'id', 'recommendation_by');
+    }
+
+    public function realizedBy()
+    {
+        return $this->hasOne('App\User', 'id', 'realization_by');
     }
 }
