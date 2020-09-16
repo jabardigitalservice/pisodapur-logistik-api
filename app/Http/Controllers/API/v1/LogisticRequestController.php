@@ -160,7 +160,6 @@ class LogisticRequestController extends Controller
                     'location_subdistrict_code' => 'required|string',
                     'location_village_code' => 'required|string',
                     'applicant_name' => 'required|string',
-                    'applicants_office' => 'required|string',
                     'primary_phone_number' => 'required|numeric',
                     'logistic_request' => 'required',
                     'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
