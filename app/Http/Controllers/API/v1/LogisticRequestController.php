@@ -45,12 +45,16 @@ class LogisticRequestController extends Controller
                     return $query->select([
                             'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', 
                             DB::raw('concat(approval_status, "-", verification_status) as status'),
-                            DB::raw('concat(approval_status, "-", verification_status) as statusDetail')
+                            DB::raw('concat(approval_status, "-", verification_status) as statusDetail'),
+                            'finalized_by', 'finalized_at'
                     ])->with([
                         'verifiedBy' => function ($query) {
                             return $query->select(['id', 'name', 'agency_name']);
                         },
                         'approvedBy' => function ($query) {
+                            return $query->select(['id', 'name', 'agency_name']);
+                        },
+                        'finalizedBy' => function ($query) {
                             return $query->select(['id', 'name', 'agency_name']);
                         }
                     ])->where('is_deleted', '!=' , 1);
@@ -277,12 +281,15 @@ class LogisticRequestController extends Controller
             },
             'applicant' => function ($query) {
                 return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at'
+                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', 'finalized_by', 'finalized_at'
                 ])->with([
                     'verifiedBy' => function ($query) {
                         return $query->select(['id', 'name', 'agency_name']);
                     },                    
                     'approvedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
+                    },                    
+                    'finalizedBy' => function ($query) {
                         return $query->select(['id', 'name', 'agency_name']);
                     }
                 ])->where('is_deleted', '!=' , 1);
@@ -361,22 +368,33 @@ class LogisticRequestController extends Controller
                 'needs.created_at',
                 'needs.updated_at',
                 
-                'logistic_realization_items.realization_quantity as allocation_quantity',
-                'logistic_realization_items.realization_unit as allocation_unit',
-                'logistic_realization_items.realization_date as allocation_date',
 
                 'logistic_realization_items.need_id',
-                'logistic_realization_items.product_id as realization_product_id',
-                'logistic_realization_items.product_name as realization_product_name',
-                'logistic_realization_items.unit_id as realization_unit_id',
-                'logistic_realization_items.realization_unit',
-                'logistic_realization_items.realization_quantity',
-                'logistic_realization_items.realization_date',
                 'logistic_realization_items.material_group',
                 'logistic_realization_items.status',
-                'logistic_realization_items.realization_quantity',
                 'logistic_realization_items.created_by',
-                'logistic_realization_items.updated_by'
+                'logistic_realization_items.final_by',
+                'logistic_realization_items.updated_by',
+                
+                'logistic_realization_items.product_id as recommendation_product_id',
+                'logistic_realization_items.product_name as recommendation_product_name',
+                'logistic_realization_items.realization_quantity as recommendation_quantity',
+                'logistic_realization_items.realization_unit as recommendation_unit',
+                'logistic_realization_items.realization_date as recommendation_date',
+                'logistic_realization_items.status as recommendation_status', 
+                'logistic_realization_items.unit_id as recommendation_unit_id',
+                'logistic_realization_items.recommendation_by',
+                'logistic_realization_items.recommendation_at',
+
+                'logistic_realization_items.final_product_id as realization_product_id',
+                'logistic_realization_items.final_product_name as realization_product_name',
+                'logistic_realization_items.final_quantity as realization_quantity',
+                'logistic_realization_items.final_unit as realization_unit',
+                'logistic_realization_items.final_date as realization_date',
+                'logistic_realization_items.final_status as realization_status',
+                'logistic_realization_items.final_unit_id as realization_unit_id',
+                'logistic_realization_items.final_by as realization_by',
+                'logistic_realization_items.final_at as realization_at'
             )
                 ->with([
                     'product' => function ($query) {
@@ -386,6 +404,12 @@ class LogisticRequestController extends Controller
                         return $query->select(['id', 'unit']);
                     },
                     'verifiedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
+                    },
+                    'recommendBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name']);
+                    },
+                    'realizedBy' => function ($query) {
                         return $query->select(['id', 'name', 'agency_name']);
                     }
                 ])
@@ -471,6 +495,15 @@ class LogisticRequestController extends Controller
             $totalApproved = Applicant::Select('applicants.id') 
             ->where('approval_status', Applicant::STATUS_APPROVED) 
             ->where('verification_status', Applicant::STATUS_VERIFIED)
+            ->whereNull('finalized_by')
+            ->where('is_deleted', '!=' , 1)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+            $totalFinal = Applicant::Select('applicants.id') 
+            ->where('approval_status', Applicant::STATUS_APPROVED) 
+            ->where('verification_status', Applicant::STATUS_VERIFIED)
+            ->whereNotNull('finalized_by')
             ->where('is_deleted', '!=' , 1)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
@@ -497,11 +530,12 @@ class LogisticRequestController extends Controller
             ->count();
 
             $totalRejected = $totalVerificationRejected + $totalApprovalRejected;
-            $total = $totalUnverified + $totalVerified + $totalApproved + $totalRejected;
+            $total = $totalUnverified + $totalVerified + $totalApproved + $totalFinal + $totalRejected;
 
             $data = [
                 'total_request' => $total,
                 'total_approved' => $totalApproved,
+                'total_final' => $totalFinal,
                 'total_unverified' => $totalUnverified,
                 'total_verified' => $totalVerified,
                 'total_rejected' => $totalRejected,
@@ -569,6 +603,52 @@ class LogisticRequestController extends Controller
                 }
             }
             return response()->format(200, 'success', $applicant);
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+    }
+
+    public function final(Request $request)
+    {
+        try {
+            $rule = [
+                'applicant_id' => 'required|numeric',
+                'approval_status' => 'required|string'
+            ];
+            $rule['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+            $validator = Validator::make(
+                $request->all(),
+                array_merge($rule)
+            );
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                //check the list of applications that have not been approved
+                $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
+                $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->count();
+                $finalSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('final_by')->count();
+                if ($finalSum != ($needsSum + $realizationSum) && $request->approval_status === Applicant::STATUS_APPROVED) {
+                    $message = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . (($needsSum + $realizationSum) - $finalSum) .' item';
+                    return response()->json([
+                        'status' => 422, 
+                        'error' => true,
+                        'message' => $message,
+                        'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
+                    ], 422);
+                } else {
+                    $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
+                    $applicant->fill($request->input());
+                    $applicant->finalized_by = JWTAuth::user()->id;
+                    $applicant->finalized_at = date('Y-m-d H:i:s');
+                    $applicant->save();
+                    $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                }
+            }
+            return response()->format(200, 'success', [
+                '(needsSum_realization_sum' => ($needsSum + $realizationSum),
+                'finalSum' => $finalSum,
+                'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
+            ]);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }

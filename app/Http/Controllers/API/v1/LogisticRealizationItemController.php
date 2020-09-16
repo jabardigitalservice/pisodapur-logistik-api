@@ -17,7 +17,7 @@ use App\WmsJabarMaterial;
 class LogisticRealizationItemController extends Controller
 {
     public function store(Request $request)
-    {        
+    {
         if (!in_array(JWTAuth::user()->roles, User::ADMIN_ROLE)) {
             return response()->format(404, 'You cannot access this page', null);
         }
@@ -44,14 +44,64 @@ class LogisticRealizationItemController extends Controller
                 unset($request['id']);
                 $request['unit_id'] = $request->input('unit_id', 1);
                 $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
-    
-                //Get Material from PosLog by Id
-                $material = WmsJabarMaterial::where('material_id', $request->product_id)->first();
-                if ($material) {
-                    $request['product_name'] = $material->material_name;
-                    $request['realization_unit'] = $material->uom;
-                    $request['material_group'] = $material->matg_id;
+                
+                if ($request->input('status') !== LogisticRealizationItems::STATUS_NOT_AVAILABLE) {
+                    //Get Material from PosLog by Id
+                    $material = WmsJabarMaterial::where('material_id', $request->product_id)->first();
+                    if ($material) {
+                        $request['product_name'] = $material->material_name;
+                        $request['realization_unit'] = $material->uom;
+                        $request['material_group'] = $material->matg_id;
+                    }
+                } else {
+                    unset($request['realization_unit']);
+                    unset($request['material_group']);
+                    unset($request['realization_quantity']);
+                    unset($request['unit_id']);
+                    unset($request['realization_date']);
                 }
+
+                if ($request->input('store_type') === 'recommendation') {
+                    $request['recommendation_by'] = JWTAuth::user()->id;
+                    $request['recommendation_at'] = date('Y-m-d H:i:s');
+                } else {
+                    $request['final_product_id'] = $request->input('product_id');
+                    $request['final_product_name'] = $request->input('product_name');
+                    $request['final_quantity'] = $request->input('realization_quantity');
+                    $request['final_unit'] = $request['realization_unit'];
+                    $request['final_date'] = $request->input('realization_date');
+                    $request['final_status'] = $request->input('status');
+                    $request['final_unit_id'] = $request->input('unit_id');
+                    $request['final_by'] = JWTAuth::user()->id;
+                    $request['final_at'] = date('Y-m-d H:i:s');
+                            
+                    if ($findOne) {
+                        $request['product_id'] = $findOne->product_id;
+                        $request['product_name'] = $findOne->product_name;
+                        $request['realization_quantity'] = $findOne->realization_quantity;
+                        $request['realization_unit'] = $findOne->realization_unit;
+                        $request['realization_date'] = $findOne->realization_date;
+                        $request['material_group'] = $findOne->material_group;
+                        $request['quantity'] = $findOne->quantity;
+                        $request['date'] = $findOne->date;
+                        $request['status'] = $findOne->status;
+                        $request['unit_id'] = $findOne->unit_id;
+                        $request['recommendation_by'] = $findOne->recommendation_by;
+                        $request['recommendation_at'] = $findOne->recommendation_at;
+                    } else {
+                        unset($request['product_id']);
+                        unset($request['product_name']);
+                        unset($request['realization_unit']);
+                        unset($request['material_group']);
+                        unset($request['quantity']);
+                        unset($request['date']);
+                        unset($request['status']);
+                        unset($request['unit_id']);
+                        unset($request['recommendation_by']);
+                        unset($request['recommendation_at']);
+                    }
+                }
+
                 $model->fill($request->input());
                 if ($model->save()) {            
                     if ($findOne) {
@@ -147,9 +197,56 @@ class LogisticRealizationItemController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
             $limit = $request->input('limit', 10);
-            $data = LogisticRealizationItems::whereNotNull('created_by')
-                ->orderBy('logistic_realization_items.id') 
-                ->where('logistic_realization_items.agency_id', $request->agency_id)->paginate($limit);
+            $data = LogisticRealizationItems::select(
+                'id',
+                'realization_ref_id',
+                'agency_id',
+                'applicant_id',
+                'created_at',
+                'created_by',
+                'material_group',
+                'need_id',
+                'product_id',
+                'unit_id',
+                'updated_at',
+                'updated_by',
+                'final_at',
+                'final_by',
+
+                'product_id as recommendation_product_id',
+                'product_name as recommendation_product_name',
+                'realization_ref_id as recommendation_ref_id',
+                'realization_date as recommendation_date',
+                'realization_quantity as recommendation_quantity',
+                'realization_unit as recommendation_unit',
+                'status as recommendation_status',
+                'recommendation_by',
+                'recommendation_at',
+
+                'final_product_id as realization_product_id',
+                'final_product_name as realization_product_name',
+                'final_date as realization_date',
+                'final_quantity as realization_quantity',
+                'final_unit as realization_unit',
+                'final_status as realization_status',
+                'final_unit_id as realization_unit_id',
+                'final_at as realization_at',
+                'final_by as realization_by'
+            )
+            ->with([
+                'verifiedBy' => function ($query) {
+                    return $query->select(['id', 'name', 'agency_name']);
+                },
+                'recommendBy' => function ($query) {
+                    return $query->select(['id', 'name', 'agency_name']);
+                },
+                'realizedBy' => function ($query) {
+                    return $query->select(['id', 'name', 'agency_name']);
+                }
+            ])
+            ->whereNotNull('created_by')
+            ->orderBy('logistic_realization_items.id') 
+            ->where('logistic_realization_items.agency_id', $request->agency_id)->paginate($limit);
             $logisticItemSummary = LogisticRealizationItems::where('agency_id', $request->agency_id)->sum('realization_quantity');
             $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
                 $item->status = !$item->status ? 'not_approved' : $item->status;
@@ -240,11 +337,12 @@ class LogisticRealizationItemController extends Controller
 
     public function realizationStore($request)
     {
-        $realization = LogisticRealizationItems::create(
-            [ 
-                'need_id' => $request->input('need_id'),
-                'agency_id' => $request->input('agency_id'),
-                'applicant_id' => $request->input('applicant_id'),
+        $store_type['need_id'] = $request->input('need_id');
+        $store_type['agency_id'] = $request->input('agency_id');
+        $store_type['applicant_id'] = $request->input('applicant_id');
+        $store_type['created_by'] = JWTAuth::user()->id;
+        if ($request->input('store_type') === 'recommendation') {
+            $store_type = [  
                 'product_id' => $request->input('product_id'), 
                 'product_name' => $request->input('product_name'), 
                 'realization_unit' => $request->input('realization_unit'), 
@@ -253,10 +351,22 @@ class LogisticRealizationItemController extends Controller
                 'unit_id' => $request->input('unit_id'),
                 'realization_date' => $request->input('realization_date'),
                 'status' => $request->input('status'),
-                'created_by' => JWTAuth::user()->id
-            ]
-        );
+                'recommendation_by' => JWTAuth::user()->id,
+                'recommendation_at' => date('Y-m-d H:i:s')
+            ];
+        } else {
+            $store_type['final_product_id'] = $request->input('product_id');
+            $store_type['final_product_name'] = $request->input('product_name');
+            $store_type['final_quantity'] = $request->input('realization_quantity');
+            $store_type['final_unit'] = $request['realization_unit'];
+            $store_type['final_date'] = $request->input('realization_date');
+            $store_type['final_status'] = $request->input('status');
+            $store_type['final_unit_id'] = $request->input('unit_id');
+            $store_type['final_by'] = JWTAuth::user()->id;
+            $store_type['final_at'] = date('Y-m-d H:i:s');
+        }
 
+        $realization = LogisticRealizationItems::create($store_type);
         return $realization;
     }
 
@@ -264,9 +374,9 @@ class LogisticRealizationItemController extends Controller
     { 
         $findOne = LogisticRealizationItems::find($id);
         if ($findOne) {                
-            //updating latest log realization recor
-            $findOne->fill(
-                [  
+            //updating latest log realization record
+            if ($request->input('store_type') === 'recommendation') {
+                $store_type = [  
                     'agency_id' => $request->input('agency_id'),
                     'applicant_id' => $request->input('applicant_id'),
                     'product_id' => $request->input('product_id'), 
@@ -277,9 +387,23 @@ class LogisticRealizationItemController extends Controller
                     'unit_id' => $request->input('unit_id'),
                     'realization_date' => $request->input('realization_date'),
                     'status' => $request->input('status'),
-                    'updated_by' => JWTAuth::user()->id
-                ]
-            );  
+                    'updated_by' => JWTAuth::user()->id,
+                    'recommendation_by' => JWTAuth::user()->id,
+                    'recommendation_at' => date('Y-m-d H:i:s')
+                ];
+            } else {
+                $store_type['final_product_id'] = $request->input('product_id');
+                $store_type['final_product_name'] = $request->input('product_name');
+                $store_type['final_quantity'] = $request->input('realization_quantity');
+                $store_type['final_unit'] = $request['realization_unit'];
+                $store_type['final_date'] = $request->input('realization_date');
+                $store_type['final_status'] = $request->input('status');
+                $store_type['final_unit_id'] = $request->input('unit_id');
+                $store_type['final_by'] = JWTAuth::user()->id;
+                $store_type['final_at'] = date('Y-m-d H:i:s');
+            }
+
+            $findOne->fill($store_type);  
             $findOne->save();
         }
         return $findOne;
