@@ -109,6 +109,8 @@ class Applicant extends Model
             } else {
                 return $data->name;
             }
+        } else {
+            return '';
         }
     }
 

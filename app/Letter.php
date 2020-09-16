@@ -23,10 +23,14 @@ class Letter extends Model
     public function getLetterAttribute($value)
     {
         $data = FileUpload::find($value);
-        if (substr($data->name, 0, 12) === 'registration') {
-            return env('AWS_CLOUDFRONT_URL') . $data->name;
+        if (isset($data->name)) {
+            if (substr($data->name, 0, 12) === 'registration') {
+                return env('AWS_CLOUDFRONT_URL') . $data->name;
+            } else {
+                return $data->name;
+            }
         } else {
-            return $data->name;
+            return '';
         }
     }
 }

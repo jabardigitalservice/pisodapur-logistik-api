@@ -16,6 +16,12 @@ services:
       - "8080:80"
     networks:
       - internal
+    logging:
+        driver: "awslogs"
+        options:
+           awslogs-region: "ap-southeast-1"
+           awslogs-group: "pikobar-logistik"
+           awslogs-stream: "backend-staging"
 
   #MySQL Service
   database:
