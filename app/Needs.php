@@ -52,5 +52,15 @@ class Needs extends Model
     {
         return $this->hasOne('App\User', 'id', 'created_by');
     }
+
+    public function recommendBy()
+    {
+        return $this->hasOne('App\User', 'id', 'recommendation_by');
+    }
+
+    public function realizedBy()
+    {
+        return $this->hasOne('App\User', 'id', 'realization_by');
+    }
     
 }
