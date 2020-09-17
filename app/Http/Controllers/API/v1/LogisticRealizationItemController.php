@@ -337,12 +337,11 @@ class LogisticRealizationItemController extends Controller
 
     public function realizationStore($request)
     {
-        $store_type['need_id'] = $request->input('need_id');
-        $store_type['agency_id'] = $request->input('agency_id');
-        $store_type['applicant_id'] = $request->input('applicant_id');
-        $store_type['created_by'] = JWTAuth::user()->id;
         if ($request->input('store_type') === 'recommendation') {
             $store_type = [  
+                'need_id' => $request->input('need_id'), 
+                'agency_id' => $request->input('agency_id'), 
+                'applicant_id' => $request->input('applicant_id'), 
                 'product_id' => $request->input('product_id'), 
                 'product_name' => $request->input('product_name'), 
                 'realization_unit' => $request->input('realization_unit'), 
@@ -351,10 +350,15 @@ class LogisticRealizationItemController extends Controller
                 'unit_id' => $request->input('unit_id'),
                 'realization_date' => $request->input('realization_date'),
                 'status' => $request->input('status'),
+                'created_by' => JWTAuth::user()->id,
                 'recommendation_by' => JWTAuth::user()->id,
                 'recommendation_at' => date('Y-m-d H:i:s')
             ];
         } else {
+            $store_type['need_id'] = $request->input('need_id');
+            $store_type['agency_id'] = $request->input('agency_id');
+            $store_type['applicant_id'] = $request->input('applicant_id');
+            $store_type['created_by'] = JWTAuth::user()->id;
             $store_type['final_product_id'] = $request->input('product_id');
             $store_type['final_product_name'] = $request->input('product_name');
             $store_type['final_quantity'] = $request->input('realization_quantity');
