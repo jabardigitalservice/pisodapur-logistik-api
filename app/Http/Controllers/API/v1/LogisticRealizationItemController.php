@@ -235,13 +235,13 @@ class LogisticRealizationItemController extends Controller
             )
             ->with([
                 'verifiedBy' => function ($query) {
-                    return $query->select(['id', 'name', 'agency_name']);
+                    return $query->select(['id', 'name', 'agency_name', 'handphone']);
                 },
                 'recommendBy' => function ($query) {
-                    return $query->select(['id', 'name', 'agency_name']);
+                    return $query->select(['id', 'name', 'agency_name', 'handphone']);
                 },
                 'realizedBy' => function ($query) {
-                    return $query->select(['id', 'name', 'agency_name']);
+                    return $query->select(['id', 'name', 'agency_name', 'handphone']);
                 }
             ])
             ->whereNotNull('created_by')
