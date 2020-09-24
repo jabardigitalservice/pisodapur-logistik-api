@@ -49,13 +49,13 @@ class LogisticRequestController extends Controller
                             'finalized_by', 'finalized_at'
                     ])->with([
                         'verifiedBy' => function ($query) {
-                            return $query->select(['id', 'name', 'agency_name']);
+                            return $query->select(['id', 'name', 'agency_name', 'handphone']);
                         },
                         'approvedBy' => function ($query) {
-                            return $query->select(['id', 'name', 'agency_name']);
+                            return $query->select(['id', 'name', 'agency_name', 'handphone']);
                         },
                         'finalizedBy' => function ($query) {
-                            return $query->select(['id', 'name', 'agency_name']);
+                            return $query->select(['id', 'name', 'agency_name', 'handphone']);
                         }
                     ])->where('is_deleted', '!=' , 1);
                 },
@@ -284,13 +284,13 @@ class LogisticRequestController extends Controller
                     'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', 'finalized_by', 'finalized_at'
                 ])->with([
                     'verifiedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name']);
+                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
                     },                    
                     'approvedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name']);
+                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
                     },                    
                     'finalizedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name']);
+                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
                     }
                 ])->where('is_deleted', '!=' , 1);
             },
@@ -404,13 +404,13 @@ class LogisticRequestController extends Controller
                         return $query->select(['id', 'unit']);
                     },
                     'verifiedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name']);
+                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
                     },
                     'recommendBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name']);
+                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
                     },
                     'realizedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name']);
+                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
                     }
                 ])
                 ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')

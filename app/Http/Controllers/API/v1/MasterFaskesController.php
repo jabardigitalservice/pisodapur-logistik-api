@@ -6,6 +6,7 @@ use App\MasterFaskes;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator;
+use Illuminate\Support\Facades\Storage;
 
 class MasterFaskesController extends Controller
 {
@@ -87,7 +88,8 @@ class MasterFaskesController extends Controller
                 'nama_faskes' => 'required',
                 'id_tipe_faskes' => 'required',
                 'nama_atasan' => 'required',
-                'point_latitude_longitude' => 'string'
+                'point_latitude_longitude' => 'string',
+                'permit_file' => 'required|mimes:jpeg,jpg,png|max:10240'
             ]);
             if ($validator->fails()) {
                 return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
@@ -96,14 +98,16 @@ class MasterFaskesController extends Controller
                 $model->fill($request->input());
                 $model->verification_status = 'not_verified';
                 $model->is_imported = 0;
+                $model->permit_file = $this->permitLetterStore($request);
                 if ($model->save()) {
                     return response()->format(200, 'success', $model);
                 }
             }
         } catch (\Exception $e) {
-            return response()->json(array('message' => 'could_not_create_faskes'), 500);
+            return response()->format(400, $e->getMessage());
         }
     }
+
     public function verify(Request $request, $id)
     {
         try {
@@ -126,5 +130,14 @@ class MasterFaskesController extends Controller
         } catch (\Exception $e) {
             return response()->json(array('message' => 'could_not_verify_faskes'), 500);
         }
+    }
+    
+    public function permitLetterStore($request)
+    {
+        $path = null;
+        if ($request->hasFile('permit_file')) {
+            $path = Storage::disk('s3')->put('registration/letter', $request->permit_file);
+        }
+        return $path;
     }
 }
