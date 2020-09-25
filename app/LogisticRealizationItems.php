@@ -15,7 +15,8 @@ class LogisticRealizationItems extends Model
         'approved',
         'not_approved',
         'not_available',
-        'replaced'
+        'replaced',
+        'not_yet_fulfilled'
     ];
 
     const STATUS_DELIVERED = 'delivered';
@@ -24,6 +25,7 @@ class LogisticRealizationItems extends Model
     const STATUS_NOT_APPROVED = 'not_approved';
     const STATUS_NOT_AVAILABLE = 'not_available';
     const STATUS_REPLACED = 'replaced';
+    const STATUS_NOT_YET_FULFILLED = 'not_yet_fulfilled';
 
     protected $table = 'logistic_realization_items';
 
