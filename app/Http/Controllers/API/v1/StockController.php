@@ -21,8 +21,8 @@ class StockController extends Controller
             $product = Product::findOrFail($request->input('id'));
             $materialGroupId = $product->material_group;
             $baseApi = $product->api;
-            $param = $baseApi==='DASHBOARD_PIKOBAR_API_BASE_URL' ? '{"matg_id":"' . $materialGroupId . '"}' : '{"material_group":"' . $materialGroupId . '"}';
-            $api = $baseApi==='DASHBOARD_PIKOBAR_API_BASE_URL' ? '/master/soh?where=' . $param : '/api/soh_fmaterialgroup';
+            $param = ($baseApi === 'DASHBOARD_PIKOBAR_API_BASE_URL') ? '{"matg_id":"' . $materialGroupId . '"}' : '{"material_group":"' . $materialGroupId . '"}';
+            $api = ($baseApi === 'DASHBOARD_PIKOBAR_API_BASE_URL') ? '/master/soh?where=' . $param : '/api/soh_fmaterialgroup';
         }
         $retApi = Usage::getLogisticStock($param, $api, $baseApi);
         //grouping data berdasarkan soh_location-nya
