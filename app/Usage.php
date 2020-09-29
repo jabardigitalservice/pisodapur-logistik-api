@@ -177,11 +177,10 @@ class Usage
             'headers' => [
                 'accept' => 'application/json',
                 'Content-Type' => 'application/json',
-                'api-key' => $apiKey, 
+                'api-key' => $apiKey,
             ],
             'body' => $param
         ]);
-
         if ($res->getStatusCode() != 200) {
             error_log("Error: WMS Jabar API returning status code ".$res->getStatusCode());
             return [ response()->format(500, 'Internal server error'), null ];

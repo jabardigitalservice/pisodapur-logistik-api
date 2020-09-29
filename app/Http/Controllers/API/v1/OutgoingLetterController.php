@@ -292,7 +292,8 @@ class OutgoingLetterController extends Controller
             $param = '{"material_id":"' . $val['product_id'] . '"}';
             $api = '/api/soh_fmaterial';
             $location = "";
-            $retApi = Usage::getLogisticStock($param, $api);
+            $baseApi = '';
+            $retApi = Usage::getLogisticStock($param, $api, $baseApi);
             if (is_array($retApi) || is_object($retApi)) {  
                 foreach ($retApi as $val) {
                     $location = $val->soh_location_name;
