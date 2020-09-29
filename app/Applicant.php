@@ -164,4 +164,10 @@ class Applicant extends Model
         }
         return $status;
     }
+
+    // Cast for incoming_mail_status attribute
+    public function getIncomingMailStatusAttribute($value)
+    {
+        return $value ? 'Ada Surat Keluar' : 'Belum Ada Surat Keluar';
+    }
 }
