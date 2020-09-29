@@ -167,27 +167,25 @@ class Usage
      *
      * @return Array [ error, result_array ]
      */
-    static function getLogisticStock($param, $api)
+    static function getLogisticStock($param, $api, $baseApi)
     {
-        $apiKey = env('WMS_JABAR_API_KEY');
-        $apiLink = env('WMS_JABAR_BASE_URL');
+        $apiKey = ($baseApi === 'DASHBOARD_PIKOBAR_API_BASE_URL') ? env('DASHBOARD_PIKOBAR_API_KEY') : env('WMS_JABAR_API_KEY');
+        $apiLink = ($baseApi === 'DASHBOARD_PIKOBAR_API_BASE_URL') ? env('DASHBOARD_PIKOBAR_API_BASE_URL') : env('WMS_JABAR_BASE_URL');
         $apiFunction = $api ? $api : '/api/soh_fmaterialgroup';
         $url = $apiLink . $apiFunction;
-        $url = $url;
         $res = static::getClient()->get($url, [
             'headers' => [
                 'accept' => 'application/json',
                 'Content-Type' => 'application/json',
-                'api-key' => $apiKey, 
+                'api-key' => $apiKey,
             ],
             'body' => $param
         ]);
-
         if ($res->getStatusCode() != 200) {
             error_log("Error: WMS Jabar API returning status code ".$res->getStatusCode());
             return [ response()->format(500, 'Internal server error'), null ];
         } else {
-            return json_decode($res->getBody())->msg;
+            return ($baseApi === 'DASHBOARD_PIKOBAR_API_BASE_URL') ? json_decode($res->getBody())->data : json_decode($res->getBody())->msg;
         }
     }
 
@@ -263,7 +261,7 @@ class Usage
             'headers' => [
                 'accept' => 'application/json',
                 'Content-Type' => 'application/json',
-                'api-key' => $apiKey, 
+                'api-key' => $apiKey,
             ],
             'body' => $param
         ]);
