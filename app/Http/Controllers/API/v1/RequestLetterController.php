@@ -49,6 +49,7 @@ class RequestLetterController extends Controller
                 })
                 ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
                 ->where('applicants.approval_status', '=', Applicant::STATUS_APPROVED)
+                ->whereNotNull('applicants.finalized_by')
                 ->orderBy('request_letters.id')
                 ->paginate($limit);
  
@@ -194,6 +195,7 @@ class RequestLetterController extends Controller
                 ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
                 ->where('approval_status', '=', Applicant::STATUS_APPROVED)
                 ->where('application_letter_number', '!=', '')
+                ->whereNotNull('finalized_by')
                 ->get();
             //filterization
             $data = $this->checkAlreadyPicked($list, $request_letter_ignore);
