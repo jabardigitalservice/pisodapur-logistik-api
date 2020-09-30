@@ -70,13 +70,13 @@ class OutgoingLetterController extends Controller
             )
         );
         
-        // Validasi Nomor Surat Keluar harus unik
+        // Validasi Nomor Surat Perintah harus unik
         $validLetterNumber = OutgoingLetter::where('letter_number', $request->input('letter_number'))->exists();
 
         if ($validator->fails()) {
             return response()->format(422, $validator->errors());
         } if ($validLetterNumber) {
-            return response()->format(422, 'Nomor Surat Keluar sudah digunakan.');
+            return response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
         } else {
             DB::beginTransaction();
             try {

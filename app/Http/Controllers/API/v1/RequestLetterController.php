@@ -173,7 +173,7 @@ class RequestLetterController extends Controller
     /**
      * searchByLetterNumber function
      *
-     * Menampilkan list surat permohonan yang belum didaftarkan di surat keluar.
+     * Menampilkan list surat permohonan yang belum didaftarkan di Surat Perintah.
      * opsional, jika parameter request_letter_id dikirim, maka surat permohonan dengan ID tersebut akan tetap muncul di list
      * 
      * @param Request $request
