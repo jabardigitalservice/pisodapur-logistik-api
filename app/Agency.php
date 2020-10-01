@@ -66,12 +66,12 @@ class Agency extends Model
 
     public function recommendationItems()
     {
-        return $this->hasMany('App\RecommendationItems', 'agency_id', 'id');
+        return $this->logisticRealizationItems();
     }
 
     public function finalizationItems()
     {
-        return $this->hasMany('App\FinalizationItems', 'agency_id', 'id');
+        return $this->logisticRealizationItems();
     }
 
     public function tracking()
