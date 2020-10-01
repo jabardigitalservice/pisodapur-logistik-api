@@ -49,6 +49,7 @@ class RequestLetterController extends Controller
                 })
                 ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
                 ->where('applicants.approval_status', '=', Applicant::STATUS_APPROVED)
+                ->whereNotNull('applicants.finalized_by')
                 ->orderBy('request_letters.id')
                 ->paginate($limit);
  
@@ -173,7 +174,7 @@ class RequestLetterController extends Controller
     /**
      * searchByLetterNumber function
      *
-     * Menampilkan list surat permohonan yang belum didaftarkan di surat keluar.
+     * Menampilkan list surat permohonan yang belum didaftarkan di Surat Perintah.
      * opsional, jika parameter request_letter_id dikirim, maka surat permohonan dengan ID tersebut akan tetap muncul di list
      * 
      * @param Request $request
@@ -194,6 +195,7 @@ class RequestLetterController extends Controller
                 ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
                 ->where('approval_status', '=', Applicant::STATUS_APPROVED)
                 ->where('application_letter_number', '!=', '')
+                ->whereNotNull('finalized_by')
                 ->get();
             //filterization
             $data = $this->checkAlreadyPicked($list, $request_letter_ignore);

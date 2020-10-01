@@ -110,7 +110,8 @@ class IncomingLetterController extends Controller
                 'agency.agency_type',   
                 'applicants.applicant_name',
                 'applicants.created_at as letter_date',
-                DB::raw('"Belum Ada Surat Keluar" as status') 
+                'request_letters.id as incoming_mail_status',
+                'request_letters.id as request_letters_id'
                 )
                 ->with([
                     'masterFaskesType' => function ($query) {
@@ -134,8 +135,6 @@ class IncomingLetterController extends Controller
                 ])
                 ->join('agency', 'agency.id', '=', 'applicants.agency_id')
                 ->findOrFail($id);
-                $find = RequestLetter::where('applicant_id', $data->id)->first();
-                $data->status = $find ? 'Ada Surat Keluar' : $data->status;
                 $data->letter_date = date('Y-m-d', strtotime($data->letter_date));
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
