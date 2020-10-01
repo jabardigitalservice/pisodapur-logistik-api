@@ -149,7 +149,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, Wit
      */
     public function map($logisticsRequest): array
     {
-        $datas = [
+        $data = [
             $logisticsRequest->row_number,
             $logisticsRequest->applicant['application_letter_number'],
             $logisticsRequest->created_at,
@@ -192,7 +192,7 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, Wit
             $logisticsRequest->applicant['status']
         ];
         
-        return $datas;
+        return $data;
     }
 
     /**
