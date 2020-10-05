@@ -48,7 +48,7 @@ class StockController extends Controller
             } else if ($this->poslogItemOutdated($fieldPoslog, $valuePoslog, $baseApi)) {
                 $this->syncPoslogData($param, $api, $baseApi);
             }
-            $dataFinal = $this->getPoslogItem($valuePoslog, $materialName);
+            $dataFinal = $this->getPoslogItem($fieldPoslog, $valuePoslog, $materialName);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -120,14 +120,14 @@ class StockController extends Controller
         return true;
     }    
 
-    public function getPoslogItem($matgId, $materialName)
+    public function getPoslogItem($fieldPoslog, $valuePoslog, $materialName)
     {
         try{
-            $poslogProduct = PoslogProduct::where(function ($query) use ($matgId, $materialName) {
-                $query->where('matg_id', '=', $matgId);
+            $poslogProduct = PoslogProduct::where(function ($query) use ($fieldPoslog, $valuePoslog, $materialName) {
+                $query->where($fieldPoslog, '=', $valuePoslog);
                 $query->where('stock_ok', '>', 0);
                 if ($materialName) $query->where('material_name', 'LIKE', '%' . $materialName . '%');
-            })->orderBy('stock_ok','desc')->get();
+            })->orderBy('material_name','asc')->orderBy('soh_location','asc')->orderBy('stock_ok','desc')->get();
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
