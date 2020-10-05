@@ -21,7 +21,6 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
-use App\Mail\ApplicationRequestEmailNotification;
 use App\LogisticRealizationItems;
 use App\Product;
 
@@ -113,7 +112,6 @@ class LogisticRequestController extends Controller
             })
             ->orderByRaw(implode($sort))
             ->paginate($limit);
-
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -382,7 +380,7 @@ class LogisticRequestController extends Controller
                 'logistic_realization_items.realization_unit as recommendation_unit',
                 'logistic_realization_items.realization_date as recommendation_date',
                 'logistic_realization_items.status as recommendation_status', 
-                'logistic_realization_items.unit_id as recommendation_unit_id',
+                'logistic_realization_items.realization_unit as recommendation_unit_id',
                 'logistic_realization_items.recommendation_by',
                 'logistic_realization_items.recommendation_at',
 
