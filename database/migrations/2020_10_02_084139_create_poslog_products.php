@@ -14,7 +14,6 @@ class CreatePoslogProducts extends Migration
     public function up()
     {
         Schema::create('poslog_products', function (Blueprint $table) {
-            $table->increments('id');
             $table->string('material_id', 30);
             $table->string('material_name');
             $table->string('soh_location', 30);
