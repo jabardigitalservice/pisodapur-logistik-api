@@ -11,8 +11,7 @@ use JWTAuth;
 use App\User;
 use App\Applicant;
 use App\Needs;
-use App\Usage;
-use App\WmsJabarMaterial;
+use App\PoslogProduct;
 
 class LogisticRealizationItemController extends Controller
 {
@@ -23,8 +22,7 @@ class LogisticRealizationItemController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'need_id' => 'numeric', 
-            'unit_id' => 'numeric', 
+            'need_id' => 'numeric',
             'status' => 'string'
         ]);
         if ($validator->fails()) {
@@ -42,17 +40,11 @@ class LogisticRealizationItemController extends Controller
                 $model = new LogisticRealizationItems();
                 $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
                 unset($request['id']);
-                $request['unit_id'] = $request->input('unit_id', 1);
                 $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
                 
                 if ($request->input('status') !== LogisticRealizationItems::STATUS_NOT_AVAILABLE) {
                     //Get Material from PosLog by Id
-                    $material = WmsJabarMaterial::where('material_id', $request->product_id)->first();
-                    if ($material) {
-                        $request['product_name'] = $material->material_name;
-                        $request['realization_unit'] = $material->uom;
-                        $request['material_group'] = $material->matg_id;
-                    }
+                    $request = $this->getPosLogData($request);
                 } else {
                     unset($request['realization_unit']);
                     unset($request['material_group']);
@@ -62,6 +54,8 @@ class LogisticRealizationItemController extends Controller
                 }
 
                 if ($request->input('store_type') === 'recommendation') {
+                    $request['realization_quantity'] = $request->input('recommendation_quantity');
+                    $request['realization_date'] = $request->input('recommendation_date');
                     $request['recommendation_by'] = JWTAuth::user()->id;
                     $request['recommendation_at'] = date('Y-m-d H:i:s');
                 } else {
@@ -71,7 +65,6 @@ class LogisticRealizationItemController extends Controller
                     $request['final_unit'] = $request['realization_unit'];
                     $request['final_date'] = $request->input('realization_date');
                     $request['final_status'] = $request->input('status');
-                    $request['final_unit_id'] = $request->input('unit_id');
                     $request['final_by'] = JWTAuth::user()->id;
                     $request['final_at'] = date('Y-m-d H:i:s');
                             
@@ -85,7 +78,6 @@ class LogisticRealizationItemController extends Controller
                         $request['quantity'] = $findOne->quantity;
                         $request['date'] = $findOne->date;
                         $request['status'] = $findOne->status;
-                        $request['unit_id'] = $findOne->unit_id;
                         $request['recommendation_by'] = $findOne->recommendation_by;
                         $request['recommendation_at'] = $findOne->recommendation_at;
                     } else {
@@ -127,8 +119,7 @@ class LogisticRealizationItemController extends Controller
 
         $validator = Validator::make($request->all(), [             
             'agency_id' => 'numeric', 
-            'product_id' => 'string', 
-            'unit_id' => 'numeric',
+            'product_id' => 'string',
             'usage' => 'string',
             'priority' => 'string',
             'realization_quantity' => 'numeric',
@@ -148,17 +139,11 @@ class LogisticRealizationItemController extends Controller
                 return response()->format(422, 'application verification status is not verified');
             } else {
                 DB::beginTransaction();
-                try {                    
-                    $request['unit_id'] = $request->input('unit_id', 1);
+                try {
                     $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
         
                     //Get Material from PosLog by Id
-                    $material = WmsJabarMaterial::where('material_id', $request->product_id)->first();
-                    if ($material) {
-                        $request['product_name'] = $material->material_name;
-                        $request['realization_unit'] = $material->uom;
-                        $request['material_group'] = $material->matg_id;
-                    }
+                    $request = $this->getPosLogData($request);
                     $realization = $this->realizationStore($request);
 
                     $response = array(
@@ -270,9 +255,8 @@ class LogisticRealizationItemController extends Controller
         }
 
         $validator = Validator::make($request->all(), [    
-            'agency_id' => 'numeric',  
-            'product_id' => 'string', 
-            'unit_id' => 'numeric', 
+            'agency_id' => 'numeric',
+            'product_id' => 'string',
             'realization_quantity' => 'numeric',
             'realization_date' => 'date',
             'status' => 'string'
@@ -284,17 +268,11 @@ class LogisticRealizationItemController extends Controller
             return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
         } else {
             DB::beginTransaction();
-            try {                   
-                $request['unit_id'] = $request->input('unit_id', 1);
+            try {
                 $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
     
                 //Get Material from PosLog by Id
-                $material = WmsJabarMaterial::where('material_id', $request->product_id)->first();
-                if ($material) {
-                    $request['product_name'] = $material->material_name;
-                    $request['realization_unit'] = $material->uom;
-                    $request['material_group'] = $material->matg_id;
-                }
+                $request = $this->getPosLogData($request);
                 $realization = $this->realizationUpdate($request, $id);
 
                 $response = array( 
@@ -347,7 +325,6 @@ class LogisticRealizationItemController extends Controller
                 'realization_unit' => $request->input('realization_unit'), 
                 'material_group' => $request->input('material_group'), 
                 'realization_quantity' => $request->input('realization_quantity'),
-                'unit_id' => $request->input('unit_id'),
                 'realization_date' => $request->input('realization_date'),
                 'status' => $request->input('status'),
                 'created_by' => JWTAuth::user()->id,
@@ -365,7 +342,6 @@ class LogisticRealizationItemController extends Controller
             $store_type['final_unit'] = $request['realization_unit'];
             $store_type['final_date'] = $request->input('realization_date');
             $store_type['final_status'] = $request->input('status');
-            $store_type['final_unit_id'] = $request->input('unit_id');
             $store_type['final_by'] = JWTAuth::user()->id;
             $store_type['final_at'] = date('Y-m-d H:i:s');
         }
@@ -388,7 +364,6 @@ class LogisticRealizationItemController extends Controller
                     'realization_unit' => $request->input('realization_unit'), 
                     'material_group' => $request->input('material_group'), 
                     'realization_quantity' => $request->input('realization_quantity'),
-                    'unit_id' => $request->input('unit_id'),
                     'realization_date' => $request->input('realization_date'),
                     'status' => $request->input('status'),
                     'updated_by' => JWTAuth::user()->id,
@@ -402,7 +377,6 @@ class LogisticRealizationItemController extends Controller
                 $store_type['final_unit'] = $request['realization_unit'];
                 $store_type['final_date'] = $request->input('realization_date');
                 $store_type['final_status'] = $request->input('status');
-                $store_type['final_unit_id'] = $request->input('unit_id');
                 $store_type['final_by'] = JWTAuth::user()->id;
                 $store_type['final_at'] = date('Y-m-d H:i:s');
             }
@@ -413,33 +387,14 @@ class LogisticRealizationItemController extends Controller
         return $findOne;
     }
 
-    /**
-     * integrateMaterial function
-     *
-     * untuk menyimpan dan mengupdate seluruh data barang yang berasal dari PosLog agar tersimpan di database. 
-     * 
-     * @return void
-     */
-    public function integrateMaterial()
+    public function getPosLogData($request)
     {
-        $materials = Usage::getMaterialPosLog();
-        WmsJabarMaterial::truncate();
-
-        $data = [];
-        foreach ($materials as $val) {
-            $item = [
-                'material_id' => $val->material_id,
-                'uom' => $val->uom,
-                'material_name' => $val->material_name,
-                'matg_id' => $val->matg_id,
-                'matgsub_id' => $val->matgsub_id,
-                'material_desc' => $val->material_desc ? $val->material_desc : '-',
-                'donatur_id' => $val->donatur_id,
-                'donatur_name' => $val->donatur_name,
-            ];
-            $data[] = $item;
+        $material = PoslogProduct::where('material_id', $request->product_id)->first();
+        if ($material) {
+            $request['product_name'] = $material->material_name;
+            $request['realization_unit'] = $material->uom;
+            $request['material_group'] = $material->matg_id;
         }
-        WmsJabarMaterial::insert($data);
-        return response()->format(200, true, $materials); 
-    }    
+        return $request;
+    }
 }
