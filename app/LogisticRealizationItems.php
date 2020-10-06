@@ -86,4 +86,14 @@ class LogisticRealizationItems extends Model
     {
         return $this->hasOne('App\User', 'id', 'realization_by');
     }
+
+    public function getFinalUnitAttribute($value)
+    {
+        return $value ? $value : 'PCS';
+    }
+
+    public function getQtyAttribute($value)
+    {
+        return number_format($value, 0, ",", ".");
+    }
 }
