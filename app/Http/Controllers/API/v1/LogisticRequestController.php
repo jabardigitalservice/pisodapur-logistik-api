@@ -32,8 +32,9 @@ class LogisticRequestController extends Controller
             return response()->format(404, 'You cannot access this page', null);
         }
         $limit = $request->filled('limit') ? $request->input('limit') : 10;
-        $data = Agency::getList($request);
-        $data = $data->paginate($limit);
+        $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
+        $data = Agency::getList($request);        
+        $data = $data->orderByRaw(implode($sort))->paginate($limit);
         return response()->format(200, 'success', $data);
     }
 
