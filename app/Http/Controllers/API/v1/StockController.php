@@ -70,24 +70,12 @@ class StockController extends Controller
     public function dashboardPoslogItemOutdated($field, $value)
     {
         $baseApi = 'DASHBOARD_PIKOBAR_API_BASE_URL';
-        $now = date('Y-m-d H:i:s');
-        $firstSyncTime = date('Y-m-d') . ' 00:00:00'; //UTC Timezone for 06:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
-        $secondSyncTime = date('Y-m-d') . ' 06:00:00'; //UTC Timezone for 12:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
-        $thirdSyncTime = date('Y-m-d') . ' 12:00:00'; //UTC Timezone for 18:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
         $result = false;        
         $updateTime = false;
         if ($field !== 'material_id') {
             $updateTime = $this->getUpdateTime($field, $value, $baseApi);
         }
-
-        if ($now > $thirdSyncTime && $updateTime < $thirdSyncTime) {
-            $result = true;
-        } else if ($now > $secondSyncTime && $updateTime < $secondSyncTime) {
-            $result = true;
-        } else if ($now > $firstSyncTime && $updateTime < $firstSyncTime) {
-            $result = true;
-        }
-
+        $result = $this->isOutdated($updateTime, $baseApi);
         return $result;
     }
 
@@ -107,5 +95,24 @@ class StockController extends Controller
             $updateTime = null;
         }
         return $updateTime;
+    }
+
+    public function isOutdated($updateTime, $baseApi)
+    {
+        $result = false;
+        $time = date('Y-m-d H:i:s'); //Current Time
+        $syncTimes = [
+            date('Y-m-d') . ' 12:00:00', //UTC Timezone for 18:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
+            date('Y-m-d') . ' 06:00:00', //UTC Timezone for 12:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
+            date('Y-m-d') . ' 00:00:00' //UTC Timezone for 06:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
+        ];
+
+        foreach ($syncTimes as $syncTime) {
+            if ($time > $syncTime && $updateTime < $syncTime) {
+                $result = true;
+                break;
+            }
+        }
+        return $result;
     }
 }
