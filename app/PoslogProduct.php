@@ -60,4 +60,23 @@ class PoslogProduct extends Model
             $insertPoslog = self::insert($data);
         }
     }
+
+    static function setValue($material, $baseApi)
+    {
+        $data = [
+            'material_id' => $material->material_id,
+            'material_name' => $material->material_name,
+            'soh_location' => Usage::getLocationId($material),
+            'soh_location_name' => Usage::getSohLocationName($material),
+            'UoM' => Usage::getUnitofMaterial($material),
+            'matg_id' => $material->matg_id,
+            'stock_ok' => Usage::getStockOk($material),
+            'stock_nok' => Usage::getStockNok($material),
+            'source_data' => $baseApi,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        return $data;
+    }
 }

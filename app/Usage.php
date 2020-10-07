@@ -273,7 +273,7 @@ class Usage
             $key = $material->material_id .'-'. $locationId;
             if (!isset($data[$key])) {
                 if ($stockOk > 0 && static::isFromDashboardAPI($material, $baseApi)) {
-                    $data[$key] = static::setValue($material, $baseApi);
+                    $data[$key] = PoslogProduct::setValue($material, $baseApi);
                 }
             } else {
                 $data[$key]['stock_ok'] += $stockOk;
@@ -316,24 +316,5 @@ class Usage
     static function isFromDashboardAPI($material, $baseApi)
     {
         return PoslogProduct::isDashboardAPI($baseApi) ? static::isGudangLabkes($material, $baseApi) : true;
-    }    
-
-    static function setValue($material, $baseApi)
-    {
-        $data = [
-            'material_id' => $material->material_id,
-            'material_name' => $material->material_name,
-            'soh_location' => static::getLocationId($material),
-            'soh_location_name' => static::getSohLocationName($material),
-            'UoM' => static::getUnitofMaterial($material),
-            'matg_id' => $material->matg_id,
-            'stock_ok' => static::getStockOk($material),
-            'stock_nok' => static::getStockNok($material),
-            'source_data' => $baseApi,
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s')
-        ];
-
-        return $data;
     }
 }
