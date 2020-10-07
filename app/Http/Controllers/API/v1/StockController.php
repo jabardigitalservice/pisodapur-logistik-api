@@ -83,7 +83,7 @@ class StockController extends Controller
     {
         try{
             $updateTime = PoslogProduct::where(function ($query) use($field, $value, $baseApi) {
-                if ($baseApi === 'DASHBOARD_PIKOBAR_API_BASE_URL') {  
+                if ($baseApi === PoslogProduct::API_DASHBOARD) {  
                     $query->where('soh_location', '=', 'GUDANG LABKES');
                     if ($value) {  
                         $query->where($field, '=', $value);

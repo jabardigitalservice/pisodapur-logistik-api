@@ -172,8 +172,8 @@ class Usage
      */
     static function getLogisticStock($param, $api, $baseApi)
     {
-        $apiKey = ($baseApi === 'DASHBOARD_PIKOBAR_API_BASE_URL') ? env('DASHBOARD_PIKOBAR_API_KEY') : env('WMS_JABAR_API_KEY');
-        $apiLink = ($baseApi === 'DASHBOARD_PIKOBAR_API_BASE_URL') ? env('DASHBOARD_PIKOBAR_API_BASE_URL') : env('WMS_JABAR_BASE_URL');
+        $apiKey = static::isDashboardAPI($baseApi) ? env('DASHBOARD_PIKOBAR_API_KEY') : env('WMS_JABAR_API_KEY');
+        $apiLink = static::isDashboardAPI($baseApi) ? env(PoslogProduct::API_DASHBOARD) : env(PoslogProduct::API_POSLOG);
         $apiFunction = $api ? $api : '/api/soh_fmaterialgroup';
         $url = $apiLink . $apiFunction;
         $res = static::getClient()->get($url, [
@@ -188,7 +188,7 @@ class Usage
             error_log("Error: WMS Jabar API returning status code ".$res->getStatusCode());
             return [ response()->format(500, 'Internal server error'), null ];
         } else {
-            return ($baseApi === 'DASHBOARD_PIKOBAR_API_BASE_URL') ? json_decode($res->getBody())->data : json_decode($res->getBody())->msg;
+            return static::isDashboardAPI($baseApi) ? json_decode($res->getBody())->data : json_decode($res->getBody())->msg;
         }
     }
 
@@ -201,7 +201,7 @@ class Usage
     {
         $param = '{"soh_location":"' . $id . '"}';
         $apiKey = env('WMS_JABAR_API_KEY');
-        $apiLink = env('WMS_JABAR_BASE_URL');
+        $apiLink = env(PoslogProduct::API_POSLOG);
         $apiFunction = '/api/soh_flocation';
         $url = $apiLink . $apiFunction;
         $res = static::getClient()->get($url, [
@@ -247,64 +247,115 @@ class Usage
         $data = [];
         $api = '/master/inbound_detail?search=gsheet';
         $param = '';
-        $baseApi = 'DASHBOARD_PIKOBAR_API_BASE_URL';
-        $materials = Usage::getLogisticStock($param, $api, $baseApi);
-        $data = Usage::setPoslogProduct($materials, $baseApi, $data);
-        Usage::updatingPoslogProduct($data, $baseApi);
+        $baseApi = PoslogProduct::API_DASHBOARD;
+        $data = static::syncData($param, $api, $baseApi);
+        static::updatingPoslogProduct($data, $baseApi);
     }
 
     static function syncWmsJabar()
     {
         $data = [];
         $sohLocation = SohLocation::all();
-        $condition = false;
-        $baseApi = 'WMS_JABAR_BASE_URL';
-        
+        $baseApi = PoslogProduct::API_POSLOG;
         foreach ($sohLocation as $val) {
-            $materials = Usage::getLogisticStockByLocation($val['location_id']);            
-            $data = Usage::setPoslogProduct($materials, $baseApi, $data);
+            $param = $val['location_id'];
+            $data = static::syncData($val['location_id'], $data, $baseApi);
         }
-        Usage::updatingPoslogProduct($data, $baseApi);
+        static::updatingPoslogProduct($data, $baseApi);
+    }
+
+    static function syncData($param, $data, $baseApi)
+    {
+        $list = [];
+        if (static::isDashboardAPI($baseApi)){
+            $materials = static::getLogisticStock($param, $data, $baseApi);
+            $data = static::setPoslogProduct($materials, $baseApi, $data);
+        } else {
+            $materials = static::getLogisticStockByLocation($param);
+            $data = static::setPoslogProduct($materials, $baseApi, $data);
+        }
+        return $list;
     }
 
     static function setPoslogProduct($materials, $baseApi, $data)
     {
         foreach ($materials as $material) {
-            $locationId = isset($material->soh_location) ? $material->soh_location : ($material->inbound[0]->inbound_location ? $material->inbound[0]->inbound_location : $material->inbound[0]->whs_name);
-            $stockOk = isset($material->stock_ok) ? $material->stock_ok : $material->qty_good_in;
-            $stockNok = isset($material->stock_nok) ? $material->stock_nok : $material->qty_notgood_in;
+            $locationId = static::getLocationId($material);
+            $stockOk = static::getStockOk($material);
+            $key = $material->material_id . '-' . $locationId;
             if (!isset($data[$material->material_id])) {
-                if ($stockOk > 0 && Usage::specialCondition($material, $baseApi)) {
-                    $data[$material->material_id . '-' . $locationId] = [
-                        'material_id' => $material->material_id,
-                        'material_name' => $material->material_name,
-                        'soh_location' => $locationId,
-                        'soh_location_name' => isset($material->soh_location_name) ? $material->soh_location_name : $material->inbound[0]->whs_name,
-                        'UoM' => isset($material->UoM) ? $material->UoM : $material->uom,
-                        'matg_id' => $material->matg_id,
-                        'stock_ok' => $stockOk,
-                        'stock_nok' => $stockNok,
-                        'source_data' => $baseApi,
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'updated_at' => date('Y-m-d H:i:s')
-                    ];
+                if ($stockOk > 0 && static::isFromDashboardAPI($material, $baseApi)) {
+                    $data[$key] = static::setValue($material, $baseApi);
                 }
             } else {
-                $data[$material->material_id . '-' . $locationId]['stock_ok'] += $stockOk;
-                $data[$material->material_id . '-' . $locationId]['stock_nok'] += $stockNok;
+                $data[$key]['stock_ok'] += $stockOk;
+                $data[$key]['stock_nok'] += static::getStockNok($material);
             }
         }
         return $data;
     }
 
-    static function specialCondition($material, $baseApi)
+    static function getLocationId($material)
     {
-        return ($baseApi === 'DASHBOARD_PIKOBAR_API_BASE_URL') ? $material->inbound[0]->whs_name === 'GUDANG LABKES' : true;
+        return isset($material->soh_location) ? $material->soh_location : ($material->inbound[0]->inbound_location ? $material->inbound[0]->inbound_location : $material->inbound[0]->whs_name);
+    }
+
+    static function getStockOk($material)
+    {
+        return isset($material->stock_ok) ? $material->stock_ok : $material->qty_good_in;
+    }
+
+    static function getStockNok($material)
+    {
+        return isset($material->stock_nok) ? $material->stock_nok : $material->qty_notgood_in;
+    }
+
+    static function getSohLocationName($material)
+    {
+        return isset($material->soh_location_name) ? $material->soh_location_name : $material->inbound[0]->whs_name;
+    }
+
+    static function getUnitofMaterial($material)
+    {
+        return isset($material->UoM) ? $material->UoM : $material->uom;
+    }
+
+    static function isDashboardAPI($baseApi)
+    {
+        return ($baseApi === PoslogProduct::API_DASHBOARD) ?? false;
+    }
+
+    static function isGudangLabkes($baseApi)
+    {
+        return ($material->inbound[0]->whs_name === 'GUDANG LABKES') ?? false;
+    }
+
+    static function isFromDashboardAPI($material, $baseApi)
+    {
+        return static::isDashboardAPI($baseApi) ? static::$isGudangLabkes : true;
+    }
+
+    static function setValue($material, $baseApi)
+    {
+        $data = [
+            'material_id' => $material->material_id,
+            'material_name' => $material->material_name,
+            'soh_location' => static::getLocationId($material),
+            'soh_location_name' => static::getSohLocationName($material),
+            'UoM' => static::getUnitofMaterial($material),
+            'matg_id' => $material->matg_id,
+            'stock_ok' => static::getStockOk($material),
+            'stock_nok' => static::getStockNok($material),
+            'source_data' => $baseApi,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        return $data;
     }
 
     static function updatingPoslogProduct($data, $baseApi)
     {
-        
         $data = array_values($data);
         if ($data) {
             //delete all data from WMS JABAR

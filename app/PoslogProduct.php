@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class PoslogProduct extends Model
 {    
+    const API_POSLOG = 'WMS_JABAR_BASE_URL';
+    const API_DASHBOARD = 'DASHBOARD_PIKOBAR_API_BASE_URL';
     const DEFAULT_UOM = 'PCS';
     const DEFAULT_STOCK = 0;
 
