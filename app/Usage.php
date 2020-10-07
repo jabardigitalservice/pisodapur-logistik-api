@@ -17,7 +17,7 @@ class Usage
 {
     static $client = null;
 
-    static function getClient() 
+    static function getClient()
     {
         if (static::$client == null) {
             static::$client = new GuzzleHttp\Client();
@@ -172,8 +172,8 @@ class Usage
      */
     static function getLogisticStock($param, $api, $baseApi)
     {
-        $apiKey = static::isDashboardAPI($baseApi) ? env('DASHBOARD_PIKOBAR_API_KEY') : env('WMS_JABAR_API_KEY');
-        $apiLink = static::isDashboardAPI($baseApi) ? env(PoslogProduct::API_DASHBOARD) : env(PoslogProduct::API_POSLOG);
+        $apiKey = PoslogProduct::isDashboardAPI($baseApi) ? env('DASHBOARD_PIKOBAR_API_KEY') : env('WMS_JABAR_API_KEY');
+        $apiLink = PoslogProduct::isDashboardAPI($baseApi) ? env(PoslogProduct::API_DASHBOARD) : env(PoslogProduct::API_POSLOG);
         $apiFunction = $api ? $api : '/api/soh_fmaterialgroup';
         $url = $apiLink . $apiFunction;
         $res = static::getClient()->get($url, [
@@ -188,7 +188,7 @@ class Usage
             error_log("Error: WMS Jabar API returning status code ".$res->getStatusCode());
             return [ response()->format(500, 'Internal server error'), null ];
         } else {
-            return static::isDashboardAPI($baseApi) ? json_decode($res->getBody())->data : json_decode($res->getBody())->msg;
+            return PoslogProduct::isDashboardAPI($baseApi) ? json_decode($res->getBody())->data : json_decode($res->getBody())->msg;
         }
     }
 
@@ -248,8 +248,9 @@ class Usage
         $api = '/master/inbound_detail?search=gsheet';
         $param = '';
         $baseApi = PoslogProduct::API_DASHBOARD;
-        $data = static::syncData($param, $api, $baseApi);
-        static::updatingPoslogProduct($data, $baseApi);
+        $materials = static::getLogisticStock($param, $api, $baseApi);
+        $data = static::setPoslogProduct($materials, $baseApi, $data);
+        PoslogProduct::updatingPoslogProduct($data, $baseApi);
     }
 
     static function syncWmsJabar()
@@ -258,23 +259,10 @@ class Usage
         $sohLocation = SohLocation::all();
         $baseApi = PoslogProduct::API_POSLOG;
         foreach ($sohLocation as $val) {
-            $param = $val['location_id'];
-            $data = static::syncData($val['location_id'], $data, $baseApi);
-        }
-        static::updatingPoslogProduct($data, $baseApi);
-    }
-
-    static function syncData($param, $data, $baseApi)
-    {
-        $list = [];
-        if (static::isDashboardAPI($baseApi)){
-            $materials = static::getLogisticStock($param, $data, $baseApi);
-            $data = static::setPoslogProduct($materials, $baseApi, $data);
-        } else {
-            $materials = static::getLogisticStockByLocation($param);
+            $materials = static::getLogisticStockByLocation($val['location_id']);
             $data = static::setPoslogProduct($materials, $baseApi, $data);
         }
-        return $list;
+        PoslogProduct::updatingPoslogProduct($data, $baseApi);
     }
 
     static function setPoslogProduct($materials, $baseApi, $data)
@@ -282,8 +270,8 @@ class Usage
         foreach ($materials as $material) {
             $locationId = static::getLocationId($material);
             $stockOk = static::getStockOk($material);
-            $key = $material->material_id . '-' . $locationId;
-            if (!isset($data[$material->material_id])) {
+            $key = $material->material_id .'-'. $locationId;
+            if (!isset($data[$key])) {
                 if ($stockOk > 0 && static::isFromDashboardAPI($material, $baseApi)) {
                     $data[$key] = static::setValue($material, $baseApi);
                 }
@@ -320,20 +308,15 @@ class Usage
         return isset($material->UoM) ? $material->UoM : $material->uom;
     }
 
-    static function isDashboardAPI($baseApi)
-    {
-        return ($baseApi === PoslogProduct::API_DASHBOARD) ?? false;
-    }
-
-    static function isGudangLabkes($baseApi)
+    static function isGudangLabkes($material, $baseApi)
     {
         return ($material->inbound[0]->whs_name === 'GUDANG LABKES') ?? false;
     }
 
     static function isFromDashboardAPI($material, $baseApi)
     {
-        return static::isDashboardAPI($baseApi) ? static::$isGudangLabkes : true;
-    }
+        return PoslogProduct::isDashboardAPI($baseApi) ? static::isGudangLabkes($material, $baseApi) : true;
+    }    
 
     static function setValue($material, $baseApi)
     {
@@ -352,16 +335,5 @@ class Usage
         ];
 
         return $data;
-    }
-
-    static function updatingPoslogProduct($data, $baseApi)
-    {
-        $data = array_values($data);
-        if ($data) {
-            //delete all data from WMS JABAR
-            $delete = PoslogProduct::where('source_data', '=', $baseApi)->delete();
-            //insert all data from $data
-            $insertPoslog = PoslogProduct::insert($data);
-        }
     }
 }
