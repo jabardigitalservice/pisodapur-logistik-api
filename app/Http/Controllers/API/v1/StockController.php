@@ -103,7 +103,6 @@ class StockController extends Controller
     public function isOutdated($updateTime, $baseApi)
     {
         $result = false;
-        $time = date('Y-m-d H:i:s'); //Current Time
         $syncTimes = [
             date('Y-m-d H:i:s')
         ];
@@ -118,12 +117,18 @@ class StockController extends Controller
         }
 
         foreach ($syncTimes as $syncTime) {
-            $extraConditionDashboardAPIOnly = PoslogProduct::isDashboardAPI($baseApi) ? ($time > $syncTime) : true;
+            $extraConditionDashboardAPIOnly = $this->extraConditionDashboardAPIOnly($syncTime);
             if ($extraConditionDashboardAPIOnly && $updateTime < $syncTime) {
                 $result = true;
                 break;
             }
         }
         return $result;
+    }
+
+    public function extraConditionDashboardAPIOnly($syncTime)
+    {
+        $time = date('Y-m-d H:i:s'); //Current Time
+        return PoslogProduct::isDashboardAPI($baseApi) ? ($time > $syncTime) : true;
     }
 }
