@@ -23,29 +23,22 @@ class Agency extends Model
     static function getList($request)
     {
         try{
-            $data = self::agencyData();
-            $data = self::withApplicantData($data);
+            $data = self::with([
+                'masterFaskesType' => function ($query) {
+                    return $query->select(['id', 'name']);
+                }
+            ]);
             $data = self::withAreaData($data);
+            $data = self::withApplicantData($data);
             $data = self::withLogisticRequestData($data);
             $data = self::withRecommendationItems($data);
-            $data = self::withFinalizationItems($data);
             $data = self::whereHasApplicantData($data, $request);
             $data = self::whereHasApplicantFilterByStatusData($data, $request);
             $data = self::whereData($data, $request);
-            $data = self::sortingData($data, $request);
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
         return $data;
-    }
-
-    static function agencyData()
-    {
-        return self::with([
-            'masterFaskesType' => function ($query) {
-                return $query->select(['id', 'name']);
-            }
-        ]);
     }
 
     static function withAreaData($data)
@@ -74,26 +67,20 @@ class Agency extends Model
                     'finalized_by', 'finalized_at'
                 ]);
                 $query->where('is_deleted', '!=' , 1);
-                $query = self::withPICData($query);
+                $query->with([
+                    'verifiedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
+                    },
+                    'approvedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
+                    },
+                    'finalizedBy' => function ($query) {
+                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
+                    }
+                ]);
             }
         ]);
     }
-
-    static function withPICData($query)
-    {
-        return $query->with([
-            'verifiedBy' => function ($query) {
-                return $query->select(['id', 'name', 'agency_name', 'handphone']);
-            },
-            'approvedBy' => function ($query) {
-                return $query->select(['id', 'name', 'agency_name', 'handphone']);
-            },
-            'finalizedBy' => function ($query) {
-                return $query->select(['id', 'name', 'agency_name', 'handphone']);
-            }
-        ]);
-    }
-
 
     static function withLogisticRequestData($data)
     {
@@ -118,13 +105,7 @@ class Agency extends Model
                     LogisticRealizationItems::STATUS_NOT_AVAILABLE,
                     LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
                 ]);
-            }
-        ]);
-    }
-
-    static function withFinalizationItems($data)
-    {
-        return $data->with([
+            },
             'finalizationItems' => function ($query) {
                 return $query->whereNotIn('final_status', [
                     LogisticRealizationItems::STATUS_NOT_AVAILABLE,
@@ -185,12 +166,6 @@ class Agency extends Model
                 $query->where('agency_type', $request->faskes_type);
             }
         });
-    }
-
-    static function sortingData($data, $request)
-    {
-        $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
-        return $data->orderByRaw(implode($sort));
     }
 
     public function masterFaskesType()
