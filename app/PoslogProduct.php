@@ -61,22 +61,34 @@ class PoslogProduct extends Model
         }
     }
 
-    static function setValue($material, $baseApi)
+    static function setValue($data, $material, $baseApi)
     {
-        $data = [
-            'material_id' => $material->material_id,
-            'material_name' => $material->material_name,
-            'soh_location' => Usage::getLocationId($material),
-            'soh_location_name' => Usage::getSohLocationName($material),
-            'UoM' => Usage::getUnitofMaterial($material),
-            'matg_id' => $material->matg_id,
-            'stock_ok' => Usage::getStockOk($material),
-            'stock_nok' => Usage::getStockNok($material),
-            'source_data' => $baseApi,
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s')
-        ];
+        $key = Usage::getKeyIndex($material);
+        $stockOk = Usage::getStockOk($material);
+        if ($stockOk > 0 && self::isFromDashboardAPI($material, $baseApi)) {
+            $data[$key] = [
+                'material_id' => $material->material_id,
+                'material_name' => $material->material_name,
+                'soh_location' => Usage::getLocationId($material),
+                'soh_location_name' => Usage::getSohLocationName($material),
+                'UoM' => Usage::getUnitofMaterial($material),
+                'matg_id' => $material->matg_id,
+                'stock_ok' => $stockOk,
+                'stock_nok' => Usage::getStockNok($material),
+                'source_data' => $baseApi,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+        }
 
+        return $data;
+    }
+
+    static function addStock($data, $material)
+    {
+        $key = Usage::getKeyIndex($material);
+        $data[$key]['stock_ok'] += Usage::getStockOk($material);
+        $data[$key]['stock_nok'] += Usage::getStockNok($material);
         return $data;
     }
 
@@ -96,5 +108,15 @@ class PoslogProduct extends Model
             $updateTime = null;
         }
         return $updateTime;
+    }
+
+    static function isGudangLabkes($material, $baseApi)
+    {
+        return ($material->inbound[0]->whs_name === 'GUDANG LABKES') ?? false;
+    }
+
+    static function isFromDashboardAPI($material, $baseApi)
+    {
+        return self::isDashboardAPI($baseApi) ? self::isGudangLabkes($material, $baseApi) : true;
     }
 }

@@ -268,16 +268,11 @@ class Usage
     static function setPoslogProduct($materials, $baseApi, $data)
     {
         foreach ($materials as $material) {
-            $locationId = static::getLocationId($material);
-            $stockOk = static::getStockOk($material);
-            $key = $material->material_id .'-'. $locationId;
+            $key = static::getKeyIndex($material);
             if (!isset($data[$key])) {
-                if ($stockOk > 0 && static::isFromDashboardAPI($material, $baseApi)) {
-                    $data[$key] = PoslogProduct::setValue($material, $baseApi);
-                }
+                $data = PoslogProduct::setValue($data, $material, $baseApi);
             } else {
-                $data[$key]['stock_ok'] += $stockOk;
-                $data[$key]['stock_nok'] += static::getStockNok($material);
+                $data = PoslogProduct::addStock($data, $material);
             }
         }
         return $data;
@@ -286,6 +281,11 @@ class Usage
     static function getLocationId($material)
     {
         return isset($material->soh_location) ? $material->soh_location : ($material->inbound[0]->inbound_location ? $material->inbound[0]->inbound_location : $material->inbound[0]->whs_name);
+    }
+
+    static function getKeyIndex($material)
+    {
+        return $material->material_id .'-'. static::getLocationId($material);
     }
 
     static function getStockOk($material)
@@ -306,15 +306,5 @@ class Usage
     static function getUnitofMaterial($material)
     {
         return isset($material->UoM) ? $material->UoM : $material->uom;
-    }
-
-    static function isGudangLabkes($material, $baseApi)
-    {
-        return ($material->inbound[0]->whs_name === 'GUDANG LABKES') ?? false;
-    }
-
-    static function isFromDashboardAPI($material, $baseApi)
-    {
-        return PoslogProduct::isDashboardAPI($baseApi) ? static::isGudangLabkes($material, $baseApi) : true;
     }
 }
