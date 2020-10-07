@@ -96,4 +96,19 @@ class LogisticRealizationItems extends Model
     {
         return number_format($value, 0, ",", ".");
     }
+
+    static function withPICData($data)
+    {
+        return $data->with([
+            'verifiedBy' => function ($query) {
+                return $query->select(['id', 'name', 'agency_name', 'handphone']);
+            },
+            'recommendBy' => function ($query) {
+                return $query->select(['id', 'name', 'agency_name', 'handphone']);
+            },
+            'realizedBy' => function ($query) {
+                return $query->select(['id', 'name', 'agency_name', 'handphone']);
+            }
+        ]);
+    }
 }

@@ -217,21 +217,11 @@ class LogisticRealizationItemController extends Controller
                 'final_unit_id as realization_unit_id',
                 'final_at as realization_at',
                 'final_by as realization_by'
-            )
-            ->with([
-                'verifiedBy' => function ($query) {
-                    return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                },
-                'recommendBy' => function ($query) {
-                    return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                },
-                'realizedBy' => function ($query) {
-                    return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                }
-            ])
-            ->whereNotNull('created_by')
-            ->orderBy('logistic_realization_items.id') 
-            ->where('logistic_realization_items.agency_id', $request->agency_id)->paginate($limit);
+            );
+            $data = LogisticRealizationItems::withPICData($data);
+            $data = $data->whereNotNull('created_by')
+                ->orderBy('logistic_realization_items.id') 
+                ->where('logistic_realization_items.agency_id', $request->agency_id)->paginate($limit);
             $logisticItemSummary = LogisticRealizationItems::where('agency_id', $request->agency_id)->sum('realization_quantity');
             $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
                 $item->status = !$item->status ? 'not_approved' : $item->status;
