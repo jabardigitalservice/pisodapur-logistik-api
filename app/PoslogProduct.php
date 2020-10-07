@@ -79,4 +79,22 @@ class PoslogProduct extends Model
 
         return $data;
     }
+
+    static function getUpdateTime($field, $value, $baseApi)
+    {
+        try{
+            $updateTime = self::where(function ($query) use($field, $value, $baseApi) {
+                if (self::isDashboardAPI($baseApi)) {
+                    $query->where('soh_location', '=', 'GUDANG LABKES');
+                    if ($value) {
+                        $query->where($field, '=', $value);
+                    }
+                }
+                $query->where('source_data', '=', $baseApi);
+            })->orderBy('updated_at','desc')->value('updated_at');
+        } catch (\Exception $exception) {
+            $updateTime = null;
+        }
+        return $updateTime;
+    }
 }
