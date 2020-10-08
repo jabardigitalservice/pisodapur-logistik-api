@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use DB;
 
 class LogisticRealizationItems extends Model
 {
@@ -97,13 +98,26 @@ class LogisticRealizationItems extends Model
         return number_format($value, 0, ",", ".");
     }
 
+    static function storeData($store_type)
+    {
+        DB::beginTransaction();
+        try {
+            $realization = self::create($store_type);
+            DB::commit();
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            $realization = $exception->getMessage();
+        }
+        return $realization;
+    }
+
     static function withPICData($data)
     {
         return $data->with([
-            'verifiedBy' => function ($query) {
+            'recommendBy' => function ($query) {
                 return $query->select(['id', 'name', 'agency_name', 'handphone']);
             },
-            'recommendBy' => function ($query) {
+            'verifiedBy' => function ($query) {
                 return $query->select(['id', 'name', 'agency_name', 'handphone']);
             },
             'realizedBy' => function ($query) {
