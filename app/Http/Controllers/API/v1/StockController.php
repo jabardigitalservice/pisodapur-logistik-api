@@ -55,6 +55,13 @@ class StockController extends Controller
                 'name' => $val->uom
             ];
         }
+
+        if (!$dataFinal) {
+            $dataFinal[] = [
+                'id' => 'PCS',
+                'name' => 'PCS'
+            ];
+        }
         return response()->format(200, 'success', $dataFinal);
     }
 
@@ -74,10 +81,7 @@ class StockController extends Controller
     public function checkOutdated($field, $value, $baseApi)
     {
         $result = false;
-        $updateTime = false;
-        if ($field !== 'material_id') {
-            $updateTime = PoslogProduct::getUpdateTime($field, $value, $baseApi);
-        }
+        $updateTime = PoslogProduct::getUpdateTime($field, $value, $baseApi);
         $result = $this->isOutdated($updateTime, $baseApi);
         return $result;
     }
