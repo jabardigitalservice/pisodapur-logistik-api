@@ -26,6 +26,7 @@ class LogisticRealizationItemController extends Controller
             'need_id' => 'numeric',
             'status' => 'string'
         ];
+        $params = $this->extraParam($request->input('store_type'), $params);
         $requirParams = $this->validator($request, $params);
         if ($requirParams->fails()) {
             return response()->format(422, $requirParams->errors());
@@ -63,19 +64,16 @@ class LogisticRealizationItemController extends Controller
             'product_id' => 'string',
             'usage' => 'string',
             'priority' => 'string',
-            'realization_quantity' => 'numeric',
-            'realization_date' => 'date',
             'status' => 'string'
         ];
+        $params = $this->extraParam($request->input('store_type'), $params);
         $requirParams = $this->validator($request, $params);
         if ($requirParams->fails()) {
             return response()->format(422, $requirParams->errors());
         } else if (!in_array($request->status, LogisticRealizationItems::STATUS)) {
             return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
         } else if ($this->isApplicantExists($request, 'add')) {
-            $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));    
-                    $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
-            $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));    
+            $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));  
             //Get Material from PosLog by Id
             $request = $this->getPosLogData($request);
             $realization = $this->realizationStore($request);
@@ -90,14 +88,10 @@ class LogisticRealizationItemController extends Controller
      */
     public function list(Request $request)
     {
-        if (!in_array(JWTAuth::user()->roles, User::ADMIN_ROLE)) {
-            return response()->format(404, 'You cannot access this page', null);
-        }
         $params = [
             'agency_id' => 'required'
         ];
         $requirParams = $this->validator($request, $params);
-
         if ($requirParams->fails()) {
             return response()->format(422, $requirParams->errors());
         } else {
@@ -163,12 +157,10 @@ class LogisticRealizationItemController extends Controller
         $params = [
             'agency_id' => 'numeric',
             'product_id' => 'string',
-            'realization_quantity' => 'numeric',
-            'realization_date' => 'date',
             'status' => 'string'
         ];
+        $params = $this->extraParam($request->input('store_type'), $params);
         $requirParams = $this->validator($request, $params);
-
         if ($requirParams->fails()) {
             return response()->format(422, $requirParams->errors()); 
         } else if (!in_array($request->status, LogisticRealizationItems::STATUS)) {
@@ -202,15 +194,8 @@ class LogisticRealizationItemController extends Controller
      */
     public function destroy($id)
     {
-        DB::beginTransaction();
-        try {   
-            $deleteRealization = LogisticRealizationItems::where('id', $id)->delete();
-            DB::commit();
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            return response()->format(400, $exception->getMessage());
-        }
-        return response()->format(200, 'success', ['id' => $id]);
+        $result = LogisticRealizationItems::deleteData($id);
+        return response()->format($result['code'], $result['message'], $result['data']);
     }
 
     // Utilities Function Below Here
@@ -232,10 +217,10 @@ class LogisticRealizationItemController extends Controller
                     'applicant_id' => $request->input('applicant_id'),
                     'product_id' => $request->input('product_id'), 
                     'product_name' => $request->input('product_name'), 
-                    'realization_unit' => $request->input('realization_unit'), 
+                    'realization_unit' => $request->input('recommendation_unit'), 
                     'material_group' => $request->input('material_group'), 
-                    'realization_quantity' => $request->input('realization_quantity'),
-                    'realization_date' => $request->input('realization_date'),
+                    'realization_quantity' => $request->input('recommendation_quantity'),
+                    'realization_date' => $request->input('recommendation_date'),
                     'status' => $request->input('status'),
                     'updated_by' => JWTAuth::user()->id,
                     'recommendation_by' => JWTAuth::user()->id,
@@ -362,10 +347,10 @@ class LogisticRealizationItemController extends Controller
                 'applicant_id' => $request->input('applicant_id'), 
                 'product_id' => $request->input('product_id'), 
                 'product_name' => $request->input('product_name'), 
-                'realization_unit' => $request->input('realization_unit'), 
+                'realization_unit' => $request->input('recommendation_unit'), 
                 'material_group' => $request->input('material_group'), 
-                'realization_quantity' => $request->input('realization_quantity'),
-                'realization_date' => $request->input('realization_date'),
+                'realization_quantity' => $request->input('recommendation_quantity'),
+                'realization_date' => $request->input('recommendation_date'),
                 'status' => $request->input('status'),
                 'created_by' => JWTAuth::user()->id,
                 'recommendation_by' => JWTAuth::user()->id,
@@ -373,5 +358,21 @@ class LogisticRealizationItemController extends Controller
             ];
         }
         return $store_type;
+    }
+    
+    public function extraParam($storeInput, $param)
+    {
+        $extra = [
+            'realization_quantity' => 'numeric',
+            'realization_date' => 'date',
+        ];
+        if ($storeInput === 'recommendation') {
+            $extra = [
+                'recommendation_quantity' => 'numeric',
+                'recommendation_date' => 'date',
+                'recommendation_unit' => 'string',
+            ];
+        }
+        return array_merge($extra, $param);
     }
 }
