@@ -224,7 +224,7 @@ class Usage
     static function getPoslogItem($fieldPoslog, $valuePoslog, $materialName)
     {
         $poslogProduct = [];
-        try{
+        try {
             $poslogProduct = PoslogProduct::select(DB::raw('CONCAT("(", material_id, ") ", material_name) as name'), 'material_id', 'material_name', 'soh_location', 'soh_location_name', 'uom', 'matg_id', 'stock_ok', 'stock_nok')
             ->where(function ($query) use ($fieldPoslog, $valuePoslog, $materialName) {
                 $query->where('stock_ok', '>', 0);

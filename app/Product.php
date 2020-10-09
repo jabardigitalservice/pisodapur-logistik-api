@@ -28,7 +28,7 @@ class Product extends Model
 
     static function getFirst($id)
     {
-        try{
+        try {
             $data = self::findOrFail($id);
         } catch (\Exception $exception) {
             $data = [];

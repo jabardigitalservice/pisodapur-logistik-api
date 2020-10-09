@@ -13,7 +13,7 @@ class SyncApiSchedules extends Model
     static function getIntervalTimeByAPI($baseApi, $updateTime)
     {
         $result = $updateTime;
-        try{
+        try {
             $model = SyncApiSchedules::where('api', '=', $baseApi)->firstOrFail();
             $updateTime = static::addTime($updateTime, $model);
         } catch (\Exception $exception) {
