@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Usage;
 use App\Product;
 use App\PoslogProduct;
+use App\SyncApiSchedules;
 
 class StockController extends Controller
 {
@@ -34,7 +35,6 @@ class StockController extends Controller
         }
         $this->syncDatabase($fieldPoslog, $valuePoslog);
         $dataFinal = Usage::getPoslogItem($fieldPoslog, $valuePoslog, $materialName);
-        
         return response()->format(200, 'success', $dataFinal);
     }
     
@@ -78,10 +78,10 @@ class StockController extends Controller
         }
     }
 
-    public function checkOutdated($field, $value, $baseApi)
+    public function checkOutdated($fieldPoslog, $valuePoslog, $baseApi)
     {
         $result = false;
-        $updateTime = PoslogProduct::getUpdateTime($field, $value, $baseApi);
+        $updateTime = PoslogProduct::getUpdateTime($fieldPoslog, $valuePoslog, $baseApi);
         $result = $this->isOutdated($updateTime, $baseApi);
         return $result;
     }
@@ -89,32 +89,7 @@ class StockController extends Controller
     public function isOutdated($updateTime, $baseApi)
     {
         $time = date('Y-m-d H:i:s');
-        return $result = PoslogProduct::isDashboardAPI($baseApi) ? $this->isDashboardAPIOutdate($time, $updateTime) : $this->isWMSJabarAPIOutdate($time, $updateTime);
-    }
-
-    public function isDashboardAPIOutdate($time, $updateTime)
-    {
-        $result = false;
-        $syncTimes = [
-            date('Y-m-d') . ' 12:00:00', //UTC Timezone for 18:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
-            date('Y-m-d') . ' 06:00:00', //UTC Timezone for 12:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
-            date('Y-m-d') . ' 00:00:00' //UTC Timezone for 06:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
-        ];
-        foreach ($syncTimes as $syncTime) {
-            $isSyncTime = $time > $syncTime;
-            $isDataOutDate = $updateTime < $syncTime;
-            if ($isSyncTime && $isDataOutDate) {
-                $result = true;
-                break;
-            }
-        }
-        return $result;
-    }
-
-    public function isWMSJabarAPIOutdate($time, $updateTime)
-    {
-        $updateTime->modify('+5 minutes'); //+ 5 minutes (Sync Time Eestimate)
-        $syncTime = $time;
-        return $updateTime < $syncTime ?? false;
+        $updateTime = SyncApiSchedules::getIntervalTimeByAPI($baseApi, $updateTime);
+        return $updateTime < $time ?? false;
     }
 }
