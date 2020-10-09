@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Usage;
 use App\Product;
 use App\PoslogProduct;
-use App\SohLocation;
 
 class StockController extends Controller
 {
@@ -18,35 +17,23 @@ class StockController extends Controller
      */    
     public function index(Request $request)
     {
-        $dataFinal = [];
         $product = [];
         $fieldPoslog = '';
         $valuePoslog = '';
         $materialName = false;
-        try {
-            if ($request->filled('poslog_id')) {
-                $product = PoslogProduct::where('material_id', '=', $request->input('poslog_id'))->firstOrFail();
-                $fieldPoslog = 'material_id';
-                $valuePoslog = $product->material_id;
-            } else if ($request->filled('id')) {
-                $product = Product::findOrFail($request->input('id'));
-                $fieldPoslog = 'matg_id';
-                $valuePoslog = $product->material_group;
-                if (strpos($product->name, 'VTM') !== false) {
-                    $materialName = 'VTM';
-                }
+        if ($request->filled('poslog_id')) {
+            $fieldPoslog = 'material_id';
+            $valuePoslog = $request->input('poslog_id');
+        } else if ($request->filled('id')) {
+            $product = Product::findOrFail($request->input('id'));
+            $fieldPoslog = 'matg_id';
+            $valuePoslog = $product->material_group;
+            if (strpos($product->name, 'VTM') !== false) {
+                $materialName = 'VTM';
             }
-            if ($this->dashboardPoslogItemOutdated($fieldPoslog, $valuePoslog, $product)) {
-                Usage::syncDashboard(); // Sync from DASHBOARD
-            }
-            if ($this->WmsJabarPoslogItemOutdated($fieldPoslog, $valuePoslog, $product)) {                
-                Usage::syncWmsJabar(); // Sync from WMS JABAR
-            }
-            //Get data
-            $dataFinal = Usage::getPoslogItem($fieldPoslog, $valuePoslog, $materialName);
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
         }
+        $this->syncDatabase($fieldPoslog, $valuePoslog);
+        $dataFinal = Usage::getPoslogItem($fieldPoslog, $valuePoslog, $materialName);
         
         return response()->format(200, 'success', $dataFinal);
     }
@@ -68,60 +55,66 @@ class StockController extends Controller
                 'name' => $val->uom
             ];
         }
+
+        if (!$dataFinal) {
+            $dataFinal[] = [
+                'id' => 'PCS',
+                'name' => 'PCS'
+            ];
+        }
         return response()->format(200, 'success', $dataFinal);
     }
-    
-    public function dashboardPoslogItemOutdated($field, $value, $product)
-    {
-        $baseApi = 'DASHBOARD_PIKOBAR_API_BASE_URL';
-        $now = date('Y-m-d H:i:s');
-        $firstSyncTime = date('Y-m-d') . ' 00:00:00'; //UTC Timezone for 06:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
-        $secondSyncTime = date('Y-m-d') . ' 06:00:00'; //UTC Timezone for 12:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
-        $thirdSyncTime = date('Y-m-d') . ' 12:00:00'; //UTC Timezone for 18:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
-        $result = false;        
-        $poslogProduct = $product;
-        try {
-            if ($field !== 'material_id') {
-                $poslogProduct = PoslogProduct::where(function ($query) use($field, $value, $baseApi) {
-                    if ($value) {  
-                        $query->where($field, '=', $value);
-                    }
-                    $query->where('soh_location', '=', 'GUDANG LABKES');
-                    $query->where('source_data', '=', $baseApi);
-                })->orderBy('updated_at','desc')->firstOrFail();
-            }
-            if ($now > $thirdSyncTime && $poslogProduct->updated_at < $thirdSyncTime) {
-                $result = true;
-            } else if ($now > $secondSyncTime && $poslogProduct->updated_at < $secondSyncTime) {
-                $result = true;
-            } else if ($now > $firstSyncTime && $poslogProduct->updated_at < $firstSyncTime) {
-                $result = true;
-            }
-        } catch (\Exception $exception) {
-            $result = true;
-        }
 
+    public function syncDatabase($fieldPoslog, $valuePoslog)
+    {
+        $baseApi = PoslogProduct::API_DASHBOARD;
+        if ($this->checkOutdated($fieldPoslog, $valuePoslog, $baseApi)) {
+            Usage::syncDashboard(); // Sync from DASHBOARD
+        }
+        
+        $baseApi = PoslogProduct::API_POSLOG;
+        if ($this->checkOutdated($fieldPoslog, $valuePoslog, $baseApi)) {
+            Usage::syncWmsJabar(); // Sync from WMS JABAR
+        }
+    }
+
+    public function checkOutdated($field, $value, $baseApi)
+    {
+        $result = false;
+        $updateTime = PoslogProduct::getUpdateTime($field, $value, $baseApi);
+        $result = $this->isOutdated($updateTime, $baseApi);
         return $result;
     }
-    
-    public function WmsJabarPoslogItemOutdated($field, $value, $product)
-    {
-        $baseApi = 'WMS_JABAR_BASE_URL';
-        $now = date('Y-m-d H:i:s', strtotime('+ 1 Hour')); //UTC Timezone for 06:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
-        $result = false;
-        $poslogProduct = $product;
-        try {
-            if ($field !== 'material_id') {
-                $poslogProduct = PoslogProduct::where('source_data', '=', $baseApi)->orderBy('updated_at','desc')->firstOrFail();
-            }
-            $SyncTime = date('Y-m-d H:i:s', strtotime($poslogProduct->updated_at) + 60*60); //UTC Timezone + 1 Hour (Sync Time Eestimate)
-            if ($SyncTime < date('Y-m-d H:i:s')) {
-                $result = true;
-            }
-        } catch (\Exception $exception) {
-            $result = true;
-        }
 
+    public function isOutdated($updateTime, $baseApi)
+    {
+        $time = date('Y-m-d H:i:s');
+        return $result = PoslogProduct::isDashboardAPI($baseApi) ? $this->isDashboardAPIOutdate($time, $updateTime) : $this->isWMSJabarAPIOutdate($time, $updateTime);
+    }
+
+    public function isDashboardAPIOutdate($time, $updateTime)
+    {
+        $result = false;
+        $syncTimes = [
+            date('Y-m-d') . ' 12:00:00', //UTC Timezone for 18:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
+            date('Y-m-d') . ' 06:00:00', //UTC Timezone for 12:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
+            date('Y-m-d') . ' 00:00:00' //UTC Timezone for 06:00 Asia/Jakarta + 1 Hour (Sync Time Eestimate)
+        ];
+        foreach ($syncTimes as $syncTime) {
+            $isSyncTime = $time > $syncTime;
+            $isDataOutDate = $updateTime < $syncTime;
+            if ($isSyncTime && $isDataOutDate) {
+                $result = true;
+                break;
+            }
+        }
         return $result;
+    }
+
+    public function isWMSJabarAPIOutdate($time, $updateTime)
+    {
+        $updateTime->modify('+5 minutes'); //+ 5 minutes (Sync Time Eestimate)
+        $syncTime = $time;
+        return $updateTime < $syncTime ?? false;
     }
 }
