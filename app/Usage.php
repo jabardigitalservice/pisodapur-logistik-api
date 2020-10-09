@@ -242,6 +242,25 @@ class Usage
         return $poslogProduct;
     }
 
+    static function getPoslogItemUnit($fieldPoslog, $valuePoslog, $materialName)
+    {
+        $data = self::getPoslogItem($fieldPoslog, $valuePoslog, $materialName);
+        $dataFinal = [];
+        foreach ($data as $val) {
+            $dataFinal[] = [
+                'id' => $val->uom,
+                'name' => $val->uom
+            ];
+        }
+        if (!$dataFinal) {
+            $dataFinal[] = [
+                'id' => 'PCS',
+                'name' => 'PCS'
+            ];
+        }
+        return $dataFinal;
+    }
+
     static function syncDashboard()
     {
         $data = [];

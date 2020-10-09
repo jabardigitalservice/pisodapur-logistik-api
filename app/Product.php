@@ -25,4 +25,14 @@ class Product extends Model
     {
         return $this->hasOne('App\MasterUnit', 'id', 'unit');
     }
+
+    static function getFirst($id)
+    {
+        try{
+            $data = self::findOrFail($id);
+        } catch (\Exception $exception) {
+            $data = [];
+        }
+        return $data;
+    }
 }

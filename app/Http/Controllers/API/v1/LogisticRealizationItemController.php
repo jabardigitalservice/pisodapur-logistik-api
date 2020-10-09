@@ -95,7 +95,7 @@ class LogisticRealizationItemController extends Controller
         if ($requirParams->fails()) {
             return response()->format(422, $requirParams->errors());
         } else {
-            $limit = $request->input('limit', 10);
+            $limit = $request->input('limit', 3);
             $data = LogisticRealizationItems::select(
                 'id',
                 'realization_ref_id',

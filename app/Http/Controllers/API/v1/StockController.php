@@ -18,24 +18,10 @@ class StockController extends Controller
      */    
     public function index(Request $request)
     {
-        $product = [];
-        $fieldPoslog = '';
-        $valuePoslog = '';
-        $materialName = false;
-        if ($request->filled('poslog_id')) {
-            $fieldPoslog = 'material_id';
-            $valuePoslog = $request->input('poslog_id');
-        } else if ($request->filled('id')) {
-            $product = Product::findOrFail($request->input('id'));
-            $fieldPoslog = 'matg_id';
-            $valuePoslog = $product->material_group;
-            if (strpos($product->name, 'VTM') !== false) {
-                $materialName = 'VTM';
-            }
-        }
-        $this->syncDatabase($fieldPoslog, $valuePoslog);
-        $dataFinal = Usage::getPoslogItem($fieldPoslog, $valuePoslog, $materialName);
-        return response()->format(200, 'success', $dataFinal);
+        $result = $this->getParam($request);
+        $this->syncDatabase($result['field_poslog'], $result['field_poslog']);
+        $data = Usage::getPoslogItem($result['field_poslog'], $result['value_poslog'], $result['material_name']);
+        return response()->format(200, 'success', $data);
     }
     
     /**
@@ -46,23 +32,29 @@ class StockController extends Controller
      */
     public function productUnitList($id)
     {
-        //Get data
-        $data = Usage::getPoslogItem('material_id', $id, false);
-        $dataFinal = [];
-        foreach ($data as $val) {
-            $dataFinal[] = [
-                'id' => $val->uom,
-                'name' => $val->uom
-            ];
-        }
+        $data = Usage::getPoslogItemUnit('material_id', $id, false);
+        return response()->format(200, 'success', $data);
+    }
 
-        if (!$dataFinal) {
-            $dataFinal[] = [
-                'id' => 'PCS',
-                'name' => 'PCS'
-            ];
+    public function getParam($request)
+    {
+        $result = [
+            'field_poslog' => '',
+            'value_poslog' => '',
+            'material_name' => false
+        ];
+        if ($request->filled('poslog_id')) {
+            $result['field_poslog'] = 'material_id';
+            $result['value_poslog'] = $request->input('poslog_id');
+        } else if ($request->filled('id')) {
+            $product = Product::getFirst($request->input('id'));
+            $result['field_poslog'] = 'matg_id';
+            $result['value_poslog'] = $product->material_group;
+            if (strpos($product->name, 'VTM') !== false) {
+                $result['material_name'] = 'VTM';
+            }
         }
-        return response()->format(200, 'success', $dataFinal);
+        return $result;
     }
 
     public function syncDatabase($fieldPoslog, $valuePoslog)
@@ -71,7 +63,6 @@ class StockController extends Controller
         if ($this->checkOutdated($fieldPoslog, $valuePoslog, $baseApi)) {
             Usage::syncDashboard(); // Sync from DASHBOARD
         }
-        
         $baseApi = PoslogProduct::API_POSLOG;
         if ($this->checkOutdated($fieldPoslog, $valuePoslog, $baseApi)) {
             Usage::syncWmsJabar(); // Sync from WMS JABAR
