@@ -58,6 +58,29 @@ class LogisticRealizationItems extends Model
         'final_at',
     ];
 
+    static function deleteData($id)
+    {
+        $result = [
+            'code' => 422,
+            'message' => 'Gagal Terhapus',
+            'data' => $id
+        ];
+        DB::beginTransaction();
+        try {   
+            $deleteRealization = self::where('id', $id)->delete();
+            DB::commit();
+            $result = [
+                'code' => 200,
+                'message' => 'success',
+                'data' => $id
+            ];
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            $result['message'] = $exception->getMessage();
+        }
+        return $result;
+    }
+
     public function agency()
     {
         return $this->belongsToMany('App\Agency', 'id', 'agency_id');

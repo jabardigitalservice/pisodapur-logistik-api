@@ -24,16 +24,18 @@ class SyncApiSchedules extends Model
 
     static function addTime($updateTime, $model)
     {
-        if ($model->hour > 0) {
-            $updateTime->modify('+' . $model->hour . ' hours');
-        }
-
-        if ($model->minute > 0) {
-            $updateTime->modify('+' . $model->minute . ' minutes');
-        }
-
-        if ($model->second > 0) {
-            $updateTime->modify('+' . $model->second . ' seconds');
+        if ($updateTime) {
+            if ($model->hour > 0) {
+                $updateTime->modify('+' . $model->hour . ' hours');
+            }
+    
+            if ($model->minute > 0) {
+                $updateTime->modify('+' . $model->minute . ' minutes');
+            }
+    
+            if ($model->second > 0) {
+                $updateTime->modify('+' . $model->second . ' seconds');
+            }
         }
         return $updateTime;
     }
