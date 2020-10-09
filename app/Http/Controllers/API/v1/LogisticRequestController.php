@@ -265,11 +265,10 @@ class LogisticRequestController extends Controller
                 ['agency_id' => 'required']
             )
         );
-
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
-            $limit = $request->input('limit', 10);
+            $limit = $request->input('limit', 3);
             $data = Needs::getFields();
             $data = Needs::getListNeed($data, $request)->paginate($limit);
             $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
@@ -283,7 +282,6 @@ class LogisticRequestController extends Controller
                 return $item;
             });
         }
-
         return response()->format(200, 'success', $data);
     }
 

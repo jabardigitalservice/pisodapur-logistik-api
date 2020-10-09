@@ -22,7 +22,7 @@ class Agency extends Model
 
     static function getList($request)
     {
-        try{
+        try {
             $data = self::with([
                 'masterFaskesType' => function ($query) {
                     return $query->select(['id', 'name']);

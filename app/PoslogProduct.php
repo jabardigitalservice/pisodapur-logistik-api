@@ -94,7 +94,7 @@ class PoslogProduct extends Model
 
     static function getUpdateTime($field, $value, $baseApi)
     {
-        try{
+        try {
             $updateTime = self::where(function ($query) use($field, $value, $baseApi) {
                 if (self::isDashboardAPI($baseApi)) {
                     $query->where('soh_location', '=', 'GUDANG LABKES');

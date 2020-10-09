@@ -224,7 +224,7 @@ class Usage
     static function getPoslogItem($fieldPoslog, $valuePoslog, $materialName)
     {
         $poslogProduct = [];
-        try{
+        try {
             $poslogProduct = PoslogProduct::select(DB::raw('CONCAT("(", material_id, ") ", material_name) as name'), 'material_id', 'material_name', 'soh_location', 'soh_location_name', 'uom', 'matg_id', 'stock_ok', 'stock_nok')
             ->where(function ($query) use ($fieldPoslog, $valuePoslog, $materialName) {
                 $query->where('stock_ok', '>', 0);
@@ -240,6 +240,25 @@ class Usage
             return response()->format(400, $exception->getMessage());
         }
         return $poslogProduct;
+    }
+
+    static function getPoslogItemUnit($fieldPoslog, $valuePoslog, $materialName)
+    {
+        $data = self::getPoslogItem($fieldPoslog, $valuePoslog, $materialName);
+        $dataFinal = [];
+        foreach ($data as $val) {
+            $dataFinal[] = [
+                'id' => $val->uom,
+                'name' => $val->uom
+            ];
+        }
+        if (!$dataFinal) {
+            $dataFinal[] = [
+                'id' => 'PCS',
+                'name' => 'PCS'
+            ];
+        }
+        return $dataFinal;
     }
 
     static function syncDashboard()
