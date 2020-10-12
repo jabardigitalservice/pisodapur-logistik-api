@@ -30,7 +30,7 @@ class LogisticRequestController extends Controller
     {
         $limit = $request->filled('limit') ? $request->input('limit') : 10;
         $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
-        $data = Agency::getList($request);        
+        $data = Agency::getList($request, false);        
         $data = $data->orderByRaw(implode($sort))->paginate($limit);
         return response()->format(200, 'success', $data);
     }
@@ -138,12 +138,9 @@ class LogisticRequestController extends Controller
         return $letter;
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $data = Agency::selectRaw('*');
-        $data = Agency::withMasterFaskesType($data);
-        $data = Agency::withAreaData($data);
-        $data = Agency::withApplicantData($data);
+        $data = Agency::getList($request, true);
         $data = $data->with([
             'letter' => function ($query) {
                 return $query->select(['id', 'agency_id', 'letter']);

@@ -25,7 +25,7 @@ class LogisticRequestExport implements FromCollection, WithMapping, WithHeadings
     public function collection()
     {
         $sort = $this->request->filled('sort') ? ['agency_name ' . $this->request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
-        $data = Agency::getList($this->request);        
+        $data = Agency::getList($this->request, false);        
         $data = $data->orderByRaw(implode($sort))->get();
         foreach ($data as $key => $value) {
             $data[$key]->row_number = $key + 1;
