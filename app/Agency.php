@@ -23,11 +23,8 @@ class Agency extends Model
     static function getList($request)
     {
         try {
-            $data = self::with([
-                'masterFaskesType' => function ($query) {
-                    return $query->select(['id', 'name']);
-                }
-            ]);
+            $data = self::selectRaw('*');
+            $data = self::withMasterFaskesType($data);
             $data = self::withAreaData($data);
             $data = self::withApplicantData($data);
             $data = self::withLogisticRequestData($data);
@@ -40,7 +37,25 @@ class Agency extends Model
         }
         return $data;
     }
-
+    
+    static function withMasterFaskesType($data)
+    {
+        return $data->with([
+            'masterFaskesType' => function ($query) {
+                return $query->select(['id', 'name']);
+            }
+        ]);
+    }
+    
+    static function withLetter($data)
+    {
+        return $data->with([
+            'letter' => function ($query) {
+                return $query->select(['id', 'agency_id', 'letter']);
+            }
+        ]);
+    }
+    
     static function withAreaData($data)
     {
         return $data->with([
