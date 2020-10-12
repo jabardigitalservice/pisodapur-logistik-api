@@ -36,24 +36,27 @@ class Tracking
         ];
     }
 
+    static function getJoin($data, $isByAdmin)
+    {
+        $joinType = $isByAdmin ? 'left' : 'right';
+        return $data->join('needs', 'logistic_realization_items.need_id', '=', 'needs.id', $joinType)
+        ->join('products', 'needs.product_id', '=', 'products.id', 'left')
+        ->join('master_unit', 'needs.unit', '=', 'master_unit.id', 'left')
+        ->join('wms_jabar_material', 'logistic_realization_items.product_id', '=', 'wms_jabar_material.material_id', 'left');
+    }
+
     static function getLogisticRequest($select, $request, $id)
     {
-        return LogisticRealizationItems::select($select)
-            ->join('needs', 'logistic_realization_items.need_id', '=', 'needs.id', 'right')
-            ->join('products', 'needs.product_id', '=', 'products.id', 'left')
-            ->join('master_unit', 'needs.unit', '=', 'master_unit.id', 'left')
-            ->join('wms_jabar_material', 'logistic_realization_items.product_id', '=', 'wms_jabar_material.material_id', 'left')
-            ->orderBy('needs.id');
+        $data = LogisticRealizationItems::select($select);
+        $data = self::getJoin($data, false);
+        return $data->orderBy('needs.id');
     }
 
     static function getLogisticAdmin($select, $request, $id)
     {
-        return $logisticRealizationItems = LogisticRealizationItems::select($select)
-            ->join('needs', 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
-            ->join('products', 'needs.product_id', '=', 'products.id', 'left')
-            ->join('master_unit', 'needs.unit', '=', 'master_unit.id', 'left')
-            ->join('wms_jabar_material', 'logistic_realization_items.product_id', '=', 'wms_jabar_material.material_id', 'left')
-            ->whereNotNull('logistic_realization_items.created_by')
+        $data = LogisticRealizationItems::select($select);
+        $data = self::getJoin($data, true);
+        return $data->whereNotNull('logistic_realization_items.created_by')
             ->orderBy('logistic_realization_items.id')
             ->where('logistic_realization_items.applicant_id', $id);
     }
