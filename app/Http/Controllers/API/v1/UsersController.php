@@ -3,22 +3,22 @@
 namespace App\Http\Controllers\API\v1;
 
 use App\User;
+use App\Validation;
 use Illuminate\Http\Request;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Validator;
 
-class UsersController extends ApiController {
-
-    public function __construct() {
+class UsersController extends ApiController
+{
+    public function __construct()
+    {
         $this->middleware('jwt-auth', ['except' => ['authenticate', 'register']]);
     }
 
-
-    public function authenticate(Request $request) {
+    public function authenticate(Request $request)
+    {
         // grab credentials from the request
         $credentials = $request->only('username', 'password');
-
         try {
             // attempt to verify the credentials and create a token for the user
             if (! $token = JWTAuth::attempt($credentials)) {
@@ -28,16 +28,15 @@ class UsersController extends ApiController {
             // something went wrong whilst attempting to encode the token
             return response()->format(500, 'could_not_create_token');
         }
-
         $user = JWTAuth::user();
         $status = 'success';
         // all good so return the token
         return response()->format(200, true, compact('token', 'user'));
     }
 
-
-    public function register(Request $request) {
-        $validator = Validator::make($request->all(), [
+    public function register(Request $request)
+    {
+        $param = [
             'name' => 'required',
             'username' => 'required | unique:users',
             'email' => 'required | email | unique:users',
@@ -46,10 +45,8 @@ class UsersController extends ApiController {
             'agency_name' => 'required',
             'code_district_city' => 'required',
             'name_district_city' => 'required',
-        ]);
-        if ($validator->fails()) {
-            return response()->format(422,  $validator->messages()->all());
-        } else {
+        ];
+        if (Validation::validate($request, $param)) {
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
@@ -67,11 +64,9 @@ class UsersController extends ApiController {
         }
     }
 
-    public function me(Request $request) {
-
+    public function me(Request $request)
+    {
         $currentUser = JWTAuth::user();
         return response()->format(200, true, $currentUser);
-
     }
-
 }
