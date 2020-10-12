@@ -65,22 +65,7 @@ class OutgoingLetterController extends Controller
             if ($validLetterNumber) {
                 return response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
             } else {
-                DB::beginTransaction();
-                try {
-                    $request->request->add(['user_id' => JWTAuth::user()->id]);
-                    $request->request->add(['status' =>  OutgoingLetter::NOT_APPROVED]);
-                    $outgoing_letter = $this->outgoingLetterStore($request);                    
-                    $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
-                    $request_letter = $this->requestLetterStore($request);    
-                    $response = [
-                        'outgoing_letter' => $outgoing_letter,
-                        'request_letter' => $request_letter,
-                    ];
-                    DB::commit();
-                } catch (\Exception $exception) {
-                    DB::rollBack();
-                    return response()->format(400, $exception->getMessage());
-                }
+                $this->outgoingLetterStore($request);
             }
         }
         return response()->format(200, 'success', $response);
@@ -195,8 +180,23 @@ class OutgoingLetterController extends Controller
      */
     public function outgoingLetterStore($request)
     {
-        $outgoing_letter = OutgoingLetter::create($request->all());
-        return $outgoing_letter;
+        DB::beginTransaction();
+        try {
+            $request->request->add(['user_id' => JWTAuth::user()->id]);
+            $request->request->add(['status' =>  OutgoingLetter::NOT_APPROVED]);
+            $outgoing_letter = OutgoingLetter::create($request->all());   
+            $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
+            $request_letter = $this->requestLetterStore($request);
+            $response = [
+                'outgoing_letter' => $outgoing_letter,
+                'request_letter' => $request_letter,
+            ];
+            DB::commit();
+            return $response;
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            return response()->format(400, $exception->getMessage());
+        }
     }
 
     /**
