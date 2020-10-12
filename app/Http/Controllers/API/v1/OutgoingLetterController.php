@@ -148,6 +148,7 @@ class OutgoingLetterController extends Controller
                 'request_letters.applicant_id',
                 'applicants.application_letter_number',
                 'applicants.agency_id',
+                'applicants.created_at',
                 'agency.agency_name',
                 'agency.location_district_code',
                 'districtcities.kemendagri_kabupaten_nama',
