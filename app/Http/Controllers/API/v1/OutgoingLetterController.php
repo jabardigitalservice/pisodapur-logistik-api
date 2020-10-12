@@ -6,12 +6,9 @@ use App\OutgoingLetter;
 use App\RequestLetter;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Validator;
+use App\Validation;
 use JWTAuth;
 use DB;
-use App\Needs;
-use App\Applicant;
-use App\Usage;
 use App\LogisticRealizationItems;
 use App\FileUpload;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +25,6 @@ class OutgoingLetterController extends Controller
         $data = []; 
         $limit = $request->input('limit', 10);
         $sortType = $request->input('sort', 'DESC');
-
         try {
             $data = OutgoingLetter::where('user_id',  JWTAuth::user()->id)
             ->where(function ($query) use ($request) {
@@ -46,7 +42,6 @@ class OutgoingLetterController extends Controller
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
-
         return response()->format(200, 'success', $data);
     }
 
@@ -59,46 +54,35 @@ class OutgoingLetterController extends Controller
     public function store(Request $request)
     { 
         $response = [];
-        $validator = Validator::make(
-            $request->all(),
-            array_merge(
-                [
-                    'letter_number' => 'required',
-                    'letter_date' => 'required',
-                    'letter_request' => 'required',
-                ]
-            )
-        );
-        
-        // Validasi Nomor Surat Perintah harus unik
-        $validLetterNumber = OutgoingLetter::where('letter_number', $request->input('letter_number'))->exists();
-
-        if ($validator->fails()) {
-            return response()->format(422, $validator->errors());
-        } if ($validLetterNumber) {
-            return response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
-        } else {
-            DB::beginTransaction();
-            try {
-                $request->request->add(['user_id' => JWTAuth::user()->id]);
-                $request->request->add(['status' =>  OutgoingLetter::NOT_APPROVED]);
-                $outgoing_letter = $this->outgoingLetterStore($request);
-                
-                $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
-                $request_letter = $this->requestLetterStore($request);
-
-                $response = array(
-                    'outgoing_letter' => $outgoing_letter,
-                    'request_letter' => $request_letter,
-                );
-
-                DB::commit();
-            } catch (\Exception $exception) {
-                DB::rollBack();
-                return response()->format(400, $exception->getMessage());
+        $param = [
+            'letter_number' => 'required',
+            'letter_date' => 'required',
+            'letter_request' => 'required',
+        ];
+        if (Validation::validate($request, $param)){        
+            // Validasi Nomor Surat Perintah harus unik
+            $validLetterNumber = OutgoingLetter::where('letter_number', $request->input('letter_number'))->exists();
+            if ($validLetterNumber) {
+                return response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
+            } else {
+                DB::beginTransaction();
+                try {
+                    $request->request->add(['user_id' => JWTAuth::user()->id]);
+                    $request->request->add(['status' =>  OutgoingLetter::NOT_APPROVED]);
+                    $outgoing_letter = $this->outgoingLetterStore($request);                    
+                    $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
+                    $request_letter = $this->requestLetterStore($request);    
+                    $response = [
+                        'outgoing_letter' => $outgoing_letter,
+                        'request_letter' => $request_letter,
+                    ];
+                    DB::commit();
+                } catch (\Exception $exception) {
+                    DB::rollBack();
+                    return response()->format(400, $exception->getMessage());
+                }
             }
         }
-        
         return response()->format(200, 'success', $response);
     }
 
@@ -111,17 +95,13 @@ class OutgoingLetterController extends Controller
     public function show(Request $request, $id)
     {
         $data = [];
-
         $limit = $request->input('limit', 10);
         try {
             $outgoingLetter = OutgoingLetter::find($id);  
-            $data = [
-                'outgoing_letter' => $outgoingLetter 
-            ];
+            $data = [ 'outgoing_letter' => $outgoingLetter ];
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
-
         return response()->format(200, 'success', $data);
     }
 
@@ -141,7 +121,6 @@ class OutgoingLetterController extends Controller
                 'letter_number',
                 'letter_date'
             )->find($id);
-
             $requestLetter = RequestLetter::select(
                 'request_letters.id',
                 'request_letters.outgoing_letter_id',
@@ -158,11 +137,8 @@ class OutgoingLetterController extends Controller
             ->join('agency', 'agency.id', '=', 'applicants.agency_id')
             ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
             ->where('request_letters.outgoing_letter_id', $id)
-            ->orderBy('request_letters.id')
-            ->get();
-
+            ->orderBy('request_letters.id')->get();
             $materials = $this->getAllMaterials($requestLetter);
-
             //Return Image to base64 format
             $pathPemprov = env('AWS_CLOUDFRONT_URL') . 'logo/pemprov_jabar.png';
             $pathDivLog = env('AWS_CLOUDFRONT_URL') . 'logo/divisi_managemen_logistik.png';
@@ -170,7 +146,6 @@ class OutgoingLetterController extends Controller
             $dataDivlog = file_get_contents($pathDivLog);
             $pemprovLogo = 'data:image/png;base64,' . base64_encode($dataPemprov);
             $divlogLogo = 'data:image/png;base64,' . base64_encode($dataDivlog);
-
             $data = [
                 'image' => [
                     'pemprov' => $pemprovLogo,
@@ -183,37 +158,23 @@ class OutgoingLetterController extends Controller
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
-
         return response()->format(200, 'success', $data);
     }
 
     public function upload(Request $request)
     {         
         $data = [];
-        $validator = Validator::make(
-            $request->all(),
-            array_merge(
-                [
-                    'id' => 'numeric|required',
-                    'outgoing_letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
-                ]
-            )
-        );
-
-        if ($validator->fails()) {
-            return response()->format(422, $validator->errors());
-        } else {
-            try{
-                //Put File to folder 'outgoing_letter'
-                $path = Storage::disk('s3')->put('outgoing_letter', $request->outgoing_letter_file);
-                //Create fileupload data
-                $fileUpload = FileUpload::create(['name' => $path]);
-                //Get ID
-                $fileUploadId = $fileUpload->id;
-                //Get File Path
-                $filePath = Storage::disk('s3')->url($fileUpload->name);
-                //Update file to Outgoing Letter by ID  
-                $update = OutgoingLetter::where('id', $request->id)->update([
+        $param = [
+            'id' => 'numeric|required',
+            'outgoing_letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+        ];
+        if (Validation::validate($request, $param)){
+            try {                
+                $path = Storage::disk('s3')->put('outgoing_letter', $request->outgoing_letter_file);//Put File to folder 'outgoing_letter'                
+                $fileUpload = FileUpload::create(['name' => $path]);//Create fileupload data
+                $fileUploadId = $fileUpload->id; //Get ID
+                $filePath = Storage::disk('s3')->url($fileUpload->name);//Get File Path
+                $update = OutgoingLetter::where('id', $request->id)->update([//Update file to Outgoing Letter by ID
                     'file' => $fileUploadId,
                     'status' => OutgoingLetter::APPROVED //Asumsi bahwa file yang diupload sudah bertandatangan basah
                 ]);
@@ -246,15 +207,12 @@ class OutgoingLetterController extends Controller
     {
         $response = [];
         foreach (json_decode($request->input('letter_request'), true) as $key => $value) {
-            $request_letter = RequestLetter::firstOrCreate(
-                [
-                    'outgoing_letter_id' => $request->input('outgoing_letter_id'), 
-                    'applicant_id' => $value['applicant_id']
-                ]
-            );
+            $request_letter = RequestLetter::firstOrCreate([
+                'outgoing_letter_id' => $request->input('outgoing_letter_id'), 
+                'applicant_id' => $value['applicant_id']
+            ]);
             $response[] = $request_letter;
         }
-
         return $response;
     }
 
@@ -270,7 +228,6 @@ class OutgoingLetterController extends Controller
         foreach ($requestLetter as $key => $value) {
             $requestLetterList[] = $value['applicant_id'];
         }
-
         $data = LogisticRealizationItems::select(
             'agency_name',
             'final_product_id',
@@ -291,8 +248,7 @@ class OutgoingLetterController extends Controller
             'final_unit',
             'material_group',
             'soh_location_name'
-        )->orderBy('agency_name', 'final_product_id', 'final_product_name')
-        ->get();
+        )->orderBy('agency_name', 'final_product_id', 'final_product_name')->get();
         return $data;
     }
 }
