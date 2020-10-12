@@ -140,11 +140,15 @@ class LogisticRequestController extends Controller
 
     public function show($id)
     {
-        $data = Agency::selectRaw('*')->where('id', '=', $id);
+        $data = Agency::selectRaw('*');
         $data = Agency::withMasterFaskesType($data);
         $data = Agency::withAreaData($data);
         $data = Agency::withApplicantData($data);
-        $data = Agency::withLetter($data)->firstOrFail();
+        $data = $data->with([
+            'letter' => function ($query) {
+                return $query->select(['id', 'agency_id', 'letter']);
+            }
+        ])->where('id', '=', $id)->firstOrFail();
         return response()->format(200, 'success', $data);
     }
 
