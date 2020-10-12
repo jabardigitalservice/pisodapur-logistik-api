@@ -24,9 +24,7 @@ class Agency extends Model
     {
         try {
             $data = self::selectRaw('*');
-            $data = self::withMasterFaskesType($data);
-            $data = self::withAreaData($data);
-            $data = self::withApplicantData($data);
+            $data = self::getDefaultWith($data);
 
             if (!$defaultOnly) {
                 $data = self::withLogisticRequestData($data);
@@ -41,18 +39,12 @@ class Agency extends Model
         return $data;
     }
     
-    static function withMasterFaskesType($data)
+    static function getDefaultWith($data)
     {
         return $data->with([
             'masterFaskesType' => function ($query) {
                 return $query->select(['id', 'name']);
-            }
-        ]);
-    }
-    
-    static function withAreaData($data)
-    {
-        return $data->with([
+            },            
             'city' => function ($query) {
                 return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
             },
@@ -61,13 +53,7 @@ class Agency extends Model
             },
             'village' => function ($query) {
                 return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
-            }
-        ]);
-    }
-
-    static function withApplicantData($data)
-    {
-        return $data->with([
+            },
             'applicant' => function ($query) {
                 $query->select([ 'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', DB::raw('concat(approval_status, "-", verification_status) as status'), DB::raw('concat(approval_status, "-", verification_status) as statusDetail'), 'finalized_by', 'finalized_at' ]);
                 $query->where('is_deleted', '!=' , 1);

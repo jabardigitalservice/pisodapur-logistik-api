@@ -410,9 +410,7 @@ class LogisticRequestController extends Controller
             $query->orWhere('primary_phone_number', '=', $request->input('search'));
             $query->orWhere('secondary_phone_number', '=', $request->input('search'));
         });
-        $list = Agency::withMasterFaskesType($list);
-        $list = Agency::withApplicantData($list);
-        $list = Agency::withAreaData($list);
+        $list = Agency::getDefaultWith($list);
         $list = Agency::whereHasApplicantData($list, $request);
         $list = $list->orderBy('agency.created_at', 'desc')->limit(5)->get();
 
