@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use DB;
 
 class LogisticRealizationItems extends Model
 {
@@ -15,7 +16,8 @@ class LogisticRealizationItems extends Model
         'approved',
         'not_approved',
         'not_available',
-        'replaced'
+        'replaced',
+        'not_yet_fulfilled'
     ];
 
     const STATUS_DELIVERED = 'delivered';
@@ -24,6 +26,7 @@ class LogisticRealizationItems extends Model
     const STATUS_NOT_APPROVED = 'not_approved';
     const STATUS_NOT_AVAILABLE = 'not_available';
     const STATUS_REPLACED = 'replaced';
+    const STATUS_NOT_YET_FULFILLED = 'not_yet_fulfilled';
 
     protected $table = 'logistic_realization_items';
 
@@ -55,6 +58,29 @@ class LogisticRealizationItems extends Model
         'final_at',
     ];
 
+    static function deleteData($id)
+    {
+        $result = [
+            'code' => 422,
+            'message' => 'Gagal Terhapus',
+            'data' => $id
+        ];
+        DB::beginTransaction();
+        try {   
+            $deleteRealization = self::where('id', $id)->delete();
+            DB::commit();
+            $result = [
+                'code' => 200,
+                'message' => 'success',
+                'data' => $id
+            ];
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            $result['message'] = $exception->getMessage();
+        }
+        return $result;
+    }
+
     public function agency()
     {
         return $this->belongsToMany('App\Agency', 'id', 'agency_id');
@@ -83,5 +109,43 @@ class LogisticRealizationItems extends Model
     public function realizedBy()
     {
         return $this->hasOne('App\User', 'id', 'realization_by');
+    }
+
+    public function getFinalUnitAttribute($value)
+    {
+        return $value ? $value : 'PCS';
+    }
+
+    public function getQtyAttribute($value)
+    {
+        return number_format($value, 0, ",", ".");
+    }
+
+    static function storeData($store_type)
+    {
+        DB::beginTransaction();
+        try {
+            $realization = self::create($store_type);
+            DB::commit();
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            $realization = $exception->getMessage();
+        }
+        return $realization;
+    }
+
+    static function withPICData($data)
+    {
+        return $data->with([
+            'recommendBy' => function ($query) {
+                return $query->select(['id', 'name', 'agency_name', 'handphone']);
+            },
+            'verifiedBy' => function ($query) {
+                return $query->select(['id', 'name', 'agency_name', 'handphone']);
+            },
+            'realizedBy' => function ($query) {
+                return $query->select(['id', 'name', 'agency_name', 'handphone']);
+            }
+        ]);
     }
 }

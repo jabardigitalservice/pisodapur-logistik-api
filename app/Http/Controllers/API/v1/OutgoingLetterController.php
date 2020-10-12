@@ -70,13 +70,13 @@ class OutgoingLetterController extends Controller
             )
         );
         
-        // Validasi Nomor Surat Keluar harus unik
+        // Validasi Nomor Surat Perintah harus unik
         $validLetterNumber = OutgoingLetter::where('letter_number', $request->input('letter_number'))->exists();
 
         if ($validator->fails()) {
             return response()->format(422, $validator->errors());
         } if ($validLetterNumber) {
-            return response()->format(422, 'Nomor Surat Keluar sudah digunakan.');
+            return response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
         } else {
             DB::beginTransaction();
             try {
@@ -271,36 +271,27 @@ class OutgoingLetterController extends Controller
         }
 
         $data = LogisticRealizationItems::select(
-            'product_id',
-            'product_name',
-            'realization_unit',
+            'agency_name',
+            'final_product_id',
+            'final_product_name',
+            'final_unit',
             'material_group',
-            DB::raw('sum(realization_quantity) as realization_quantity'),
-            DB::raw('"" as location')
+            DB::raw('sum(final_quantity) as qty'),
+            'soh_location_name as location'
         )
+        ->join('agency', 'agency.id', '=', 'agency_id')
+        ->join('poslog_products', 'poslog_products.material_id', '=', 'final_product_id')
         ->whereIn('applicant_id', $requestLetterList)
-        ->whereIn('status', ['approved', 'replaced'])
+        ->whereIn('final_status', ['approved', 'replaced'])
         ->groupBy(
-            'product_id',
-            'product_name',
-            'realization_unit',
+            'agency_name',
+            'final_product_id',
+            'final_product_name',
+            'final_unit',
             'material_group',
-            'realization_quantity'
-        )->get();
-        
-        foreach ($data as $key => $val) {        
-            $param = '{"material_id":"' . $val['product_id'] . '"}';
-            $api = '/api/soh_fmaterial';
-            $location = "";
-            $retApi = Usage::getLogisticStock($param, $api);
-            if (is_array($retApi) || is_object($retApi)) {  
-                foreach ($retApi as $val) {
-                    $location = $val->soh_location_name;
-                    break;
-                }
-            }
-            $data[$key]['location'] = $location;
-        }
+            'soh_location_name'
+        )->orderBy('agency_name', 'final_product_id', 'final_product_name')
+        ->get();
         return $data;
     }
 }

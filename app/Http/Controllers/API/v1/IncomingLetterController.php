@@ -26,47 +26,49 @@ class IncomingLetterController extends Controller
             $data = Applicant::select(
                     'applicants.id',
                     'applicants.application_letter_number as letter_number',
-                    'applicants.agency_id',  
-                    'agency.agency_name',  
-                    'agency.location_district_code as district_code',  
-                    'districtcities.kemendagri_kabupaten_nama as district_name',  
+                    'applicants.agency_id',
+                    'agency.agency_name',
+                    'agency.agency_type',
+                    'agency.location_district_code as district_code',
+                    'districtcities.kemendagri_kabupaten_nama as district_name',
                     'applicants.applicant_name',
                     'applicants.created_at as letter_date',
-                    DB::raw('"Belum Ada Surat Keluar" as status')
+                    'request_letters.id as incoming_mail_status',
+                    'request_letters.id as request_letters_id'
                 )
                 ->where(function ($query) use ($request) {
                     if ($request->filled('letter_date')) {
-                        $query->whereDate('applicants.created_at', '=', $request->input('letter_date'));
+                        $query->whereRaw("DATE(applicants.created_at) = '" . $request->input('letter_date') . "'");
                     }
                     if ($request->filled('district_code')) {
                         $query->where('agency.location_district_code', '=', $request->input('district_code'));
                     }
-                    if ($request->filled('agency_id')) {
-                        $query->where('applicants.agency_id', '=', $request->input('agency_id'));
+                    if ($request->filled('agency_type')) {
+                        $query->where('agency.agency_type', '=', $request->input('agency_type'));
                     }
                     if ($request->filled('letter_number')) {
                         $query->where('applicants.application_letter_number', 'LIKE', "%{$request->input('letter_number')}%");
                     }
+                    if ($request->filled('mail_status')) {
+                        if ($request->input('mail_status') === 'exists') {
+                            $query->whereNotNull('request_letters.id');
+                        } else {
+                            $query->whereNull('request_letters.id');
+                        }
+                    }
                 })
                 ->join('agency', 'agency.id', '=', 'applicants.agency_id')
                 ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
+                ->leftJoin('request_letters', 'request_letters.applicant_id', '=', 'applicants.id')
                 ->where('applicants.is_deleted', '!=', 1)
+                ->whereNotNull('applicants.finalized_by')
                 ->orderByRaw(implode($sort))->paginate($limit);
 
             $data->getCollection()->transform(function ($applicant, $key) {
-                $find = RequestLetter::where('applicant_id', $applicant->id)->first();
-                $applicant->status = $find ? 'Ada Surat Keluar' : $applicant->status;
                 $applicant->letter_date = date('Y-m-d', strtotime($applicant->letter_date));
                 return $applicant;
             });
             
-            if ($request->filled('status')) {
-                foreach ($data as $key => $applicant) {
-                    if ($applicant->status != $request->input('status')) {
-                        unset($data[$key]);
-                    }
-                }
-            }
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -108,7 +110,8 @@ class IncomingLetterController extends Controller
                 'agency.agency_type',   
                 'applicants.applicant_name',
                 'applicants.created_at as letter_date',
-                DB::raw('"Belum Ada Surat Keluar" as status') 
+                'request_letters.id as incoming_mail_status',
+                'request_letters.id as request_letters_id'
                 )
                 ->with([
                     'masterFaskesType' => function ($query) {
@@ -132,8 +135,6 @@ class IncomingLetterController extends Controller
                 ])
                 ->join('agency', 'agency.id', '=', 'applicants.agency_id')
                 ->findOrFail($id);
-                $find = RequestLetter::where('applicant_id', $data->id)->first();
-                $data->status = $find ? 'Ada Surat Keluar' : $data->status;
                 $data->letter_date = date('Y-m-d', strtotime($data->letter_date));
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());

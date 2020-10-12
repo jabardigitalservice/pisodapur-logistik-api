@@ -21,7 +21,6 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
-use App\Mail\ApplicationRequestEmailNotification;
 use App\LogisticRealizationItems;
 use App\Product;
 
@@ -32,92 +31,10 @@ class LogisticRequestController extends Controller
         if (JWTAuth::user()->roles != 'dinkesprov') {
             return response()->format(404, 'You cannot access this page', null);
         }
-
         $limit = $request->filled('limit') ? $request->input('limit') : 10;
         $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
-
-        try {
-            $data = Agency::with([
-                'masterFaskesType' => function ($query) {
-                    return $query->select(['id', 'name']);
-                },
-                'applicant' => function ($query) {
-                    return $query->select([
-                            'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', 
-                            DB::raw('concat(approval_status, "-", verification_status) as status'),
-                            DB::raw('concat(approval_status, "-", verification_status) as statusDetail'),
-                            'finalized_by', 'finalized_at'
-                    ])->with([
-                        'verifiedBy' => function ($query) {
-                            return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                        },
-                        'approvedBy' => function ($query) {
-                            return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                        },
-                        'finalizedBy' => function ($query) {
-                            return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                        }
-                    ])->where('is_deleted', '!=' , 1);
-                },
-                'city' => function ($query) {
-                    return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
-                },
-                'subDistrict' => function ($query) {
-                    return $query->select(['kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
-                },
-                'village' => function ($query) {
-                    return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
-                }
-            ])
-            ->whereHas('applicant', function ($query) use ($request) {
-                if ($request->filled('is_rejected')) {
-                    $query->where(function ($queries) {
-                        $queries->where('verification_status', Applicant::STATUS_REJECTED)
-                                ->orWhere('approval_status', Applicant::STATUS_REJECTED);
-                    });
-                } else {                        
-                    if ($request->filled('verification_status')) {
-                        $query->where('verification_status', $request->input('verification_status'));
-                    }
-
-                    if ($request->filled('approval_status')) {
-                        $query->where('approval_status', $request->input('approval_status'));
-                    }
-                }
-
-                if ($request->filled('date')) {
-                    $query->whereRaw("DATE(created_at) = '" . $request->input('date') . "'");
-                }
-
-                if ($request->filled('source_data')) {
-                    $query->where('source_data', $request->input('source_data'));
-                }
-
-                if ($request->filled('stock_checking_status')) {
-                    $query->where('stock_checking_status', $request->input('stock_checking_status'));
-                }
-                $query->where('is_deleted', '!=' , 1);
-            }) 
-            ->where(function ($query) use ($request) {
-                if ($request->filled('agency_name')) {
-                    $query->where('agency_name', 'LIKE', "%{$request->input('agency_name')}%");
-                }
-
-                if ($request->filled('city_code')) {
-                    $query->where('location_district_code', $request->input('city_code'));
-                }
-
-                if ($request->filled('faskes_type')) {
-                    $query->where('agency_type', $request->input('faskes_type'));
-                }
-            })
-            ->orderByRaw(implode($sort))
-            ->paginate($limit);
-
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
-        }
-
+        $data = Agency::getList($request);        
+        $data = $data->orderByRaw(implode($sort))->paginate($limit);
         return response()->format(200, 'success', $data);
     }
 
@@ -348,74 +265,12 @@ class LogisticRequestController extends Controller
                 ['agency_id' => 'required']
             )
         );
-
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
-            $limit = $request->input('limit', 10);
-            $data = Needs::select(
-                'needs.id',
-                'needs.agency_id',
-                'needs.applicant_id',
-                'needs.product_id',
-                'needs.item',
-                'needs.brand',
-                'needs.quantity',
-                'needs.unit',
-                'needs.unit as unit_id',
-                'needs.usage',
-                'needs.priority',
-                'needs.created_at',
-                'needs.updated_at',
-                
-
-                'logistic_realization_items.need_id',
-                'logistic_realization_items.material_group',
-                'logistic_realization_items.status',
-                'logistic_realization_items.created_by',
-                'logistic_realization_items.final_by',
-                'logistic_realization_items.updated_by',
-                
-                'logistic_realization_items.product_id as recommendation_product_id',
-                'logistic_realization_items.product_name as recommendation_product_name',
-                'logistic_realization_items.realization_quantity as recommendation_quantity',
-                'logistic_realization_items.realization_unit as recommendation_unit',
-                'logistic_realization_items.realization_date as recommendation_date',
-                'logistic_realization_items.status as recommendation_status', 
-                'logistic_realization_items.unit_id as recommendation_unit_id',
-                'logistic_realization_items.recommendation_by',
-                'logistic_realization_items.recommendation_at',
-
-                'logistic_realization_items.final_product_id as realization_product_id',
-                'logistic_realization_items.final_product_name as realization_product_name',
-                'logistic_realization_items.final_quantity as realization_quantity',
-                'logistic_realization_items.final_unit as realization_unit',
-                'logistic_realization_items.final_date as realization_date',
-                'logistic_realization_items.final_status as realization_status',
-                'logistic_realization_items.final_unit_id as realization_unit_id',
-                'logistic_realization_items.final_by as realization_by',
-                'logistic_realization_items.final_at as realization_at'
-            )
-                ->with([
-                    'product' => function ($query) {
-                        return $query->select(['id', 'name', 'category']);
-                    },
-                    'unit' => function ($query) {
-                        return $query->select(['id', 'unit']);
-                    },
-                    'verifiedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                    },
-                    'recommendBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                    },
-                    'realizedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                    }
-                ])
-                ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
-                ->orderBy('needs.id')
-                ->where('needs.agency_id', $request->agency_id)->paginate($limit);
+            $limit = $request->input('limit', 3);
+            $data = Needs::getFields();
+            $data = Needs::getListNeed($data, $request)->paginate($limit);
             $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
             $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) { 
                 if (!$item->realization_product_name) {
@@ -427,7 +282,6 @@ class LogisticRequestController extends Controller
                 return $item;
             });
         }
-
         return response()->format(200, 'success', $data);
     }
 

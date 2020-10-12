@@ -2,18 +2,17 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithEvents;;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use App\Agency;
-use DB;
 
-class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, WithEvents, ShouldAutoSize
+class LogisticRequestExport implements FromCollection, WithMapping, WithHeadings, WithEvents, ShouldAutoSize
 {
     use Exportable;
 
@@ -22,74 +21,33 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, Wit
     function __construct($request) {
            $this->request = $request;
     }
-    public function query()
+
+    public function collection()
     {
+        $sort = $this->request->filled('sort') ? ['agency_name ' . $this->request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
+        $data = Agency::getList($this->request);        
+        $data = $data->orderByRaw(implode($sort))->get();
+        foreach ($data as $key => $value) {
+            $data[$key]->row_number = $key + 1;
+        }
 
-        DB::statement(DB::raw('set @row:=0'));
-        $data = Agency::selectRaw('*, @row:=@row+1 as row_number')
-        ->with([
-            'masterFaskesType' => function ($query) {
-                return $query->select(['id', 'name']);
-            },
-            'applicant' => function ($query) {
-                return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status'
-                ])->where('is_deleted', '!=' , 1);
-            },
-            'city' => function ($query) {
-                return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
-            },
-            'subDistrict' => function ($query) {
-                return $query->select(['kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
-            },
-            'village' => function ($query) {
-                return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
-            },
-            'logisticRequestItems' => function ($query) {
-                return $query->select(['agency_id', 'product_id', 'brand', 'quantity', 'unit', 'usage', 'priority']);
-            },
-            'logisticRequestItems.product' => function ($query) {
-                return $query->select(['id', 'name', 'material_group_status', 'material_group']);
-            },
-            'logisticRequestItems.masterUnit' => function ($query) {
-                return $query->select(['id', 'unit as name']);
-            }
-        ])->whereHas('applicant', function ($query){
-            if ($this->request->verification_status) {
-                $query->where('is_deleted', '!=' , 1)->where('verification_status', $this->request->verification_status);
-            }
-
-            if ($this->request->date) {
-                $query->whereRaw('DATE(created_at) = ?', [$this->request->date]);
-            }
-            if ($this->request->source_data) {
-                $query->where('source_data', $this->request->source_data);
-            }
-        })
-        ->whereHas('masterFaskesType', function ($query){
-            if ($this->request->faskes_type) {
-                $query->where('id', $this->request->faskes_type);
-            }
-        })
-        ->where(function ($query){
-            if ($this->request->agency_name) {
-                $query->where('agency_name', 'LIKE', "%{$this->request->agency_name}%");
-            }
-
-            if ($this->request->city_code) {
-                $query->where('location_district_code', $this->request->city_code);
-            }
-        });
         return $data;
     }
 
     public function headings(): array
-    {
+    {   
+        $columns = [
+            'Nomor', 'Nomor Surat Permohonan', 'Tanggal Pengajuan', 'Jenis Instansi', 'Nama Instansi', 'Nomor Telp Instansi', 
+            'Alamat Lengkap', 'Kab/Kota', 'Kecamatan', 'Desa/Kel', 'Nama Pemohon', 
+            'Jabatan', 'Email', 'Nomor Kontak Pemohon (opsi 1)', 'Nomor Kontak Pemohon (opsi 2)', 'Detail Permohonan (Nama Barang, Jumlah dan Satuan, Urgensi)', 
+            'Diverifikasi Oleh', 'Rekomendasi Salur', 'Disetujui Oleh', 'Realisasi Salur', 'Diselesaikan Oleh', 'Status Permohonan'
+        ];
+        
         return [
             ['DAFTAR PERMOHONAN LOGISTIK'],
             ['ALAT KESEHATAN'],
             [], //add empty row
-            ['Nomor', 'Tanggal Pengajuan', 'Jenis Instansi', 'Nomor Telp Instansi', 'Alamat Lengkap', 'Kab/Kota', 'Kecamatan', 'Desa/Kel', 'Nama Pemohon', 'Jabatan', 'Email', 'Nomor Kontak Pemohon (opsi 1)', 'Nomor Kontak Pemohon (opsi 2)', 'Detail Permohonan (Nama Barang, Jumlah dan Satuan, Urgensi)', 'Status Permohonan']
+            $columns
         ];
     }
 
@@ -99,11 +57,23 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, Wit
      * @var LogisticsRequest $logisticsRequest
      */
     public function map($logisticsRequest): array
+    {        
+        $administrationColumn = $this->administrationColumn($logisticsRequest);        
+        $logisticRequestColumns = $this->logisticRequestColumn($logisticsRequest);
+        $recommendationColumn = $this->recommendationColumn($logisticsRequest);
+        $finalizationColumn = $this->finalizationColumn($logisticsRequest);
+        $data = array_merge($administrationColumn, $logisticRequestColumns, $recommendationColumn, $finalizationColumn);
+        return $data;
+    }
+
+    public function administrationColumn($logisticsRequest)
     {
-        return [
+        $data = [
             $logisticsRequest->row_number,
+            $logisticsRequest->applicant['application_letter_number'],
             $logisticsRequest->created_at,
             $logisticsRequest->masterFaskesType['name'],
+            $logisticsRequest->agency_name,
             $logisticsRequest->phone_number,
             $logisticsRequest->location_address,
             $logisticsRequest->city['kemendagri_kabupaten_nama'],
@@ -113,22 +83,61 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, Wit
             $logisticsRequest->applicant['applicants_office'],
             $logisticsRequest->applicant['email'],
             $logisticsRequest->applicant['primary_phone_number'],
-            $logisticsRequest->applicant['secondary_phone_number'],
+            $logisticsRequest->applicant['secondary_phone_number']
+        ];
+        return $data;
+    }
+
+    public function logisticRequestColumn($logisticsRequest)
+    {
+        $data = [
             $logisticsRequest->logisticRequestItems->map(function ($items){
-                if ($items['quantity'] == '-' && $items->masterUnit['name'] == '-') {
+                $isQuantityEmpty = $items['quantity'] == '-' && $items->masterUnit['name'] == '-';
+                if ($isQuantityEmpty) {
                     $items->quantityUnit = 'jumlah dan satuan tidak ada';
                 } else {
                     $items['quantity'] = $items['quantity'] == '-' ? 'jumlah tidak ada ' : $items['quantity'];
                     $items['unit'] = $items->masterUnit['name'] == '-' ? ' satuan tidak ada' : $items->masterUnit['name'];
                     $items->quantityUnit = $items['quantity'] . ' ' . $items['unit'];
                 }
-                return
-                    implode([$items->product['name'],
+
+                $list = [
+                    $items->product['name'],
                     $items->quantityUnit,
-                    $items['priority'] == '-' ? 'urgensi tidak ada' : $items['priority']], ', ');
-            })->implode('; ', ''),
-            $logisticsRequest->applicant['verification_status']
+                    $items['priority'] == '-' ? 'urgensi tidak ada' : $items['priority']
+                ];
+                return implode($list, ', ');
+            })->implode('; ', '')
         ];
+        return $data;
+    }
+
+    public function recommendationColumn($logisticsRequest)
+    {        
+        $data = [
+            $logisticsRequest->applicant->verifiedBy['name'],
+            $logisticsRequest->recommendationItems->map(function ($items){
+                $items->quantityUnit = $items['realization_quantity'] . ' ' . $items['realization_unit'];
+                return implode([$items->product_name, $items->quantityUnit,], ', ');
+            })->implode('; ', '')
+        ];
+
+        return $data;
+    }
+    
+    public function finalizationColumn($logisticsRequest)
+    {        
+        $data = [
+            $logisticsRequest->applicant->approvedBy['name'],
+            $logisticsRequest->finalizationItems->map(function ($items){
+                $items->quantityUnit = $items['final_quantity'] . ' ' . $items['final_unit'];
+                return implode([$items->final_product_name, $items->quantityUnit,], ', ');
+            })->implode('; ', ''),
+            $logisticsRequest->applicant->finalizedBy['name'],
+            $logisticsRequest->applicant['status']
+        ];
+
+        return $data;
     }
 
     /**
@@ -138,12 +147,12 @@ class LogisticRequestExport implements FromQuery, WithMapping, WithHeadings, Wit
     {
         $styleArray = [
             'font' => [
-            'bold' => true,
+                'bold' => true,
             ]
         ];
         return [
-            AfterSheet::class    => function(AfterSheet $event) use ($styleArray){
-                $cellRange = 'A1:O4'; // All headers
+            AfterSheet::class => function(AfterSheet $event) use ($styleArray){
+                $cellRange = 'A1:V4'; // All headers
                 $event->sheet->getDelegate()->getStyle($cellRange)->getFont()->setSize(12);
                 $event->sheet->getStyle($cellRange)->ApplyFromArray($styleArray);
                 $event->sheet->mergeCells('A1:O1');
