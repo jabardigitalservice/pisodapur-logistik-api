@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Employee;
 use App\FileUpload;
-use Validator;
+use App\Validation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\FileUploadController;
 
@@ -23,19 +23,17 @@ class EmployeesController extends Controller {
 
     public function store(Request $request)
     {
-        try {
-            $validator = Validator::make($request->all(), [
-                'name' => 'required',
-                'email' => 'required|email|unique:employees',
-                'phone' => 'required|numeric',
-                'emp_id' => 'required|numeric',
-                'company' => 'required | string',
-                'location' => 'required | string',
-            ]);
-            if ($validator->fails()) {
-                return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
-            } else {
-                $data = $request->All();
+        $param = [
+            'name' => 'required',
+            'email' => 'required|email|unique:employees',
+            'phone' => 'required|numeric',
+            'emp_id' => 'required|numeric',
+            'company' => 'required | string',
+            'location' => 'required | string',
+        ];
+        if (Validation::validate($request, $param)) {
+            $data = $request->All();
+            try {
                 Employee::create([
                     'name' => $data['name'],
                     'email' => $data['email'],
@@ -44,10 +42,10 @@ class EmployeesController extends Controller {
                     'company' => $data['company'],
                     'location' => $data['location'],
                 ]);
-                return response()->json(array('status' => true, 'msg' => 'Successfully Created'), 200);
+            } catch (\Exception $e) {
+                return response()->json(array('message' => 'could_not_create_employee'), 500);
             }
-        } catch (\Exception $e) {
-            return response()->json(array('message' => 'could_not_create_employee'), 500);
+            return response()->json(array('status' => true, 'msg' => 'Successfully Created'), 200);
         }
     }
 
@@ -104,13 +102,8 @@ class EmployeesController extends Controller {
     }
 
     public function fileupload(Request $request){
-        $validator = Validator::make($request->all(), [
-            'file' => 'required'
-        ]);
-        $data = $request->all();
-        if ($validator->fails()) {
-            return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
-        } else {
+        $param = ['file' => 'required'];
+        if (Validation::validate($request, $param)) {
             if (isset($data['file'])) {
                 $file = $data['file'];
                 unset($data['file']);
