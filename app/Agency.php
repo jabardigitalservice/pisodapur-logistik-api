@@ -47,15 +47,6 @@ class Agency extends Model
         ]);
     }
     
-    static function withLetter($data)
-    {
-        return $data->with([
-            'letter' => function ($query) {
-                return $query->select(['id', 'agency_id', 'letter']);
-            }
-        ]);
-    }
-    
     static function withAreaData($data)
     {
         return $data->with([
