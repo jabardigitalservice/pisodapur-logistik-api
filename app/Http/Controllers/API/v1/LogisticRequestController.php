@@ -394,6 +394,8 @@ class LogisticRequestController extends Controller
                     'id',
                     'agency_id',
                     DB::raw('applicant_name as request'),
+                    DB::raw('verification_status'),
+                    DB::raw('approval_status'),
                     DB::raw('verification_status as verification'),
                     DB::raw('approval_status as approval'),
                     DB::raw('FALSE as delivering'), // Waiting for Integration data with POSLOG

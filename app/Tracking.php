@@ -13,26 +13,29 @@ class Tracking
             DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
             'needs.id as need_id',
             'logistic_realization_items.id as realization_id',
-            DB::raw('IFNULL(logistic_realization_items.product_id, needs.product_id) as product_id'),
+
             'needs.product_id as need_product_id',
-            'logistic_realization_items.product_id as realization_product_id',
-            DB::raw('IFNULL(logistic_realization_items.product_name, products.name) as product_name'),
             'products.name as need_product_name',
-            'logistic_realization_items.product_name as realization_product_name',
             'needs.brand as need_description',
-            DB::raw('IFNULL(logistic_realization_items.realization_quantity, needs.quantity) as quantity'),
-            DB::raw('IFNULL(logistic_realization_items.realization_unit, master_unit.unit) as unit_name'),
             'needs.quantity as need_quantity',
             'needs.unit as need_unit_id',
             'master_unit.unit as need_unit_name',
             'needs.usage as need_usage',
             'products.category',
-            'logistic_realization_items.realization_quantity as allocation_quantity',
-            'logistic_realization_items.created_at as allocated_at',            
-            'logistic_realization_items.realization_quantity',
-            'realization_unit as realization_unit_name',
-            'logistic_realization_items.created_at as realized_at',
-            DB::raw('IFNULL(logistic_realization_items.status, "not_approved") as status')
+
+            'logistic_realization_items.product_id as recommendation_product_id',
+            'logistic_realization_items.product_name as recommendation_product_name',
+            'logistic_realization_items.realization_quantity as recommendation_quantity',
+            'realization_unit as recommendation_unit_name',
+            'logistic_realization_items.recommendation_at',
+            'logistic_realization_items.status as recommendation_status',
+            
+            'logistic_realization_items.final_product_id',
+            'logistic_realization_items.final_product_name',
+            'logistic_realization_items.final_quantity',
+            'logistic_realization_items.final_unit',
+            'logistic_realization_items.final_date',
+            'logistic_realization_items.final_status'
         ];
     }
 
