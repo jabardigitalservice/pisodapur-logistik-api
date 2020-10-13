@@ -21,7 +21,7 @@ class Applicant extends Model
     *
     * @var array
     */
-   protected $touches = ['agency'];
+    protected $touches = ['agency'];
 
     protected $fillable = [
         'agency_id',
@@ -169,5 +169,17 @@ class Applicant extends Model
     public function getIncomingMailStatusAttribute($value)
     {
         return $value ? 'Ada Surat Perintah' : 'Belum Ada Surat Perintah';
+    }
+
+    static function updateApplicant($request)
+    {
+        try {
+            $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
+            $applicant->fill($request->input());
+            $applicant->save();
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+        return $applicant;
     }
 }

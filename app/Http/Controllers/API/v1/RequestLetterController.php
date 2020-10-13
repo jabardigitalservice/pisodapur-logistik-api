@@ -5,24 +5,19 @@ namespace App\Http\Controllers\API\v1;
 use Illuminate\Http\Request;
 use App\RequestLetter;
 use App\Http\Controllers\Controller;
-use Validator;
-use JWTAuth;
-use DB; 
+use App\Validation;
+use DB;
 use App\LogisticRealizationItems;
 use App\Applicant;
 
 class RequestLetterController extends Controller
 {
     public function index(Request $request)
-    {        
+    {
         $data = [];
-        $validator = Validator::make($request->all(), [
-            'outgoing_letter_id' => 'required'
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
-        } else {
-            try { 
+        $param = [ 'outgoing_letter_id' => 'required' ];
+        if (Validation::validate($request, $param)) {
+            try {
                 $limit = $request->input('limit', 10);
                 $data = RequestLetter::select(
                     'request_letters.id',
@@ -52,7 +47,6 @@ class RequestLetterController extends Controller
                 ->whereNotNull('applicants.finalized_by')
                 ->orderBy('request_letters.id')
                 ->paginate($limit);
- 
                 foreach ($data as $key => $val) {
                     $data[$key] = $this->getRealizationData($val);
                 }
@@ -60,7 +54,6 @@ class RequestLetterController extends Controller
                 return response()->format(400, $exception->getMessage());
             }
         }
-
         return response()->format(200, 'success', $data);
     }
 
@@ -101,52 +94,31 @@ class RequestLetterController extends Controller
 
     public function store(Request $request)
     {
-        $response = [];
-        $validator = Validator::make(
-            $request->all(),
-            array_merge(
-                [
-                    'outgoing_letter_id' => 'required|numeric',
-                    'letter_request' => 'required',
-                ]
-            )
-        );
-
-        if ($validator->fails()) {
-            return response()->format(422, $validator->errors());
-        } else {
+        $response = [
+            'outgoing_letter_id' => 'required|numeric',
+            'letter_request' => 'required',
+        ];
+        $param = ['file' => 'required|mimes:xlsx'];
+        if (Validation::validate($request, $param)) {
             DB::beginTransaction();
             try {                  
                 $request_letter = $this->requestLetterStore($request);
-
                 $response = array(
                     'request_letter' => $request_letter,
                 );
-
                 DB::commit();
             } catch (\Exception $exception) {
                 DB::rollBack();
                 return response()->format(400, $exception->getMessage());
             }
         }
-        
         return response()->format(200, 'success', $response);
     }
 
     public function update(request $request, $id)
     {
-        $validator = Validator::make(
-            $request->all(),
-            array_merge(
-                [
-                    'applicant_id' => 'required|numeric',
-                ]
-            )
-        );
-
-        if ($validator->fails()) {
-            return response()->format(422, $validator->errors());
-        } else {
+        $param = [ 'applicant_id' => 'required|numeric' ];
+        if (Validation::validate($request, $param)) {
             try {                  
                 $data = RequestLetter::find($id);
                 $data->applicant_id = $request->applicant_id;

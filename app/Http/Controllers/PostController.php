@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Post;
-use App\User;
+use App\Validation;
 use Illuminate\Http\Request;
-use Validator;
 
 class PostController extends Controller {
      
@@ -21,15 +20,12 @@ class PostController extends Controller {
 
     
     public function add(Request $request){
-
-        $validator = Validator::make($request->all(), [
+        $param = [
             'name' => 'required',
             'description' => 'required',
             'category_id' => 'required',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
-        } else {
+        ];
+        if (Validation::validate($request, $param)) {
             $user = Post::create([
                 'name' => $request->name,
                 'description' => $request->description,
