@@ -156,7 +156,7 @@ class OutgoingLetterController extends Controller
         ];
         if (Validation::validate($request, $param)){
             try {
-                $path = Storage::disk('local')->put('registration/outgoing_letter', $request->file);
+                $path = Storage::disk('s3')->put('registration/outgoing_letter', $request->file);
                 $fileUpload = FileUpload::create(['name' => $path]);
                 $fileUploadId = $fileUpload->id;
                 $update = OutgoingLetter::where('id', $request->id)->update([//Update file to Outgoing Letter by ID
