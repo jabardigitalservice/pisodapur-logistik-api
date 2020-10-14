@@ -60,14 +60,12 @@ class OutgoingLetterController extends Controller
             'letter_request' => 'required',
         ];
         if (Validation::validate($request, $param)){
-            // Validasi Nomor Surat Perintah harus unik
-            if ($this->uniqueLetterNumber($request)) {   
+            if ($this->uniqueLetterNumber($request)) { // Validasi Nomor Surat Perintah harus unik
                 $response = $this->outgoingLetterStore($request);
-            // } else {
-            //     return response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
+            } else {
+                $response = response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
             }
         }
-        // return response()->format(200, 'success', $response);
         return $response;
     }
 
