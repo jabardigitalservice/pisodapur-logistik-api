@@ -63,14 +63,14 @@ class LogisticRequestController extends Controller
                 $request->request->add(['applicant_id' => $applicant->id]);
 
                 $need = $this->needStore($request);
-                $letter = $this->letterStore($request);
+                $letter = FileUpload::storeData($request);
                 $email = $this->sendEmailNotification($agency->id, Applicant::STATUS_NOT_VERIFIED);
 
                 $response = [
                     'agency' => $agency,
                     'applicant' => $applicant,
                     'need' => $need,
-                    'letter' => $letter
+                    'letter' => $letter->getData()
                 ];
                 DB::commit();
                 $response = response()->format(200, 'success', new LogisticRequestResource($response));
@@ -124,20 +124,6 @@ class LogisticRequestController extends Controller
             $response[] = $need;
         }
         return $response;
-    }
-
-    public function letterStore($request)
-    {
-        $fileUploadId = null;
-        if ($request->hasFile('letter_file')) {
-            $path = Storage::disk('s3')->put('registration/letter', $request->letter_file);
-            $fileUpload = FileUpload::create(['name' => $path]);
-            $fileUploadId = $fileUpload->id;
-        }
-        $request->request->add(['letter' => $fileUploadId]);
-        $letter = Letter::create($request->all());
-        $letter->file_path = Storage::disk('s3')->url($fileUpload->name);
-        return $letter;
     }
 
     public function show(Request $request, $id)
@@ -494,5 +480,27 @@ class LogisticRequestController extends Controller
             return response()->format(400, $exception->getMessage());
         }
         return $model;
+    }
+
+    public function uploadLetter(Request $request, $id)
+    {
+        $param = [
+            'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            try {
+                $applicant = Applicant::findOrFail($id);
+
+                $request->request->add(['agency_id' => $applicant->id]);
+                $request->request->add(['applicant_id' => $applicant->id]);
+                $fileUpload = FileUpload::storeData($request);
+                $response = response()->format(200, 'success', $fileUpload->getdata());
+            } catch (\Exception $exception) {
+                DB::rollBack();
+                $response = response()->format(400, $exception->getMessage());
+            }
+        }
+        return $response;
     }
 }
