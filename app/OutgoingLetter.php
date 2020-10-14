@@ -20,7 +20,8 @@ class OutgoingLetter extends Model
         'letter_number',
         'letter_date',
         'status',
-        'filename'
+        'filename',
+        'letter_name'
     ];
 
     /**
@@ -42,7 +43,7 @@ class OutgoingLetter extends Model
         $data = FileUpload::find($value);
         if (!$data) {
             return null;
-        } elseif (substr($data->name, 0, 12) === 'outgoing_letter') {
+        } elseif (strpos($data->name, 'registration/outgoing_letter') !== false) {
             return env('AWS_CLOUDFRONT_URL') . $data->name;
         } else {
             return $data->name;

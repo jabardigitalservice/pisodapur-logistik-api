@@ -55,20 +55,18 @@ class OutgoingLetterController extends Controller
     { 
         $response = [];
         $param = [
-            'letter_number' => 'required',
+            'letter_name' => 'required',
             'letter_date' => 'required',
             'letter_request' => 'required',
         ];
-        if (Validation::validate($request, $param)){        
-            // Validasi Nomor Surat Perintah harus unik
-            $validLetterNumber = OutgoingLetter::where('letter_number', $request->input('letter_number'))->exists();
-            if ($validLetterNumber) {
-                return response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
+        if (Validation::validate($request, $param)){
+            if ($this->uniqueLetterNumber($request)) { // Validasi Nomor Surat Perintah harus unik
+                $response = $this->outgoingLetterStore($request);
             } else {
-                $this->outgoingLetterStore($request);
+                $response = response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
             }
         }
-        return response()->format(200, 'success', $response);
+        return $response;
     }
 
     /**
@@ -151,16 +149,17 @@ class OutgoingLetterController extends Controller
         $data = [];
         $param = [
             'id' => 'numeric|required',
-            'outgoing_letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+            'letter_number' => 'string|required',
+            'file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
         ];
         if (Validation::validate($request, $param)){
-            try {                
-                $path = Storage::disk('s3')->put('outgoing_letter', $request->outgoing_letter_file);//Put File to folder 'outgoing_letter'                
-                $fileUpload = FileUpload::create(['name' => $path]);//Create fileupload data
-                $fileUploadId = $fileUpload->id; //Get ID
-                $filePath = Storage::disk('s3')->url($fileUpload->name);//Get File Path
+            try {
+                $path = Storage::disk('s3')->put('registration/outgoing_letter', $request->file);
+                $fileUpload = FileUpload::create(['name' => $path]);
+                $fileUploadId = $fileUpload->id;
                 $update = OutgoingLetter::where('id', $request->id)->update([//Update file to Outgoing Letter by ID
                     'file' => $fileUploadId,
+                    'letter_number' => $request->letter_number,
                     'status' => OutgoingLetter::APPROVED //Asumsi bahwa file yang diupload sudah bertandatangan basah
                 ]);
             } catch (\Exception $exception) {
@@ -192,11 +191,12 @@ class OutgoingLetterController extends Controller
                 'request_letter' => $request_letter,
             ];
             DB::commit();
-            return $response;
+            $response = response()->format(200, 'success', $response);
         } catch (\Exception $exception) {
             DB::rollBack();
-            return response()->format(400, $exception->getMessage());
+            $response = response()->format(400, $exception->getMessage());
         }
+        return $response;
     }
 
     /**
@@ -250,5 +250,17 @@ class OutgoingLetterController extends Controller
             'soh_location_name'
         )->orderBy('agency_name', 'final_product_id', 'final_product_name')->get();
         return $data;
+    }
+
+    public function uniqueLetterNumber($request)
+    {
+        $result = true;
+        if ($request->input('letter_number')) {
+            $validLetterNumber = OutgoingLetter::where('letter_number', $request->input('letter_number'))->exists();
+            if ($validLetterNumber) {
+                $result = false;
+            }
+        }
+        return $result;
     }
 }
