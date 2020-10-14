@@ -58,10 +58,15 @@ class LogisticRequestController extends Controller
             try {
                 $agency = $this->agencyStore($request);
                 $request->request->add(['agency_id' => $agency->id]);
-
-                $applicant = $this->applicantStore($request);
+                
+                $applicant = Applicant::applicantStore($request);
                 $request->request->add(['applicant_id' => $applicant->id]);
 
+                if ($request->hasFile('applicant_file')) {
+                    $applicantFile = FileUpload::storeApplicantFile($request);
+                    $applicant->file = $applicantFile->id;
+                    // $applicant->file_path = Storage::disk(FileUpload::DISK)->url($applicantFile->name);
+                }
                 $need = $this->needStore($request);
                 
                 if ($request->hasFile('letter_file')) {
@@ -90,24 +95,6 @@ class LogisticRequestController extends Controller
         $request['location_address'] = $request->input('location_address') == 'undefined' ? '' : $request->input('location_address', '');
         $agency = Agency::create($request->all());
         return $agency;
-    }
-
-    public function applicantStore($request)
-    {
-        $fileUpload = null;
-        $fileUploadId = null;
-        if ($request->hasFile('applicant_file')) {
-            $path = Storage::disk('s3')->put('registration/applicant_identity', $request->applicant_file);
-            $fileUpload = FileUpload::create(['name' => $path]);
-            $fileUploadId = $fileUpload->id;
-        }
-        $request->request->add(['file' => $fileUploadId, 'verification_status' => Applicant::STATUS_NOT_VERIFIED]);        
-        $request['applicants_office'] = $request->input('applicants_office') == 'undefined' ? '' : $request->input('applicants_office', '');
-        $request['email'] = $request->input('email') == 'undefined' ? '' : $request->input('email', '');
-        $request['secondary_phone_number'] = $request->input('secondary_phone_number') == 'undefined' ? '' : $request->input('secondary_phone_number', '');
-        $applicant = Applicant::create($request->all());
-        $applicant->file_path = $fileUpload ? Storage::disk('s3')->url($fileUpload->name) : '';
-        return $applicant;
     }
 
     public function needStore($request)
