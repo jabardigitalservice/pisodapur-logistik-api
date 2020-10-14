@@ -52,7 +52,8 @@ class LogisticRequestController extends Controller
             'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
             'application_letter_number' => 'required|string'
         ];
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             DB::beginTransaction();
             try {
                 $agency = $this->agencyStore($request);
@@ -72,12 +73,13 @@ class LogisticRequestController extends Controller
                     'letter' => $letter
                 ];
                 DB::commit();
+                $response = response()->format(200, 'success', new LogisticRequestResource($response));
             } catch (\Exception $exception) {
                 DB::rollBack();
-                return response()->format(400, $exception->getMessage());
+                $response = response()->format(400, $exception->getMessage());
             }
         }
-        return response()->format(200, 'success', new LogisticRequestResource($response));
+        return $response;
     }
 
     public function agencyStore($request)
@@ -156,19 +158,22 @@ class LogisticRequestController extends Controller
             'verification_status' => 'required|string'
         ];
         $param['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? 'required' : '';
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             $request['verified_by'] = JWTAuth::user()->id;
             $request['verified_at'] = date('Y-m-d H:i:s');
             $applicant = Applicant::updateApplicant($request);
             $email = $this->sendEmailNotification($applicant->agency_id, $request->verification_status);
+            $response = response()->format(200, 'success', $applicant);
         }
-        return response()->format(200, 'success', $applicant);
+        return $response;
     }
 
     public function listNeed(Request $request)
     {
         $param = ['agency_id' => 'required'];
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             $limit = $request->input('limit', 3);
             $data = Needs::getFields();
             $data = Needs::getListNeed($data, $request)->paginate($limit);
@@ -182,26 +187,29 @@ class LogisticRequestController extends Controller
                 $item->logistic_item_summary = (int)$logisticItemSummary;
                 return $item;
             });
+            $response = response()->format(200, 'success', $data);
         }
-        return response()->format(200, 'success', $data);
+        return $response;
     }
 
     public function import(Request $request)
     {
         $param = ['file' => 'required|mimes:xlsx'];
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             DB::beginTransaction();
             try {
                 $import = new MultipleSheetImport();
                 $ts = Excel::import($import, request()->file('file'));
                 LogisticImport::import($import);
                 DB::commit();
+                $response = response()->format(200, 'success', '');
             } catch (\Exception $exception) {
                 DB::rollBack();
-                return response()->format(400, $exception->getMessage());
+                $response = response()->format(400, $exception->getMessage());
             }
         }
-        return response()->format(200, 'success', '');
+        return $response;
     }
 
     public function requestSummary(Request $request)
@@ -313,13 +321,14 @@ class LogisticRequestController extends Controller
             'approval_status' => 'required|string'
         ];
         $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
              // check the list of applications that have not been approved
             $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
             $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNull('created_by')->count();
             if ($realizationSum != $needsSum && $request->approval_status === Applicant::STATUS_APPROVED) {
                 $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . ($needsSum - $realizationSum) .' item';
-                return response()->json([
+                $response = response()->json([
                     'status' => 422, 
                     'error' => true,
                     'message' => $message,
@@ -330,9 +339,10 @@ class LogisticRequestController extends Controller
                 $request['approved_at'] = date('Y-m-d H:i:s');
                 $applicant = Applicant::updateApplicant($request);
                 $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                $response = response()->format(200, 'success', $applicant);
             }
         }
-        return response()->format(200, 'success', $applicant);
+        return $response;
     }
 
     public function final(Request $request)
@@ -342,7 +352,8 @@ class LogisticRequestController extends Controller
             'approval_status' => 'required|string'
         ];
         $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
-        if (Validation::validate($request, $param)) {              
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             //check the list of applications that have not been approved
             $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
             $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->count();
@@ -350,7 +361,7 @@ class LogisticRequestController extends Controller
             
             if ($finalSum != ($needsSum + $realizationSum) && $request->approval_status === Applicant::STATUS_APPROVED) {
                 $message = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . (($needsSum + $realizationSum) - $finalSum) .' item';
-                return response()->json([
+                $response = response()->json([
                     'status' => 422, 
                     'error' => true,
                     'message' => $message,
@@ -361,13 +372,14 @@ class LogisticRequestController extends Controller
                 $request['finalized_at'] = date('Y-m-d H:i:s');
                 $applicant = Applicant::updateApplicant($request);                
                 $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                $response = response()->format(200, 'success', [
+                    '(needsSum_realization_sum' => ($needsSum + $realizationSum),
+                    'finalSum' => $finalSum,
+                    'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
+                ]);
             }
         }
-        return response()->format(200, 'success', [
-            '(needsSum_realization_sum' => ($needsSum + $realizationSum),
-            'finalSum' => $finalSum,
-            'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
-        ]);
+        return $response;
     }
 
     public function stockCheking(Request $request)
@@ -447,19 +459,20 @@ class LogisticRequestController extends Controller
 
     public function alloableAgencyType($request)
     {
-        if (in_array($request->agency_type, ['4', '5'])) { //allowable agency_type: {agency_type 4 => Masyarakat Umum , agency_type 5 => Instansi Lainnya}
+        $response = Validation::validateAgencyType($request->agency_type, ['4', '5']);
+        if ($response->getStatusCode() === 200) {
             $param = [
                 'agency_type' => 'required|numeric',
                 'agency_name' => 'required|string'
             ];
-            if (Validation::validate($request, $param)) {
+            $response = Validation::validate($request, $param);
+            if ($response->getStatusCode() === 200) {
                 $masterFaskes = $this->createFaskes($request);
                 $request['master_faskes_id'] = $masterFaskes->id;
+                $response = $request;
             }
-        } else {
-            return response()->json(['status' => 'fail', 'message' => 'agency_type_value_is_not_accepted']);
         }
-        return $request;
+        return $response;
     }
 
     public function createFaskes($request)

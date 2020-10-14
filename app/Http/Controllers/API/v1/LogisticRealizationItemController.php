@@ -5,10 +5,9 @@ namespace App\Http\Controllers\API\v1;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\LogisticRealizationItems;
-use Validator;
+use App\Validation;
 use DB;
 use JWTAuth;
-use App\User;
 use App\Applicant;
 use App\Needs;
 use App\PoslogProduct;
@@ -27,34 +26,32 @@ class LogisticRealizationItemController extends Controller
             'status' => 'string'
         ];
         $params = $this->extraParam($request->input('store_type'), $params);
-        $requirParams = $this->validator($request, $params);
-        if ($requirParams->fails()) {
-            return response()->format(422, $requirParams->errors());
-        } else if (!in_array($request->status, LogisticRealizationItems::STATUS)) {
-            return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
-        } else {
-            //Validate applicant verification status must VERIFIED
-            if ($this->isApplicantExists($request, 'store')) {
-                $model = new LogisticRealizationItems();
-                $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
-                $resultset = $this->setValue($request, $findOne);
-                $findOne = $resultset['findOne'];
-                $request = $resultset['request'];
-                $model->fill($request->input());
-                if ($model->save()) {
-                    if ($findOne) {
-                        //updating latest log realization record
-                        $findOne->realization_ref_id = $model->id;
-                        $findOne->deleted_at = date('Y-m-d H:i:s');
-                        if ($findOne->save()) {
-                            return response()->format(200, 'success', $model);
+        $response = Validation::validate($request, $params);        
+        if ($response->getStatusCode() === 200) {
+            $response = $this->isValidStatus($request);
+            if ($response->getStatusCode() === 200) { //Validate applicant verification status must VERIFIED
+                if ($this->isApplicantExists($request, 'store')) {
+                    try {
+                        $model = new LogisticRealizationItems();
+                        $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
+                        $resultset = $this->setValue($request, $findOne);
+                        $findOne = $resultset['findOne'];
+                        $request = $resultset['request'];
+                        $model->fill($request->input());
+                        $model->save();
+                        if ($findOne) { //updating latest log realization record
+                            $findOne->realization_ref_id = $model->id;
+                            $findOne->deleted_at = date('Y-m-d H:i:s');
+                            $findOne->save();
                         }
-                    } else {
-                        return response()->format(200, 'success', $model);
+                        $response = response()->format(200, 'success', $model);
+                    } catch (\Exception $exception) { //Return Error Exception
+                        $response = response()->format(400, $exception->getMessage());
                     }
                 }
             }
         }
+        return $response;
     }
 
     public function add(Request $request)
@@ -91,10 +88,8 @@ class LogisticRealizationItemController extends Controller
         $params = [
             'agency_id' => 'required'
         ];
-        $requirParams = $this->validator($request, $params);
-        if ($requirParams->fails()) {
-            return response()->format(422, $requirParams->errors());
-        } else {
+        $response = Validation::validate($request, $params);        
+        if ($response->getStatusCode() === 200) {
             $limit = $request->input('limit', 3);
             $data = LogisticRealizationItems::select(
                 'id',
@@ -142,9 +137,9 @@ class LogisticRealizationItemController extends Controller
                 $item->logistic_item_summary = (int)$logisticItemSummary;
                 return $item;
             });
+            $response = response()->format(200, 'success', $data);
         }
-
-        return response()->format(200, 'success', $data);
+        return $response;
     }
 
     /**
@@ -160,31 +155,30 @@ class LogisticRealizationItemController extends Controller
             'status' => 'string'
         ];
         $params = $this->extraParam($request->input('store_type'), $params);
-        $requirParams = $this->validator($request, $params);
-        if ($requirParams->fails()) {
-            return response()->format(422, $requirParams->errors()); 
-        } else if (!in_array($request->status, LogisticRealizationItems::STATUS)) {
-            return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
-        } else {
-            DB::beginTransaction();
-            try {
-                $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
-    
-                //Get Material from PosLog by Id
-                $request = $this->getPosLogData($request);
-                $realization = $this->realizationUpdate($request, $id);
+        $response = Validation::validate($request, $params);        
+        if ($response->getStatusCode() === 200) {
+            $response = $this->isValidStatus($request);
+            if ($response->getStatusCode() === 200) {
+                DB::beginTransaction();
+                try {
+                    $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
+        
+                    //Get Material from PosLog by Id
+                    $request = $this->getPosLogData($request);
+                    $realization = $this->realizationUpdate($request, $id);
 
-                $response = array( 
-                    'realization' => $realization
-                );
-                DB::commit();
-            } catch (\Exception $exception) {
-                DB::rollBack();
-                return response()->format(400, $exception->getMessage());
+                    $data = array( 
+                        'realization' => $realization
+                    );
+                    DB::commit();
+                    $response = response()->format(200, 'success', $data);
+                } catch (\Exception $exception) {
+                    DB::rollBack();
+                    $response = response()->format(400, $exception->getMessage());
+                }
             }
         }
-
-        return response()->format(200, 'success', $response);
+        return $response;
     }
 
     /**
@@ -374,5 +368,14 @@ class LogisticRealizationItemController extends Controller
             ];
         }
         return array_merge($extra, $param);
+    }
+
+    public function isValidStatus($request)
+    {
+        $response = response()->format(200, 'success', $model);
+        if (!in_array($request->status, LogisticRealizationItems::STATUS)) {
+            $response = response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
+        }
+        return $response;
     }
 }

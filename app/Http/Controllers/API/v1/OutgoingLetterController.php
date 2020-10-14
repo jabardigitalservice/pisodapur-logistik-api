@@ -59,11 +59,12 @@ class OutgoingLetterController extends Controller
             'letter_date' => 'required',
             'letter_request' => 'required',
         ];
-        if (Validation::validate($request, $param)){
-            if ($this->uniqueLetterNumber($request)) { // Validasi Nomor Surat Perintah harus unik
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            // Validasi Nomor Surat Perintah harus unik
+            $response = $this->uniqueLetterNumber($request);
+            if ($response->getStatusCode() === 200) {
                 $response = $this->outgoingLetterStore($request);
-            } else {
-                $response = response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
             }
         }
         return $response;
@@ -145,14 +146,15 @@ class OutgoingLetterController extends Controller
     }
 
     public function upload(Request $request)
-    {         
+    {
         $data = [];
         $param = [
             'id' => 'numeric|required',
             'letter_number' => 'string|required',
             'file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
         ];
-        if (Validation::validate($request, $param)){
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             try {
                 $path = Storage::disk('s3')->put('registration/outgoing_letter', $request->file);
                 $fileUpload = FileUpload::create(['name' => $path]);
@@ -162,12 +164,13 @@ class OutgoingLetterController extends Controller
                     'letter_number' => $request->letter_number,
                     'status' => OutgoingLetter::APPROVED //Asumsi bahwa file yang diupload sudah bertandatangan basah
                 ]);
+                $response = response()->format(200, 'success', $data);
             } catch (\Exception $exception) {
                 //Return Error Exception
-                return response()->format(400, $exception->getMessage());
+                $response = response()->format(400, $exception->getMessage());
             }
         }
-        return response()->format(200, 'success', $data);
+        return $response;
     }
 
 
@@ -254,13 +257,13 @@ class OutgoingLetterController extends Controller
 
     public function uniqueLetterNumber($request)
     {
-        $result = true;
+        $response = response()->format(200, 'success');
         if ($request->input('letter_number')) {
             $validLetterNumber = OutgoingLetter::where('letter_number', $request->input('letter_number'))->exists();
             if ($validLetterNumber) {
-                $result = false;
+                $response = response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
             }
         }
-        return $result;
+        return $response;
     }
 }

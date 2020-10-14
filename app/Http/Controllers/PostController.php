@@ -28,14 +28,16 @@ class PostController extends Controller {
             'description' => 'required',
             'category_id' => 'required',
         ];
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             $user = Post::create([
                 'name' => $request->name,
                 'description' => $request->description,
                 'category_id' => $request->category_id,
             ]);
-            return response()->json(array('status' => true, 'msg' => 'Successfully Created'), 200);
+            $response = response()->json(array('status' => true, 'msg' => 'Successfully Created'), 200);
         }
+        return $response;
     }
     
     public function show($id)

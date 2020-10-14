@@ -63,11 +63,12 @@ class MasterFaskesController extends Controller
                 })
                 ->orderBy('nama_faskes', $sort)
                 ->paginate($limit);
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
-        }
 
-        return response()->format(200, 'success', $data);
+                $response = response()->format(200, 'success', $data);
+        } catch (\Exception $exception) {
+            $response = response()->format(400, $exception->getMessage());
+        }
+        return $response;
     }
 
     public function show($id)
@@ -91,40 +92,39 @@ class MasterFaskesController extends Controller
             'point_latitude_longitude' => 'string',
             'permit_file' => 'required|mimes:jpeg,jpg,png|max:10240'
         ];
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             try {
                 $model->fill($request->input());
                 $model->verification_status = 'not_verified';
                 $model->is_imported = 0;
                 $model->permit_file = $this->permitLetterStore($request);
                 $model->save();
+                $response = response()->format(200, 'success', $model);
             } catch (\Exception $e) {
-                return response()->format(400, $e->getMessage());
+                $response = response()->format(400, $e->getMessage());
             }
         }
-        return response()->format(200, 'success', $model);
+        return $response;
     }
 
     public function verify(Request $request, $id)
     {
         $param = ['verification_status' => 'required'];
-        if (Validation::validate($request, $param)){
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             if ($request->verification_status == 'verified' || $request->verification_status == 'rejected') {
                 try {
                     $model =  MasterFaskes::findOrFail($id);
                     $model->verification_status = $request->verification_status;
-                    if ($model->save()) {
-                        return response()->format(200, 'success', $model);
-                    } else {
-                        return response()->json(array('message' => 'could_not_update_faskes'), 500);
-                    }
+                    $model->save();
+                    $response = response()->format(200, 'success', $model);
                 } catch (\Exception $e) {
-                    return response()->json(array('message' => 'could_not_verify_faskes'), 500);
+                    $response = response()->json(array('message' => 'could_not_verify_faskes'), 500);
                 }
             }
-        } else {
-            return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
         }
+        return $response;
     }
     
     public function permitLetterStore($request)
