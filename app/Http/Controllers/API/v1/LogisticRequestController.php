@@ -63,7 +63,10 @@ class LogisticRequestController extends Controller
                 $request->request->add(['applicant_id' => $applicant->id]);
 
                 $need = $this->needStore($request);
-                $letter = FileUpload::storeData($request);
+                
+                if ($request->hasFile('letter_file')) {
+                    $letter = FileUpload::storeLetterFile($request);
+                }
                 $email = $this->sendEmailNotification($agency->id, Applicant::STATUS_NOT_VERIFIED);
 
                 $response = [
@@ -489,17 +492,23 @@ class LogisticRequestController extends Controller
         ];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            try {
-                $applicant = Applicant::findOrFail($id);
+            $applicant = Applicant::findOrFail($id);
+            $request->request->add(['agency_id' => $applicant->id]);
+            $request->request->add(['applicant_id' => $applicant->id]);
+            $response = FileUpload::storeLetterFile($request);
+        }
+        return $response;
+    }
 
-                $request->request->add(['agency_id' => $applicant->id]);
-                $request->request->add(['applicant_id' => $applicant->id]);
-                $fileUpload = FileUpload::storeData($request);
-                $response = response()->format(200, 'success', $fileUpload->getdata());
-            } catch (\Exception $exception) {
-                DB::rollBack();
-                $response = response()->format(400, $exception->getMessage());
-            }
+    public function uploadApplicantFile(Request $request, $id)
+    {
+        $param = [
+            'applicant_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            $request->request->add(['applicant_id' => $id]);
+            $response = FileUpload::storeApplicantFile($request);
         }
         return $response;
     }
