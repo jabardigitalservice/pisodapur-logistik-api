@@ -8,18 +8,21 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller {
      
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware('jwt-auth');
     } 
 
-    public function index() {
+    public function index()
+    {
         $data['status'] = true;
         $data['posts'] = Post::all();
         return response()->json(compact( 'data'));
     }
 
     
-    public function add(Request $request){
+    public function add(Request $request)
+    {
         $param = [
             'name' => 'required',
             'description' => 'required',
@@ -35,7 +38,8 @@ class PostController extends Controller {
         }
     }
     
-    public function show($id) {
+    public function show($id)
+    {
         //
     }
 

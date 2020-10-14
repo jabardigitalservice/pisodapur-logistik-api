@@ -89,7 +89,7 @@ class AreasController extends Controller
 
         try {
             $query = City::withCount([
-                'agency' => function ($query) use ($startDate, $endDate){
+                'agency' => function ($query) use ($startDate, $endDate) {
                     return $query->join('applicants', 'applicants.agency_id', 'agency.id')
                             ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
                             ->where('applicants.is_deleted', '!=', 1)
