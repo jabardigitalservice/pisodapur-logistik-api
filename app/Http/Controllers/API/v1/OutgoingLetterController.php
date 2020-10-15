@@ -33,8 +33,8 @@ class OutgoingLetterController extends Controller
             if ($request->filled('letter_date')) {
                 $query->where('letter_date', $request->input('letter_date'));
             }
-            
-            if (JWTAuth::user()->username != OutgoingLetter::VALID_USER) {
+
+            if (!in_array(JWTAuth::user()->username, OutgoingLetter::VALID_USER)) {
                 $query->where('user_id',  JWTAuth::user()->id);
             }
         });
