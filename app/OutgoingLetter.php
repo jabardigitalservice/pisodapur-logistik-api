@@ -14,6 +14,7 @@ class OutgoingLetter extends Model
 
     const APPROVED = 'approved';
     const NOT_APPROVED = 'not_approved';
+    const VALID_USER = 'gtlogsurat';
     
     protected $fillable = [
         'user_id',
