@@ -171,6 +171,16 @@ class Applicant extends Model
         return $value ? 'Ada Surat Perintah' : 'Belum Ada Surat Perintah';
     }
 
+    static function applicantStore($request)
+    {
+        $request['verification_status'] = self::STATUS_NOT_VERIFIED;
+        $request['applicants_office'] = $request->input('applicants_office') == 'undefined' ? '' : $request->input('applicants_office', '');
+        $request['email'] = $request->input('email') == 'undefined' ? '' : $request->input('email', '');
+        $request['secondary_phone_number'] = $request->input('secondary_phone_number') == 'undefined' ? '' : $request->input('secondary_phone_number', '');
+        $applicant = self::create($request->all());
+        return $applicant;
+    }
+
     static function updateApplicant($request)
     {
         try {

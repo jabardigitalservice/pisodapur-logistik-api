@@ -26,14 +26,16 @@ class AuthKeysController extends Controller
     public function register(Request $request)
     {
         $param = ['name' => 'required'];
-        if (Validation::validate($request, $param)){
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             $generateToken = bin2hex(openssl_random_pseudo_bytes(16));
             $user = AuthKey::create([
                 'name' => $request->name,
                 'token' => $generateToken
             ]);
-            return response()->format(200, true, ['auth_keys' => $user]);
+            $response = response()->format(200, true, ['auth_keys' => $user]);
         }
+        return $response;
     }
 
     /**
@@ -51,7 +53,8 @@ class AuthKeysController extends Controller
             'token' => 'required',
             'retoken' => 'required'
         ];
-        if (Validation::validate($request, $param)){
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             $generateToken = bin2hex(openssl_random_pseudo_bytes(16));
             $authKey = AuthKey::whereName($request->name)->whereToken($request->token)->update([
                 'name' => $request->name,
@@ -59,18 +62,15 @@ class AuthKeysController extends Controller
             ]);
 
             if (!$authKey) {
-                return response()->json([
-                    'error' => true, 
-                    'message' => 'Data not Found!'
-                ], 422);
+                $response = response()->format(422, 'Data not Found!');
             } else {
-                return response()->format(200, true, [
-                    'auth_keys' => [                    
-                        'name' => $request->name,
-                        'token' => $generateToken
-                    ]
-                ]);
+                $authKeyData = [
+                    'name' => $request->name,
+                    'token' => $generateToken
+                ];
+                $response = response()->format(200, true, ['auth_keys' => $authKeyData]);
             }
         }
+        return $response;
     }
 }

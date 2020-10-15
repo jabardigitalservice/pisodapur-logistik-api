@@ -8,34 +8,40 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller {
      
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware('jwt-auth');
     } 
 
-    public function index() {
+    public function index()
+    {
         $data['status'] = true;
         $data['posts'] = Post::all();
         return response()->json(compact( 'data'));
     }
 
     
-    public function add(Request $request){
+    public function add(Request $request)
+    {
         $param = [
             'name' => 'required',
             'description' => 'required',
             'category_id' => 'required',
         ];
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             $user = Post::create([
                 'name' => $request->name,
                 'description' => $request->description,
                 'category_id' => $request->category_id,
             ]);
-            return response()->json(array('status' => true, 'msg' => 'Successfully Created'), 200);
+            $response = response()->json(array('status' => true, 'msg' => 'Successfully Created'), 200);
         }
+        return $response;
     }
     
-    public function show($id) {
+    public function show($id)
+    {
         //
     }
 

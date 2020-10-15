@@ -36,12 +36,10 @@ class LogisticRequestResource extends JsonResource
       'location_address' => $this['agency']->location_address,
       'applicant_name' => $this['applicant']->applicant_name,
       'applicant_office' => $this['applicant']->applicants_office,
-      'applicant_file' => $this['applicant']->file_path,
       'email' => $this['applicant']->email,
       'primary_phone_number' => $this['applicant']->primary_phone_number,
       'secondary_phone_number' => $this['applicant']->secondary_phone_number,
-      'need' => $need,
-      'letter' => $this['letter']->file_path
+      'need' => $need
     ];
   }
 }

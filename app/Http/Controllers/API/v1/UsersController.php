@@ -46,7 +46,8 @@ class UsersController extends ApiController
             'code_district_city' => 'required',
             'name_district_city' => 'required',
         ];
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
@@ -57,11 +58,12 @@ class UsersController extends ApiController
                 'code_district_city' => $request->code_district_city,
                 'name_district_city' => $request->name_district_city,
             ]);
-            return response()->format(200, true, [
+            $response = response()->format(200, true, [
                 'token' => JWTAuth::fromUser($user),
                 'user' => $user,
             ]);
         }
+        return $response;
     }
 
     public function me(Request $request)

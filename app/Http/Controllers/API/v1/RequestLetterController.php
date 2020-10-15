@@ -16,7 +16,8 @@ class RequestLetterController extends Controller
     {
         $data = [];
         $param = [ 'outgoing_letter_id' => 'required' ];
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             try {
                 $limit = $request->input('limit', 10);
                 $data = RequestLetter::select(
@@ -50,11 +51,12 @@ class RequestLetterController extends Controller
                 foreach ($data as $key => $val) {
                     $data[$key] = $this->getRealizationData($val);
                 }
+                $response = response()->format(200, 'success', $data);
             } catch (\Exception $exception) {
-                return response()->format(400, $exception->getMessage());
+                $response = response()->format(400, $exception->getMessage());
             }
         }
-        return response()->format(200, 'success', $data);
+        return $response;
     }
 
     public function show($id)
@@ -99,7 +101,8 @@ class RequestLetterController extends Controller
             'letter_request' => 'required',
         ];
         $param = ['file' => 'required|mimes:xlsx'];
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             DB::beginTransaction();
             try {                  
                 $request_letter = $this->requestLetterStore($request);
@@ -107,27 +110,30 @@ class RequestLetterController extends Controller
                     'request_letter' => $request_letter,
                 );
                 DB::commit();
+                $response = response()->format(200, 'success', $response);
             } catch (\Exception $exception) {
                 DB::rollBack();
-                return response()->format(400, $exception->getMessage());
+                $response = response()->format(400, $exception->getMessage());
             }
         }
-        return response()->format(200, 'success', $response);
+        return $response;
     }
 
     public function update(request $request, $id)
     {
         $param = [ 'applicant_id' => 'required|numeric' ];
-        if (Validation::validate($request, $param)) {
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             try {                  
                 $data = RequestLetter::find($id);
                 $data->applicant_id = $request->applicant_id;
                 $data->save();
+                $response = response()->format(200, 'success');
             } catch (\Exception $exception) {
-                return response()->format(400, $exception->getMessage());
+                $response = response()->format(400, $exception->getMessage());
             }
         }
-        return response()->format(200, 'success');
+        return $response;
     }
 
     public function destroy($id)
@@ -232,9 +238,7 @@ class RequestLetterController extends Controller
             if ($request_letter_ignore == $value['id']) {
                 $data[] = $value;
             } else {
-                $find = RequestLetter::where('applicant_id', $value['id'])->first();                
-            $find = RequestLetter::where('applicant_id', $value['id'])->first();
-                $find = RequestLetter::where('applicant_id', $value['id'])->first();                
+                $find = RequestLetter::where('applicant_id', $value['id'])->first();          
                 if (!$find) {
                     $data[] = $value;
                 }
