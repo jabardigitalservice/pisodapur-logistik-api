@@ -424,8 +424,7 @@ class LogisticRequestController extends Controller
         $select = Tracking::selectFields();
         $logisticRealizationItems = Tracking::getLogisticAdmin($select, $request, $id); //List of item(s) added from admin
         $data = Tracking::getLogisticRequest($select, $request, $id); //List of updated item(s)
-        $data = $data->where('needs.applicant_id', $id);
-        $data = $data->paginate($limit);
+        $data = $data->union($logisticRealizationItems)->paginate($limit);
         return response()->format(200, 'success', $data);
     }
 
