@@ -14,11 +14,6 @@ use App\PoslogProduct;
 
 class LogisticRealizationItemController extends Controller
 {
-    public function validator($request, $parameters)
-    {
-        return Validator::make($request->all(), $parameters);
-    }
-
     public function store(Request $request)
     {
         $params = [
@@ -64,18 +59,18 @@ class LogisticRealizationItemController extends Controller
             'status' => 'string'
         ];
         $params = $this->extraParam($request->input('store_type'), $params);
-        $requirParams = $this->validator($request, $params);
-        if ($requirParams->fails()) {
-            return response()->format(422, $requirParams->errors());
-        } else if (!in_array($request->status, LogisticRealizationItems::STATUS)) {
-            return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
-        } else if ($this->isApplicantExists($request, 'add')) {
-            $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));  
-            //Get Material from PosLog by Id
-            $request = $this->getPosLogData($request);
-            $realization = $this->realizationStore($request);
+        $response = Validation::validate($request, $params);        
+        if ($response->getStatusCode() === 200) {
+            $response = $this->isValidStatus($request);
+            if ($response->getStatusCode() === 200) { //Validate applicant verification status must VERIFIED
+                $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));  
+                //Get Material from PosLog by Id
+                $request = $this->getPosLogData($request);
+                $realization = $this->realizationStore($request);
+                $response = response()->format(200, 'success');
+            }
         }
-        return response()->format(200, 'success');
+        return $response;
     }
 
     /**
@@ -372,7 +367,7 @@ class LogisticRealizationItemController extends Controller
 
     public function isValidStatus($request)
     {
-        $response = response()->format(200, 'success', $model);
+        $response = response()->format(200, 'success');
         if (!in_array($request->status, LogisticRealizationItems::STATUS)) {
             $response = response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
         }
