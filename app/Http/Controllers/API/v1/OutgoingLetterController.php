@@ -25,24 +25,24 @@ class OutgoingLetterController extends Controller
         $data = []; 
         $limit = $request->input('limit', 10);
         $sortType = $request->input('sort', 'DESC');
-        try {
-            $data = OutgoingLetter::where('user_id',  JWTAuth::user()->id)
-            ->where(function ($query) use ($request) {
-                if ($request->filled('letter_number')) {
-                    $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
-                }
+        $data = OutgoingLetter::where(function ($query) use ($request) {
+            if ($request->filled('letter_number')) {
+                $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
+            }
+            
+            if ($request->filled('letter_date')) {
+                $query->where('letter_date', $request->input('letter_date'));
+            }
 
-                if ($request->filled('letter_date')) {
-                    $query->where('letter_date', $request->input('letter_date'));
-                }
-            })         
-            ->orderBy('letter_date', $sortType)
+            if (!in_array(JWTAuth::user()->username, OutgoingLetter::VALID_USER)) {
+                $query->where('user_id',  JWTAuth::user()->id);
+            }
+        });
+        $data = $data->orderBy('letter_date', $sortType)
             ->orderBy('created_at', $sortType)
             ->paginate($limit);
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
-        }
-        return response()->format(200, 'success', $data);
+        $response = response()->format(200, 'success', $data);
+        return $response;
     }
 
     /**

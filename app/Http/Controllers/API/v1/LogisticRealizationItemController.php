@@ -14,19 +14,16 @@ use App\PoslogProduct;
 
 class LogisticRealizationItemController extends Controller
 {
-    public function validator($request, $parameters)
-    {
-        return Validator::make($request->all(), $parameters);
-    }
-
     public function store(Request $request)
     {
         $params = [
             'need_id' => 'numeric',
             'status' => 'string'
         ];
-        $params = $this->extraParam($request->input('store_type'), $params);
-        $response = Validation::validate($request, $params);        
+        $cleansingData = $this->cleansingData($request, $params);
+        $params = $cleansingData['param'];
+        $request = $cleansingData['request'];
+        $response = Validation::validate($request, $params);
         if ($response->getStatusCode() === 200) {
             $response = $this->isValidStatus($request);
             if ($response->getStatusCode() === 200) { //Validate applicant verification status must VERIFIED
@@ -63,19 +60,21 @@ class LogisticRealizationItemController extends Controller
             'priority' => 'string',
             'status' => 'string'
         ];
-        $params = $this->extraParam($request->input('store_type'), $params);
-        $requirParams = $this->validator($request, $params);
-        if ($requirParams->fails()) {
-            return response()->format(422, $requirParams->errors());
-        } else if (!in_array($request->status, LogisticRealizationItems::STATUS)) {
-            return response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
-        } else if ($this->isApplicantExists($request, 'add')) {
-            $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));  
-            //Get Material from PosLog by Id
-            $request = $this->getPosLogData($request);
-            $realization = $this->realizationStore($request);
+        $cleansingData = $this->cleansingData($request, $params);
+        $params = $cleansingData['param'];
+        $request = $cleansingData['request'];
+        $response = Validation::validate($request, $params);        
+        if ($response->getStatusCode() === 200) {
+            $response = $this->isValidStatus($request);
+            if ($response->getStatusCode() === 200) { //Validate applicant verification status must VERIFIED
+                $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));  
+                //Get Material from PosLog by Id
+                $request = $this->getPosLogData($request);
+                $realization = $this->realizationStore($request);
+                $response = response()->format(200, 'success');
+            }
         }
-        return response()->format(200, 'success');
+        return $response;
     }
 
     /**
@@ -154,7 +153,9 @@ class LogisticRealizationItemController extends Controller
             'product_id' => 'string',
             'status' => 'string'
         ];
-        $params = $this->extraParam($request->input('store_type'), $params);
+        $cleansingData = $this->cleansingData($request, $params);
+        $params = $cleansingData['param'];
+        $request = $cleansingData['request'];
         $response = Validation::validate($request, $params);        
         if ($response->getStatusCode() === 200) {
             $response = $this->isValidStatus($request);
@@ -354,25 +355,53 @@ class LogisticRealizationItemController extends Controller
         return $store_type;
     }
     
-    public function extraParam($storeInput, $param)
+    public function cleansingData($request, $param)
     {
         $extra = [
             'realization_quantity' => 'numeric',
             'realization_date' => 'date',
         ];
-        if ($storeInput === 'recommendation') {
+        if ($request->input('store_type') === 'recommendation') {
             $extra = [
                 'recommendation_quantity' => 'numeric',
                 'recommendation_date' => 'date',
                 'recommendation_unit' => 'string',
             ];
         }
-        return array_merge($extra, $param);
+        $param = array_merge($extra, $param);
+        if ($this->isStatusNoNeedItem($request->status)) {
+            unset($param['recommendation_date']);
+            unset($param['recommendation_quantity']);
+            unset($param['recommendation_unit']);
+            unset($param['realization_date']);
+            unset($param['realization_quantity']);
+
+            unset($request['product_id']);
+            unset($request['product_name']);
+            unset($request['realization_unit']);
+            unset($request['material_group']);
+            unset($request['recommendation_date']);
+            unset($request['recommendation_quantity']);
+            unset($request['recommendation_unit']);
+            unset($request['realization_date']);
+            unset($request['realization_quantity']);
+        }
+        
+        $result = [
+            'request' => $request, 
+            'param' => $param
+        ];
+        return $result;
+    }
+
+    public function isStatusNoNeedItem($status)
+    {
+        return ($status === LogisticRealizationItems::STATUS_NOT_AVAILABLE || $status === LogisticRealizationItems::STATUS_NOT_YET_FULFILLED);
     }
 
     public function isValidStatus($request)
     {
-        $response = response()->format(200, 'success', $model);
+        $response = response()->format(200, 'success');
         if (!in_array($request->status, LogisticRealizationItems::STATUS)) {
             $response = response()->json(['status' => 'fail', 'message' => 'verification_status_value_is_not_accepted']);
         }

@@ -52,7 +52,7 @@ class Tracking
     {
         $data = LogisticRealizationItems::select($select);
         $data = self::getJoin($data, false);
-        return $data->orderBy('needs.id');
+        return $data->orderBy('needs.id')->where('needs.applicant_id', $id);
     }
 
     static function getLogisticAdmin($select, $request, $id)

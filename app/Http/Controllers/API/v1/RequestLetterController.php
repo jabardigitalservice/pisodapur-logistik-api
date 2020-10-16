@@ -96,11 +96,10 @@ class RequestLetterController extends Controller
 
     public function store(Request $request)
     {
-        $response = [
+        $param = [
             'outgoing_letter_id' => 'required|numeric',
             'letter_request' => 'required',
         ];
-        $param = ['file' => 'required|mimes:xlsx'];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             DB::beginTransaction();

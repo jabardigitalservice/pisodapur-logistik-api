@@ -10,7 +10,6 @@ use App\Applicant;
 use App\FileUpload;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\LogisticRequestResource;
-use App\Letter;
 use DB;
 use JWTAuth;
 use App\Imports\MultipleSheetImport;
@@ -424,7 +423,7 @@ class LogisticRequestController extends Controller
         $select = Tracking::selectFields();
         $logisticRealizationItems = Tracking::getLogisticAdmin($select, $request, $id); //List of item(s) added from admin
         $data = Tracking::getLogisticRequest($select, $request, $id); //List of updated item(s)
-        $data = $data->union($logisticRealizationItems)->where('needs.applicant_id', $id)->paginate($limit);
+        $data = $data->union($logisticRealizationItems)->paginate($limit);
         return response()->format(200, 'success', $data);
     }
 
@@ -496,6 +495,22 @@ class LogisticRequestController extends Controller
         if ($response->getStatusCode() === 200) {
             $request->request->add(['applicant_id' => $id]);
             $response = FileUpload::storeApplicantFile($request);
+        }
+        return $response;
+    }
+
+    public function urgencyChange(Request $request)
+    {
+        $param = [
+            'id' => 'required|numeric',
+            'is_urgency' => 'required|numeric',
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            $model = Applicant::findOrFail($request->id);
+            $model->is_urgency = $request->is_urgency;
+            $model->save();
+            $response = response()->format(200, 'success', $model);
         }
         return $response;
     }
