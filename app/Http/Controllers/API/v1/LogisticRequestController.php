@@ -10,7 +10,6 @@ use App\Applicant;
 use App\FileUpload;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\LogisticRequestResource;
-use App\Letter;
 use DB;
 use JWTAuth;
 use App\Imports\MultipleSheetImport;
