@@ -4,15 +4,12 @@ namespace App\Http\Controllers\API\v1;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-
-use Validator;
 use App\Needs;
 use App\Agency;
 use App\Applicant;
 use App\FileUpload;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\LogisticRequestResource;
-use App\Letter;
 use DB;
 use JWTAuth;
 use App\Imports\MultipleSheetImport;
@@ -23,251 +20,135 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
 use App\LogisticRealizationItems;
 use App\Product;
+use App\Validation;
+use App\Tracking;
 
 class LogisticRequestController extends Controller
 {
     public function index(Request $request)
     {
-        if (JWTAuth::user()->roles != 'dinkesprov') {
-            return response()->format(404, 'You cannot access this page', null);
-        }
         $limit = $request->filled('limit') ? $request->input('limit') : 10;
         $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
-        $data = Agency::getList($request);        
+        $data = Agency::getList($request, false);        
         $data = $data->orderByRaw(implode($sort))->paginate($limit);
         return response()->format(200, 'success', $data);
     }
 
     public function store(Request $request)
     {
-        if (!MasterFaskes::find($request->master_faskes_id)) {
-            if (in_array($request->agency_type, ['4', '5'])) { //allowable agency_type: {agency_type 4 => Masyarakat Umum , agency_type 5 => Instansi Lainnya}
-                $validator = Validator::make(
-                    $request->all(), array_merge([
-                        'agency_type' => 'required|numeric',
-                        'agency_name' => 'required|string'
-                    ])
-                );
-                if ($validator->fails()) {
-                    return response()->format(422, $validator->errors());
-                } else {
-                    $model = new MasterFaskes();
-                    $model->fill([
-                        'id_tipe_faskes' => $request->agency_type,
-                        'nama_faskes' => $request->agency_name
-                    ]);
-                    $model->nomor_izin_sarana = '-';
-                    $model->nama_atasan = '-';
-                    $model->point_latitude_longitude = '-';
-                    $model->verification_status = 'verified';
-                    $model->is_imported = 0;
-                    $model->non_medical = 1;
-                    if ($model->save()) {
-                        $request = $request->merge([$request, 'master_faskes_id' => $model->id]);
-                    }
-                }
-            } else {
-                return response()->json(['status' => 'fail', 'message' => 'agency_type_value_is_not_accepted']);
-            }
-        }
-        $validator = Validator::make(
-            $request->all(),
-            array_merge(
-                [
-                    'master_faskes_id' => 'required|numeric',
-                    'agency_type' => 'required|numeric',
-                    'agency_name' => 'required|string',
-                    'location_district_code' => 'required|string',
-                    'location_subdistrict_code' => 'required|string',
-                    'location_village_code' => 'required|string',
-                    'applicant_name' => 'required|string',
-                    'primary_phone_number' => 'required|numeric',
-                    'logistic_request' => 'required',
-                    'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
-                    'application_letter_number' => 'required|string'
-                ]
-            )
-        );
+        $request = $this->masterFaskesCheck($request);
 
-        if ($validator->fails()) {
-            return response()->format(422, $validator->errors());
-        } else {
+        $param = [
+            'master_faskes_id' => 'required|numeric',
+            'agency_type' => 'required|numeric',
+            'agency_name' => 'required|string',
+            'location_district_code' => 'required|string',
+            'location_subdistrict_code' => 'required|string',
+            'location_village_code' => 'required|string',
+            'applicant_name' => 'required|string',
+            'primary_phone_number' => 'required|numeric',
+            'logistic_request' => 'required',
+            'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
+            'application_letter_number' => 'required|string'
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             DB::beginTransaction();
             try {
                 $agency = $this->agencyStore($request);
                 $request->request->add(['agency_id' => $agency->id]);
-
-                $applicant = $this->applicantStore($request);
+                
+                $applicant = Applicant::applicantStore($request);
                 $request->request->add(['applicant_id' => $applicant->id]);
 
+                if ($request->hasFile('applicant_file')) {
+                    $applicantFile = FileUpload::storeApplicantFile($request);
+                    $applicant->file = $applicantFile->id;
+                    // $applicant->file_path = Storage::disk(FileUpload::DISK)->url($applicantFile->name);
+                }
                 $need = $this->needStore($request);
-                $letter = $this->letterStore($request);
+                
+                if ($request->hasFile('letter_file')) {
+                    $letter = FileUpload::storeLetterFile($request);
+                }
                 $email = $this->sendEmailNotification($agency->id, Applicant::STATUS_NOT_VERIFIED);
 
-                $response = array(
+                $response = [
                     'agency' => $agency,
                     'applicant' => $applicant,
                     'need' => $need,
-                    'letter' => $letter
-                );
+                    'letter' => $letter->getData()
+                ];
                 DB::commit();
+                $response = response()->format(200, 'success', new LogisticRequestResource($response));
             } catch (\Exception $exception) {
                 DB::rollBack();
-                return response()->format(400, $exception->getMessage());
+                $response = response()->format(400, $exception->getMessage());
             }
         }
-
-        return response()->format(200, 'success', new LogisticRequestResource($response));
+        return $response;
     }
 
     public function agencyStore($request)
     {
         $request['location_address'] = $request->input('location_address') == 'undefined' ? '' : $request->input('location_address', '');
         $agency = Agency::create($request->all());
-
         return $agency;
-    }
-
-    public function applicantStore($request)
-    {
-        $fileUpload = null;
-        $fileUploadId = null;
-
-        if ($request->hasFile('applicant_file')) {
-            $path = Storage::disk('s3')->put('registration/applicant_identity', $request->applicant_file);
-            $fileUpload = FileUpload::create(['name' => $path]);
-            $fileUploadId = $fileUpload->id;
-        }
-
-        $request->request->add(['file' => $fileUploadId, 'verification_status' => Applicant::STATUS_NOT_VERIFIED]);
-        
-        $request['applicants_office'] = $request->input('applicants_office') == 'undefined' ? '' : $request->input('applicants_office', '');
-        $request['email'] = $request->input('email') == 'undefined' ? '' : $request->input('email', '');
-        $request['secondary_phone_number'] = $request->input('secondary_phone_number') == 'undefined' ? '' : $request->input('secondary_phone_number', '');
-        $applicant = Applicant::create($request->all());
-
-        $applicant->file_path = $fileUpload ? Storage::disk('s3')->url($fileUpload->name) : '';
-
-        return $applicant;
     }
 
     public function needStore($request)
     {
         $response = [];
         foreach (json_decode($request->input('logistic_request'), true) as $key => $value) {
-            $need = Needs::create(
-                [
-                    'agency_id' => $request->input('agency_id'),
-                    'applicant_id' => $request->input('applicant_id'),
-                    'product_id' => $value['product_id'],
-                    'brand' => $value['brand'],
-                    'quantity' => $value['quantity'],
-                    'unit' => $value['unit'],
-                    'usage' => $value['usage'],
-                    'priority' => $value['priority'] ? $value['priority'] : 'Menengah'
-                ]
-            );
+            $need = Needs::create([
+                'agency_id' => $request->input('agency_id'),
+                'applicant_id' => $request->input('applicant_id'),
+                'product_id' => $value['product_id'],
+                'brand' => $value['brand'],
+                'quantity' => $value['quantity'],
+                'unit' => $value['unit'],
+                'usage' => $value['usage'],
+                'priority' => $value['priority'] ? $value['priority'] : 'Menengah'
+            ]);
             $response[] = $need;
         }
-
         return $response;
     }
 
-    public function letterStore($request)
+    public function show(Request $request, $id)
     {
-        $fileUploadId = null;
-        if ($request->hasFile('letter_file')) {
-            $path = Storage::disk('s3')->put('registration/letter', $request->letter_file);
-            $fileUpload = FileUpload::create(['name' => $path]);
-            $fileUploadId = $fileUpload->id;
-        }
-
-        $request->request->add(['letter' => $fileUploadId]);
-        $letter = Letter::create($request->all());
-
-        $letter->file_path = Storage::disk('s3')->url($fileUpload->name);
-
-        return $letter;
-    }
-
-    public function show($id)
-    {
-        $data = Agency::with([
-            'masterFaskesType' => function ($query) {
-                return $query->select(['id', 'name']);
-            },
-            'applicant' => function ($query) {
-                return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', 'finalized_by', 'finalized_at'
-                ])->with([
-                    'verifiedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                    },                    
-                    'approvedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                    },                    
-                    'finalizedBy' => function ($query) {
-                        return $query->select(['id', 'name', 'agency_name', 'handphone']);
-                    }
-                ])->where('is_deleted', '!=' , 1);
-            },
+        $data = Agency::getList($request, true);
+        $data = $data->with([
             'letter' => function ($query) {
                 return $query->select(['id', 'agency_id', 'letter']);
-            },
-            'city' => function ($query) {
-                return $query->select(['id', 'kemendagri_provinsi_nama', 'kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
-            },
-            'subDistrict' => function ($query) {
-                return $query->select(['id', 'kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
-            },
-            'village' => function ($query) {
-                return $query->select(['id', 'kemendagri_desa_kode', 'kemendagri_desa_nama']);
             }
-        ])->findOrFail($id);
-
+        ])->where('id', '=', $id)->firstOrFail();
         return response()->format(200, 'success', $data);
     }
 
     public function verification(Request $request)
     {
-        $rule = [
+        $param = [
             'applicant_id' => 'required|numeric',
             'verification_status' => 'required|string'
         ];
-        $rule['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? 'required' : '';
-        $validator = Validator::make(
-            $request->all(),
-            array_merge($rule)
-        );
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        } else {
-            $applicant = Applicant::where('id', $request->applicant_id)
-                ->where('is_deleted', '!=' , 1)
-                ->firstOrFail();
-
-            $applicant->verification_status = $request->verification_status;
-            $applicant->note = $request->note;
-            $applicant->verified_by = JWTAuth::user()->id;
-            $applicant->verified_at = date('Y-m-d H:i:s');
-            $applicant->save();
+        $param['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? 'required' : '';
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            $request['verified_by'] = JWTAuth::user()->id;
+            $request['verified_at'] = date('Y-m-d H:i:s');
+            $applicant = Applicant::updateApplicant($request);
             $email = $this->sendEmailNotification($applicant->agency_id, $request->verification_status);
+            $response = response()->format(200, 'success', $applicant);
         }
-
-        return response()->format(200, 'success', $applicant);
+        return $response;
     }
 
     public function listNeed(Request $request)
     {
-        $validator = Validator::make(
-            $request->all(),
-            array_merge(
-                ['agency_id' => 'required']
-            )
-        );
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        } else {
+        $param = ['agency_id' => 'required'];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             $limit = $request->input('limit', 3);
             $data = Needs::getFields();
             $data = Needs::getListNeed($data, $request)->paginate($limit);
@@ -281,46 +162,35 @@ class LogisticRequestController extends Controller
                 $item->logistic_item_summary = (int)$logisticItemSummary;
                 return $item;
             });
+            $response = response()->format(200, 'success', $data);
         }
-        return response()->format(200, 'success', $data);
+        return $response;
     }
 
     public function import(Request $request)
     {
-        $validator = Validator::make(
-            $request->all(),
-            array_merge(
-                [
-                    'file' => 'required|mimes:xlsx',
-                ]
-            )
-        );
-
-        if ($validator->fails()) {
-            return response()->format(422, $validator->errors());
-        } else {
+        $param = ['file' => 'required|mimes:xlsx'];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             DB::beginTransaction();
             try {
                 $import = new MultipleSheetImport();
                 $ts = Excel::import($import, request()->file('file'));
                 LogisticImport::import($import);
-
                 DB::commit();
+                $response = response()->format(200, 'success', '');
             } catch (\Exception $exception) {
                 DB::rollBack();
-                return response()->format(400, $exception->getMessage());
+                $response = response()->format(400, $exception->getMessage());
             }
         }
-
-        return response()->format(200, 'success', '');
+        return $response;
     }
 
     public function requestSummary(Request $request)
     {
-
         $startDate = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
         $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
-
         try {
             $lastUpdate = Applicant::Select('applicants.updated_at') 
             ->where('is_deleted', '!=' , 1) 
@@ -398,12 +268,10 @@ class LogisticRequestController extends Controller
                 'total_pikobar' => $totalPikobar,
                 'total_dinkesprov' => $totalDinkesprov,
                 'last_update' => $lastUpdate ? date('Y-m-d H:i:s', strtotime($lastUpdate->updated_at)) : '2020-01-01 00:00:00'
-            ];
-            
+            ];            
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
-
         return response()->format(200, 'success', $data);
     }
 
@@ -423,114 +291,81 @@ class LogisticRequestController extends Controller
 
     public function approval(Request $request)
     {
-        try {
-            $rule = [
-                'applicant_id' => 'required|numeric',
-                'approval_status' => 'required|string'
-            ];
-            $rule['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
-            $validator = Validator::make(
-                $request->all(),
-                array_merge($rule)
-            );
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
+        $param = [
+            'applicant_id' => 'required|numeric',
+            'approval_status' => 'required|string'
+        ];
+        $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+             // check the list of applications that have not been approved
+            $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
+            $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNull('created_by')->count();
+            if ($realizationSum != $needsSum && $request->approval_status === Applicant::STATUS_APPROVED) {
+                $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . ($needsSum - $realizationSum) .' item';
+                $response = response()->json([
+                    'status' => 422, 
+                    'error' => true,
+                    'message' => $message,
+                    'total_item_need_update' => ($needsSum - $realizationSum)
+                ], 422);
             } else {
-                //check the list of applications that have not been approved
-                $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
-                $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNull('created_by')->count();
-                if ($realizationSum != $needsSum && $request->approval_status === Applicant::STATUS_APPROVED) {
-                    $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . ($needsSum - $realizationSum) .' item';
-                    return response()->json([
-                        'status' => 422, 
-                        'error' => true,
-                        'message' => $message,
-                        'total_item_need_update' => ($needsSum - $realizationSum)
-                    ], 422);
-                } else {
-                    $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
-                    $applicant->fill($request->input());
-                    $applicant->approved_by = JWTAuth::user()->id;
-                    $applicant->approved_at = date('Y-m-d H:i:s');
-                    $applicant->save();
-                    $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
-                }
+                $request['approved_by'] = JWTAuth::user()->id;
+                $request['approved_at'] = date('Y-m-d H:i:s');
+                $applicant = Applicant::updateApplicant($request);
+                $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                $response = response()->format(200, 'success', $applicant);
             }
-            return response()->format(200, 'success', $applicant);
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
         }
+        return $response;
     }
 
     public function final(Request $request)
     {
-        try {
-            $rule = [
-                'applicant_id' => 'required|numeric',
-                'approval_status' => 'required|string'
-            ];
-            $rule['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
-            $validator = Validator::make(
-                $request->all(),
-                array_merge($rule)
-            );
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
+        $param = [
+            'applicant_id' => 'required|numeric',
+            'approval_status' => 'required|string'
+        ];
+        $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            //check the list of applications that have not been approved
+            $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
+            $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->count();
+            $finalSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('final_by')->count();
+            
+            if ($finalSum != ($needsSum + $realizationSum) && $request->approval_status === Applicant::STATUS_APPROVED) {
+                $message = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . (($needsSum + $realizationSum) - $finalSum) .' item';
+                $response = response()->json([
+                    'status' => 422, 
+                    'error' => true,
+                    'message' => $message,
+                    'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
+                ], 422);
             } else {
-                //check the list of applications that have not been approved
-                $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
-                $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->count();
-                $finalSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('final_by')->count();
-                if ($finalSum != ($needsSum + $realizationSum) && $request->approval_status === Applicant::STATUS_APPROVED) {
-                    $message = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . (($needsSum + $realizationSum) - $finalSum) .' item';
-                    return response()->json([
-                        'status' => 422, 
-                        'error' => true,
-                        'message' => $message,
-                        'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
-                    ], 422);
-                } else {
-                    $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
-                    $applicant->fill($request->input());
-                    $applicant->finalized_by = JWTAuth::user()->id;
-                    $applicant->finalized_at = date('Y-m-d H:i:s');
-                    $applicant->save();
-                    $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
-                }
+                $request['finalized_by'] = JWTAuth::user()->id;
+                $request['finalized_at'] = date('Y-m-d H:i:s');
+                $applicant = Applicant::updateApplicant($request);                
+                $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                $response = response()->format(200, 'success', [
+                    '(needsSum_realization_sum' => ($needsSum + $realizationSum),
+                    'finalSum' => $finalSum,
+                    'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
+                ]);
             }
-            return response()->format(200, 'success', [
-                '(needsSum_realization_sum' => ($needsSum + $realizationSum),
-                'finalSum' => $finalSum,
-                'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
-            ]);
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
         }
+        return $response;
     }
 
     public function stockCheking(Request $request)
     {
-        try {
-            $rule = [
-                'applicant_id' => 'required|numeric',
-                'stock_checking_status' => 'required|string'
-            ];
-            $validator = Validator::make(
-                $request->all(),
-                array_merge($rule)
-            );
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            } else {
-                $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
-                $applicant->fill($request->input());
-                $applicant->save();
-            }
-            return response()->format(200, 'success', $applicant);
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
-        }
-    }    
+        $param = [
+            'applicant_id' => 'required|numeric',
+            'stock_checking_status' => 'required|string'
+        ];
+        $applicant = (Validation::validate($request, $param)) ? $this->updateApplicant($request) : null;
+        return response()->format(200, 'success', $applicant);
+    }
 
     /**
      * Track Function
@@ -539,30 +374,15 @@ class LogisticRequestController extends Controller
      * @return array of Applicant $data
      */
     public function track(Request $request)
-    { 
+    {
         $list = Agency::with([
-            'masterFaskesType' => function ($query) {
-                return $query->select(['id', 'name']);
-            },
-            'applicant' => function ($query) {
-                return $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
-                ])->where('is_deleted', '!=' , 1);
-            },
-            'city' => function ($query) {
-                return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
-            },
-            'subDistrict' => function ($query) {
-                return $query->select(['kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
-            },
-            'village' => function ($query) {
-                return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
-            },
-            'tracking' => function ($query) {                
+            'tracking' => function ($query) {
                 return $query->select([
                     'id',
                     'agency_id',
                     DB::raw('applicant_name as request'),
+                    DB::raw('verification_status'),
+                    DB::raw('approval_status'),
                     DB::raw('verification_status as verification'),
                     DB::raw('approval_status as approval'),
                     DB::raw('FALSE as delivering'), // Waiting for Integration data with POSLOG
@@ -573,18 +393,15 @@ class LogisticRequestController extends Controller
                 ])->where('is_deleted', '!=' , 1);
             }
         ])
-        ->whereHas('applicant', function ($query) use ($request) {
-            $query->where('is_deleted', '!=', 1);
-        })
         ->whereHas('applicant', function ($query) use ($request) { 
             $query->where('id', '=', $request->input('search'));
             $query->orWhere('email', '=', $request->input('search'));
             $query->orWhere('primary_phone_number', '=', $request->input('search'));
             $query->orWhere('secondary_phone_number', '=', $request->input('search'));
-        })
-        ->orderBy('agency.created_at', 'desc')
-        ->limit(5)
-        ->get();
+        });
+        $list = Agency::getDefaultWith($list);
+        $list = Agency::whereHasApplicantData($list, $request);
+        $list = $list->orderBy('agency.created_at', 'desc')->limit(5)->get();
 
         $data = [
             'total' => count($list),
@@ -602,90 +419,99 @@ class LogisticRequestController extends Controller
      */
     public function trackDetail(Request $request, $id)
     {
-        
         $limit = $request->input('limit', 3);
-
-        $select = [
-            DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
-            'needs.id as need_id',
-            'logistic_realization_items.id as realization_id',
-            DB::raw('IFNULL(logistic_realization_items.product_id, needs.product_id) as product_id'),
-            'needs.product_id as need_product_id',
-            'logistic_realization_items.product_id as realization_product_id',
-            DB::raw('IFNULL(logistic_realization_items.product_name, products.name) as product_name'),
-            'products.name as need_product_name',
-            'logistic_realization_items.product_name as realization_product_name',
-            'needs.brand as need_description',
-            DB::raw('IFNULL(logistic_realization_items.realization_quantity, needs.quantity) as quantity'),
-            DB::raw('IFNULL(logistic_realization_items.realization_unit, master_unit.unit) as unit_name'),
-            'needs.quantity as need_quantity',
-            'needs.unit as need_unit_id',
-            'master_unit.unit as need_unit_name',
-            'needs.usage as need_usage',
-            'products.category',
-
-            'logistic_realization_items.realization_quantity as allocation_quantity',
-            'logistic_realization_items.created_at as allocated_at',
-            
-            'logistic_realization_items.realization_quantity',
-            'realization_unit as realization_unit_name',
-            'logistic_realization_items.created_at as realized_at',
-            DB::raw('IFNULL(logistic_realization_items.status, "not_approved") as status')
-        ]; 
-        
-        //List of item(s) added from admin
-        $logisticRealizationItems = LogisticRealizationItems::select($select)        
-        ->join(
-            'needs', 
-            'logistic_realization_items.need_id', '=', 'needs.id', 
-            'left'
-        )
-        ->join(
-            'products', 
-            'needs.product_id', '=', 'products.id', 
-            'left'
-        )
-        ->join(
-            'master_unit', 
-            'needs.unit', '=', 'master_unit.id', 
-            'left'
-        )
-        ->join(
-            'wms_jabar_material', 
-            'logistic_realization_items.product_id', '=', 'wms_jabar_material.material_id', 
-            'left'
-        )
-        ->whereNotNull('logistic_realization_items.created_by')
-        ->orderBy('logistic_realization_items.id') 
-        ->where('logistic_realization_items.applicant_id', $id);
-
-        //List of updated item(s)
-        $data = LogisticRealizationItems::select($select)
-        ->join(
-            'needs', 
-            'logistic_realization_items.need_id', '=', 'needs.id',
-            'right'
-        )
-        ->join(
-            'products', 
-            'needs.product_id', '=', 'products.id', 
-            'left'
-        )
-        ->join(
-            'master_unit', 
-            'needs.unit', '=', 'master_unit.id', 
-            'left'
-        )
-        ->join(
-            'wms_jabar_material', 
-            'logistic_realization_items.product_id', '=', 'wms_jabar_material.material_id', 
-            'left'
-        )
-        ->orderBy('needs.id')
-        ->union($logisticRealizationItems)
-        ->where('needs.applicant_id', $id);
-        $data = $data->paginate($limit);
-
+        $select = Tracking::selectFields();
+        $logisticRealizationItems = Tracking::getLogisticAdmin($select, $request, $id); //List of item(s) added from admin
+        $data = Tracking::getLogisticRequest($select, $request, $id); //List of updated item(s)
+        $data = $data->union($logisticRealizationItems)->paginate($limit);
         return response()->format(200, 'success', $data);
+    }
+
+    public function masterFaskesCheck($request)
+    {
+        return $request = (!MasterFaskes::find($request->master_faskes_id)) ? $this->alloableAgencyType($request) : $request;
+    }
+
+    public function alloableAgencyType($request)
+    {
+        $response = Validation::validateAgencyType($request->agency_type, ['4', '5']);
+        if ($response->getStatusCode() === 200) {
+            $param = [
+                'agency_type' => 'required|numeric',
+                'agency_name' => 'required|string'
+            ];
+            $response = Validation::validate($request, $param);
+            if ($response->getStatusCode() === 200) {
+                $masterFaskes = $this->createFaskes($request);
+                $request['master_faskes_id'] = $masterFaskes->id;
+                $response = $request;
+            }
+        }
+        return $response;
+    }
+
+    public function createFaskes($request)
+    {
+        try {
+            $model = new MasterFaskes();
+            $model->fill([
+                'id_tipe_faskes' => $request->agency_type,
+                'nama_faskes' => $request->agency_name
+            ]);
+            $model->nomor_izin_sarana = '-';
+            $model->nama_atasan = '-';
+            $model->point_latitude_longitude = '-';
+            $model->verification_status = 'verified';
+            $model->is_imported = 0;
+            $model->non_medical = 1;
+            $model->save();
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+        return $model;
+    }
+
+    public function uploadLetter(Request $request, $id)
+    {
+        $param = [
+            'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            $applicant = Applicant::findOrFail($id);
+            $request->request->add(['agency_id' => $applicant->id]);
+            $request->request->add(['applicant_id' => $applicant->id]);
+            $response = FileUpload::storeLetterFile($request);
+        }
+        return $response;
+    }
+
+    public function uploadApplicantFile(Request $request, $id)
+    {
+        $param = [
+            'applicant_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            $request->request->add(['applicant_id' => $id]);
+            $response = FileUpload::storeApplicantFile($request);
+        }
+        return $response;
+    }
+
+    public function urgencyChange(Request $request)
+    {
+        $param = [
+            'id' => 'required|numeric',
+            'is_urgency' => 'required|numeric',
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            $model = Applicant::findOrFail($request->id);
+            $model->is_urgency = $request->is_urgency;
+            $model->save();
+            $response = response()->format(200, 'success', $model);
+        }
+        return $response;
     }
 }

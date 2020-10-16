@@ -106,11 +106,12 @@ class ProductsController extends Controller
                     'total' => $query->get()->count()
                 ];
             }
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
-        }
 
-        return response()->format(200, 'success', $data);
+            $response = response()->format(200, 'success', $data);
+        } catch (\Exception $exception) {
+            $response = response()->format(400, $exception->getMessage());
+        }
+        return $response;
     }
 
     /**

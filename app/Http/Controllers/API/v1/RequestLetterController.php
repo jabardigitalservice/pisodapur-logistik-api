@@ -5,24 +5,20 @@ namespace App\Http\Controllers\API\v1;
 use Illuminate\Http\Request;
 use App\RequestLetter;
 use App\Http\Controllers\Controller;
-use Validator;
-use JWTAuth;
-use DB; 
+use App\Validation;
+use DB;
 use App\LogisticRealizationItems;
 use App\Applicant;
 
 class RequestLetterController extends Controller
 {
     public function index(Request $request)
-    {        
+    {
         $data = [];
-        $validator = Validator::make($request->all(), [
-            'outgoing_letter_id' => 'required'
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
-        } else {
-            try { 
+        $param = [ 'outgoing_letter_id' => 'required' ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            try {
                 $limit = $request->input('limit', 10);
                 $data = RequestLetter::select(
                     'request_letters.id',
@@ -52,16 +48,15 @@ class RequestLetterController extends Controller
                 ->whereNotNull('applicants.finalized_by')
                 ->orderBy('request_letters.id')
                 ->paginate($limit);
- 
                 foreach ($data as $key => $val) {
                     $data[$key] = $this->getRealizationData($val);
                 }
+                $response = response()->format(200, 'success', $data);
             } catch (\Exception $exception) {
-                return response()->format(400, $exception->getMessage());
+                $response = response()->format(400, $exception->getMessage());
             }
         }
-
-        return response()->format(200, 'success', $data);
+        return $response;
     }
 
     public function show($id)
@@ -101,61 +96,43 @@ class RequestLetterController extends Controller
 
     public function store(Request $request)
     {
-        $response = [];
-        $validator = Validator::make(
-            $request->all(),
-            array_merge(
-                [
-                    'outgoing_letter_id' => 'required|numeric',
-                    'letter_request' => 'required',
-                ]
-            )
-        );
-
-        if ($validator->fails()) {
-            return response()->format(422, $validator->errors());
-        } else {
+        $param = [
+            'outgoing_letter_id' => 'required|numeric',
+            'letter_request' => 'required',
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             DB::beginTransaction();
             try {                  
                 $request_letter = $this->requestLetterStore($request);
-
                 $response = array(
                     'request_letter' => $request_letter,
                 );
-
                 DB::commit();
+                $response = response()->format(200, 'success', $response);
             } catch (\Exception $exception) {
                 DB::rollBack();
-                return response()->format(400, $exception->getMessage());
+                $response = response()->format(400, $exception->getMessage());
             }
         }
-        
-        return response()->format(200, 'success', $response);
+        return $response;
     }
 
     public function update(request $request, $id)
     {
-        $validator = Validator::make(
-            $request->all(),
-            array_merge(
-                [
-                    'applicant_id' => 'required|numeric',
-                ]
-            )
-        );
-
-        if ($validator->fails()) {
-            return response()->format(422, $validator->errors());
-        } else {
+        $param = [ 'applicant_id' => 'required|numeric' ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             try {                  
                 $data = RequestLetter::find($id);
                 $data->applicant_id = $request->applicant_id;
                 $data->save();
+                $response = response()->format(200, 'success');
             } catch (\Exception $exception) {
-                return response()->format(400, $exception->getMessage());
+                $response = response()->format(400, $exception->getMessage());
             }
         }
-        return response()->format(200, 'success');
+        return $response;
     }
 
     public function destroy($id)
@@ -260,9 +237,7 @@ class RequestLetterController extends Controller
             if ($request_letter_ignore == $value['id']) {
                 $data[] = $value;
             } else {
-                $find = RequestLetter::where('applicant_id', $value['id'])->first();                
-            $find = RequestLetter::where('applicant_id', $value['id'])->first();
-                $find = RequestLetter::where('applicant_id', $value['id'])->first();                
+                $find = RequestLetter::where('applicant_id', $value['id'])->first();          
                 if (!$find) {
                     $data[] = $value;
                 }

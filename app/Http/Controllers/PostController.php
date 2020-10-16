@@ -3,43 +3,45 @@
 namespace App\Http\Controllers;
 
 use App\Post;
-use App\User;
+use App\Validation;
 use Illuminate\Http\Request;
-use Validator;
 
 class PostController extends Controller {
      
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware('jwt-auth');
     } 
 
-    public function index() {
+    public function index()
+    {
         $data['status'] = true;
         $data['posts'] = Post::all();
         return response()->json(compact( 'data'));
     }
 
     
-    public function add(Request $request){
-
-        $validator = Validator::make($request->all(), [
+    public function add(Request $request)
+    {
+        $param = [
             'name' => 'required',
             'description' => 'required',
             'category_id' => 'required',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['status' => 'fail', 'message' => $validator->errors()->all()]);
-        } else {
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
             $user = Post::create([
                 'name' => $request->name,
                 'description' => $request->description,
                 'category_id' => $request->category_id,
             ]);
-            return response()->json(array('status' => true, 'msg' => 'Successfully Created'), 200);
+            $response = response()->json(array('status' => true, 'msg' => 'Successfully Created'), 200);
         }
+        return $response;
     }
     
-    public function show($id) {
+    public function show($id)
+    {
         //
     }
 

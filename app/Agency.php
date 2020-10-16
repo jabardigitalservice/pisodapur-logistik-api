@@ -20,52 +20,34 @@ class Agency extends Model
         'location_address'
     ];
 
-    static function getList($request)
+    static function getList($request, $defaultOnly)
     {
         try {
-            $data = self::with([
-                'masterFaskesType' => function ($query) {
-                    return $query->select(['id', 'name']);
-                }
-            ]);
-            $data = self::withAreaData($data);
-            $data = self::withApplicantData($data);
-            $data = self::withLogisticRequestData($data);
-            $data = self::withRecommendationItems($data);
-            $data = self::whereHasApplicantData($data, $request);
-            $data = self::whereHasApplicantFilterByStatusData($data, $request);
-            $data = self::whereData($data, $request);
+            $data = self::selectRaw('*');
+            $data = self::getDefaultWith($data);
+
+            if (!$defaultOnly) {
+                $data = self::withLogisticRequestData($data);
+                $data = self::withRecommendationItems($data);
+                $data = self::whereHasApplicantData($data, $request);
+                $data = self::whereHasApplicantFilterByStatusData($data, $request);
+                $data = self::whereData($data, $request);
+            }
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
         return $data;
     }
-
-    static function withAreaData($data)
+    
+    static function getDefaultWith($data)
     {
         return $data->with([
-            'city' => function ($query) {
-                return $query->select(['kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
-            },
-            'subDistrict' => function ($query) {
-                return $query->select(['kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
-            },
-            'village' => function ($query) {
-                return $query->select(['kemendagri_desa_kode', 'kemendagri_desa_nama']);
-            }
-        ]);
-    }
-
-    static function withApplicantData($data)
-    {
-        return $data->with([
+            'masterFaskesType',            
+            'city',
+            'subDistrict',
+            'village',
             'applicant' => function ($query) {
-                $query->select([
-                    'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', 
-                    DB::raw('concat(approval_status, "-", verification_status) as status'),
-                    DB::raw('concat(approval_status, "-", verification_status) as statusDetail'),
-                    'finalized_by', 'finalized_at'
-                ]);
+                $query->select([ 'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', DB::raw('concat(approval_status, "-", verification_status) as status'), DB::raw('concat(approval_status, "-", verification_status) as statusDetail'), 'finalized_by', 'finalized_at', 'is_urgency' ]);
                 $query->where('is_deleted', '!=' , 1);
                 $query->with([
                     'verifiedBy' => function ($query) {

@@ -102,6 +102,9 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/logistic-request/approval', 'LogisticRequestController@approval');
     Route::post('v1/logistic-request/final', 'LogisticRequestController@final');
     Route::post('v1/logistic-request/stock-checking', 'LogisticRequestController@stockCheking');
+    Route::post('v1/logistic-request/letter/{id}', 'LogisticRequestController@uploadLetter');
+    Route::post('v1/logistic-request/identity/{id}', 'LogisticRequestController@uploadApplicantFile');
+    Route::post('v1/logistic-request/urgency', 'LogisticRequestController@urgencyChange');
 
     // Logistic Realization Items by Admin
     Route::get('v1/logistic-admin-realization', 'LogisticRealizationItemController@list');

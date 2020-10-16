@@ -25,7 +25,7 @@ class LogisticRequestExport implements FromCollection, WithMapping, WithHeadings
     public function collection()
     {
         $sort = $this->request->filled('sort') ? ['agency_name ' . $this->request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
-        $data = Agency::getList($this->request);        
+        $data = Agency::getList($this->request, false);        
         $data = $data->orderByRaw(implode($sort))->get();
         foreach ($data as $key => $value) {
             $data[$key]->row_number = $key + 1;
@@ -91,7 +91,7 @@ class LogisticRequestExport implements FromCollection, WithMapping, WithHeadings
     public function logisticRequestColumn($logisticsRequest)
     {
         $data = [
-            $logisticsRequest->logisticRequestItems->map(function ($items){
+            $logisticsRequest->logisticRequestItems->map(function ($items) {
                 $isQuantityEmpty = $items['quantity'] == '-' && $items->masterUnit['name'] == '-';
                 if ($isQuantityEmpty) {
                     $items->quantityUnit = 'jumlah dan satuan tidak ada';
@@ -116,7 +116,7 @@ class LogisticRequestExport implements FromCollection, WithMapping, WithHeadings
     {        
         $data = [
             $logisticsRequest->applicant->verifiedBy['name'],
-            $logisticsRequest->recommendationItems->map(function ($items){
+            $logisticsRequest->recommendationItems->map(function ($items) {
                 $items->quantityUnit = $items['realization_quantity'] . ' ' . $items['realization_unit'];
                 return implode([$items->product_name, $items->quantityUnit,], ', ');
             })->implode('; ', '')
@@ -129,7 +129,7 @@ class LogisticRequestExport implements FromCollection, WithMapping, WithHeadings
     {        
         $data = [
             $logisticsRequest->applicant->approvedBy['name'],
-            $logisticsRequest->finalizationItems->map(function ($items){
+            $logisticsRequest->finalizationItems->map(function ($items) {
                 $items->quantityUnit = $items['final_quantity'] . ' ' . $items['final_unit'];
                 return implode([$items->final_product_name, $items->quantityUnit,], ', ');
             })->implode('; ', ''),
@@ -151,7 +151,7 @@ class LogisticRequestExport implements FromCollection, WithMapping, WithHeadings
             ]
         ];
         return [
-            AfterSheet::class => function(AfterSheet $event) use ($styleArray){
+            AfterSheet::class => function(AfterSheet $event) use ($styleArray) {
                 $cellRange = 'A1:V4'; // All headers
                 $event->sheet->getDelegate()->getStyle($cellRange)->getFont()->setSize(12);
                 $event->sheet->getStyle($cellRange)->ApplyFromArray($styleArray);

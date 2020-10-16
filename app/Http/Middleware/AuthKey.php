@@ -19,26 +19,27 @@ class AuthKey
         $JWTtoken = JWTAuth::getToken();
         $token = $request->header('Api-Key');
         $authKey = \App\AuthKey::whereToken($token)->first();
+        $response = $next($request);
         if (!isset($authKey)) {
-            if (!$JWTtoken) {
-                return response()->json(['message' => 'Unauthenticated'], 401);
-            } else {
+            $response = response()->json(['message' => 'Unauthenticated'], 401);
+            if ($JWTtoken) {
                 try {
                     if (!$user = JWTAuth::parseToken()->authenticate()) {
-                        return response()->format(404, 'user_not_found');
+                        $response = response()->format(404, 'user_not_found');
                     }
                     $request->merge(array("authenticated_user_id" => $user->id));
+                    $response = $next($request);
                 } catch (TokenExpiredException $e) {
                     $token = $request->token;
                     $refreshedToken = JWTAuth::refresh($token);
-                    return response()->format(200, "token_expired", ["new_token" => $refreshedToken]);
+                    $response = response()->format(200, "token_expired", ["new_token" => $refreshedToken]);
                 } catch (JWTException $e) {
-                    return response()->format(422, $e->getMessage());
+                    $response = response()->format(422, $e->getMessage());
                 } catch (Exception $exception) {
-                    return response()->format(422, 'token_failure');
+                    $response = response()->format(422, 'token_failure');
                 }
             }
         }
-        return $next($request);
+        return $response;
     }
 }
