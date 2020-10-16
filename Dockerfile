@@ -15,7 +15,10 @@ RUN chown -R www-data:www-data \
         /var/www/html/bootstrap \
         && chmod -R 777 /var/www/html/storage \
         /var/www/html/bootstrap
+        
+COPY docker/php/php.ini /usr/local/etc/php/php.ini
+
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
     && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-    #&& sed -ri -e 's/upload_max_filesize = .*/upload_max_filesize = ${MAX_UPLOAD_SIZE}/' /usr/local/etc/php/php.ini
+  
 EXPOSE 80
