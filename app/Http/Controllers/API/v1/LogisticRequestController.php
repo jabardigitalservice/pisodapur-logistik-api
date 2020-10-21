@@ -89,6 +89,32 @@ class LogisticRequestController extends Controller
         return $response;
     }
 
+    public function update(Request $request, $id)
+    {
+        unset($request['id']);
+        $response = response()->format(400, 'Unknown Error');
+        try {
+            switch ($request->update_type) {
+                case 1:
+                    $model = Agency::findOrFail($id);
+                    break;
+                case 2:
+                    $model = Agency::findOrFail($id);
+                    break;
+                case 3:
+                    $model = Agency::findOrFail($id);
+                    break;
+            }
+            $request['agency_name'] = MasterFaskes::getFaskesName($request);
+            $model->fill($request->all());
+            $model->save();
+            $response = response()->format(200, 'success', $model);
+        } catch (\Exception $exception) {
+            $response = response()->format(400, $exception->getMessage());
+        }
+        return $response;
+    }
+
     public function agencyStore($request)
     {
         $request['location_address'] = $request->input('location_address') == 'undefined' ? '' : $request->input('location_address', '');

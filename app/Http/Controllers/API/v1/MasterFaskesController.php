@@ -20,6 +20,7 @@ class MasterFaskesController extends Controller
                 ->select(
                     'id',
                     'id_tipe_faskes',
+                    'nama_faskes as name',
                     'nama_faskes',
                     'kode_kab_bps',
                     'kode_kec_bps',
