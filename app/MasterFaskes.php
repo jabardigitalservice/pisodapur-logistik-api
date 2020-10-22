@@ -33,4 +33,15 @@ class MasterFaskes extends Model
         $status = $value === self::STATUS_NOT_VERIFIED ? 'Belum Terverifikasi' : ($value === self::STATUS_VERIFIED ? 'Terverifikasi' : '');
         return $status;
     }
+
+    static function getFaskesName($request)
+    {   
+        $name = $request->agency_name;
+        
+        if ($request->agency_type <= 3) {
+            $data = self::findOrFail($request->master_faskes_id);
+            $name = $data->nama_faskes;
+        }
+        return $name;
+    }
 }

@@ -89,6 +89,39 @@ class LogisticRequestController extends Controller
         return $response;
     }
 
+    public function update(Request $request, $id)
+    {
+        $param = [
+            'update_type' => 'required'
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            try {
+                switch ($request->update_type) {
+                    case 1:
+                        $model = Agency::findOrFail($id);
+                        $response['agency_name'] = MasterFaskes::getFaskesName($request);
+                        break;
+                    case 2:
+                        $model = Applicant::findOrFail($id);
+                        $response = FileUpload::storeApplicantFile($request);
+                        break;
+                    default:
+                        $model = Agency::findOrFail($id);
+                        $response['agency_name'] = MasterFaskes::getFaskesName($request);
+                        break;
+                }
+                unset($request['id']);
+                $model->fill($request->all());
+                $model->save();
+                $response = response()->format(200, 'success');
+            } catch (\Exception $exception) {
+                $response = response()->format(400, $exception->getMessage());
+            }
+        }
+        return $response;
+    }
+
     public function agencyStore($request)
     {
         $request['location_address'] = $request->input('location_address') == 'undefined' ? '' : $request->input('location_address', '');
