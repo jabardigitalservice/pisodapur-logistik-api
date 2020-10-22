@@ -114,7 +114,7 @@ class LogisticRequestController extends Controller
                 unset($request['id']);
                 $model->fill($request->all());
                 $model->save();
-                $response = response()->format(200, 'success', $model);
+                $response = response()->format(200, 'success');
             } catch (\Exception $exception) {
                 $response = response()->format(400, $exception->getMessage());
             }
