@@ -33,6 +33,9 @@ class FileUpload extends Model
             $deleteOtherLetter = Letter::where('agency_id', '=', $request->agency_id)->delete();
             $letter = Letter::create($request->all());
             $letter->file_path = Storage::disk(self::DISK)->url($fileUpload->name);
+            if ($request->application_letter_number) {
+                $response = Applicant::where('id', '=', $request->applicant_id)->update(['application_letter_number' => $request->application_letter_number]);
+            }
             DB::commit();
             $response = response()->format(200, 'success', $letter);
         } catch (\Exception $exception) {
