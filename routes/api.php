@@ -106,6 +106,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/logistic-request/identity/{id}', 'LogisticRequestController@uploadApplicantFile');
     Route::post('v1/logistic-request/urgency', 'LogisticRequestController@urgencyChange');
     Route::put('v1/logistic-request/{id}', 'LogisticRequestController@update');
+    Route::POST('v1/logistic-request/applicant-identity/{id}', 'LogisticRequestController@update');
 
     // Logistic Realization Items by Admin
     Route::get('v1/logistic-admin-realization', 'LogisticRealizationItemController@list');

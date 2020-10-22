@@ -91,26 +91,32 @@ class LogisticRequestController extends Controller
 
     public function update(Request $request, $id)
     {
-        unset($request['id']);
-        $response = response()->format(400, 'Unknown Error');
-        try {
-            switch ($request->update_type) {
-                case 1:
-                    $model = Agency::findOrFail($id);
-                    break;
-                case 2:
-                    $model = Agency::findOrFail($id);
-                    break;
-                case 3:
-                    $model = Agency::findOrFail($id);
-                    break;
+        $param = [
+            'update_type' => 'required'
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            try {
+                switch ($request->update_type) {
+                    case 1:
+                        $model = Agency::findOrFail($id);
+                        $response['agency_name'] = MasterFaskes::getFaskesName($request);
+                        break;
+                    case 2:
+                        $model = Applicant::findOrFail($id);
+                        $response = FileUpload::storeApplicantFile($request);
+                        break;
+                    case 3:
+                        $model = Agency::findOrFail($id);
+                        break;
+                }
+                unset($request['id']);
+                $model->fill($request->all());
+                $model->save();
+                $response = response()->format(200, 'success', $model);
+            } catch (\Exception $exception) {
+                $response = response()->format(400, $exception->getMessage());
             }
-            $request['agency_name'] = MasterFaskes::getFaskesName($request);
-            $model->fill($request->all());
-            $model->save();
-            $response = response()->format(200, 'success', $model);
-        } catch (\Exception $exception) {
-            $response = response()->format(400, $exception->getMessage());
         }
         return $response;
     }
