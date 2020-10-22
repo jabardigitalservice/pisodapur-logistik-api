@@ -106,8 +106,9 @@ class LogisticRequestController extends Controller
                         $model = Applicant::findOrFail($id);
                         $response = FileUpload::storeApplicantFile($request);
                         break;
-                    case 3:
+                    default:
                         $model = Agency::findOrFail($id);
+                        $response['agency_name'] = MasterFaskes::getFaskesName($request);
                         break;
                 }
                 unset($request['id']);
