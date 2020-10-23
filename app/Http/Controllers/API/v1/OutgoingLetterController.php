@@ -61,11 +61,7 @@ class OutgoingLetterController extends Controller
         ];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            // Validasi Nomor Surat Perintah harus unik
-            $response = $this->uniqueLetterNumber($request);
-            if ($response->getStatusCode() === 200) {
-                $response = $this->outgoingLetterStore($request);
-            }
+            $response = $this->outgoingLetterStore($request);
         }
         return $response;
     }
@@ -253,17 +249,5 @@ class OutgoingLetterController extends Controller
             'soh_location_name'
         )->orderBy('agency_name', 'final_product_id', 'final_product_name')->get();
         return $data;
-    }
-
-    public function uniqueLetterNumber($request)
-    {
-        $response = response()->format(200, 'success');
-        if ($request->input('letter_number')) {
-            $validLetterNumber = OutgoingLetter::where('letter_number', $request->input('letter_number'))->exists();
-            if ($validLetterNumber) {
-                $response = response()->format(422, 'Nomor Surat Perintah sudah digunakan.');
-            }
-        }
-        return $response;
     }
 }
