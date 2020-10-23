@@ -100,7 +100,7 @@ class LogisticRequestController extends Controller
                 switch ($request->update_type) {
                     case 1:
                         $model = Agency::findOrFail($id);
-                        $response['agency_name'] = MasterFaskes::getFaskesName($request);
+                        $request['agency_name'] = MasterFaskes::getFaskesName($request);
                         break;
                     case 2:
                         $model = Applicant::findOrFail($id);
@@ -108,7 +108,7 @@ class LogisticRequestController extends Controller
                         break;
                     default:
                         $model = Agency::findOrFail($id);
-                        $response['agency_name'] = MasterFaskes::getFaskesName($request);
+                        $request['agency_name'] = MasterFaskes::getFaskesName($request);
                         break;
                 }
                 unset($request['id']);
