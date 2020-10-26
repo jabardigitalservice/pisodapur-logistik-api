@@ -309,7 +309,7 @@ class Usage
 
     static function getStockOk($material)
     {
-        return isset($material->stock_ok) ? $material->stock_ok : $material->qty_good_in;
+        return isset($material->stock_ok) ? ($material->stock_ok - $material->booked_stock) : $material->qty_good_in;
     }
 
     static function getStockNok($material)
