@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use App\Letter;
 use App\Applicant;
-use DB;
 
 class FileUpload extends Model
 {
@@ -23,14 +22,14 @@ class FileUpload extends Model
     static function storeLetterFile($request)
     {
         $fileuploadid = null;
-        $path = storage::disk(self::DISK)->put(self::LETTER_PATH, $request->letter_file);
+        $path = Storage::disk(self::DISK)->put(self::LETTER_PATH, $request->letter_file);
         $fileupload = self::create(['name' => $path]);
         $fileuploadid = $fileupload->id;
         $request->request->add(['agency_id' => $request->id]);
         $request->request->add(['letter' => $fileuploadid]);
-        $deleteotherletter = letter::where('agency_id', '=', $request->agency_id)->delete();
-        $letter = letter::create($request->all());
-        $letter->file_path = storage::disk(self::DISK)->url($fileupload->name);
+        $deleteotherletter = Letter::where('agency_id', '=', $request->agency_id)->delete();
+        $letter = Letter::create($request->all());
+        $letter->file_path = Storage::disk(self::DISK)->url($fileupload->name);
         return $letter;
     }
 

@@ -103,7 +103,11 @@ class LogisticRequestController extends Controller
                         break;
                     case 2:
                         $model = Applicant::findOrFail($id);
-                        $response = FileUpload::storeApplicantFile($request);
+                        $request['email'] = (!$request->input('email')) ? '' : $request->input('email', '');
+                        $request['applicants_office'] = (!$request->input('applicants_office')) ? '' : $request->input('applicants_office', '');
+                        if ($request->hasFile('applicant_file')) {
+                            $response = FileUpload::storeApplicantFile($request);
+                        }
                         break;
                     case 3:
                         $model = Applicant::findOrFail($id);
