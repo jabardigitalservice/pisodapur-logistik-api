@@ -64,7 +64,6 @@ class LogisticRequestController extends Controller
                 if ($request->hasFile('applicant_file')) {
                     $applicantFile = FileUpload::storeApplicantFile($request);
                     $applicant->file = $applicantFile->id;
-                    // $applicant->file_path = Storage::disk(FileUpload::DISK)->url($applicantFile->name);
                 }
                 $need = $this->needStore($request);
                 
@@ -77,7 +76,7 @@ class LogisticRequestController extends Controller
                     'agency' => $agency,
                     'applicant' => $applicant,
                     'need' => $need,
-                    'letter' => $letter->getData()
+                    'letter' => $letter
                 ];
                 DB::commit();
                 $response = response()->format(200, 'success', new LogisticRequestResource($response));
@@ -105,6 +104,12 @@ class LogisticRequestController extends Controller
                     case 2:
                         $model = Applicant::findOrFail($id);
                         $response = FileUpload::storeApplicantFile($request);
+                        break;
+                    case 3:
+                        $model = Applicant::findOrFail($id);
+                        if ($request->hasFile('letter_file')) {
+                            $response = FileUpload::storeLetterFile($request);
+                        }
                         break;
                     default:
                         $model = Agency::findOrFail($id);
