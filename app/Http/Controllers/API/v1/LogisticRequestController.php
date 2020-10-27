@@ -37,7 +37,13 @@ class LogisticRequestController extends Controller
     public function store(Request $request)
     {
         $request = $this->masterFaskesCheck($request);
-
+        $responseData = [
+            'agency' => null,
+            'applicant' => null,
+            'applicant_file' => null,
+            'need' => null,
+            'letter' => null,
+        ];
         $param = [
             'master_faskes_id' => 'required|numeric',
             'agency_type' => 'required|numeric',
@@ -55,34 +61,71 @@ class LogisticRequestController extends Controller
         if ($response->getStatusCode() === 200) {
             DB::beginTransaction();
             try {
-                $agency = $this->agencyStore($request);
-                $request->request->add(['agency_id' => $agency->id]);
+                $responseData['agency'] = $this->agencyStore($request);
+                $request->request->add(['agency_id' => $responseData['agency']->id]);
                 
-                $applicant = Applicant::applicantStore($request);
-                $request->request->add(['applicant_id' => $applicant->id]);
-
+                $responseData['applicant'] = Applicant::applicantStore($request);
+                $request->request->add(['applicant_id' => $responseData['applicant']->id]);
+                
                 if ($request->hasFile('applicant_file')) {
-                    $applicantFile = FileUpload::storeApplicantFile($request);
-                    $applicant->file = $applicantFile->id;
-                    // $applicant->file_path = Storage::disk(FileUpload::DISK)->url($applicantFile->name);
+                    $responseData['applicant_file'] = FileUpload::storeApplicantFile($request);
+                    $responseData['applicant']->file = $responseData['applicant_file']->id;
                 }
-                $need = $this->needStore($request);
+                $responseData['need'] = $this->needStore($request);
                 
                 if ($request->hasFile('letter_file')) {
-                    $letter = FileUpload::storeLetterFile($request);
+                    $responseData['letter'] = FileUpload::storeLetterFile($request);
                 }
-                $email = $this->sendEmailNotification($agency->id, Applicant::STATUS_NOT_VERIFIED);
-
-                $response = [
-                    'agency' => $agency,
-                    'applicant' => $applicant,
-                    'need' => $need,
-                    'letter' => $letter->getData()
-                ];
+                $email = $this->sendEmailNotification($responseData['agency']->id, Applicant::STATUS_NOT_VERIFIED);
                 DB::commit();
-                $response = response()->format(200, 'success', new LogisticRequestResource($response));
+                $response = response()->format(200, 'success', new LogisticRequestResource($responseData));
             } catch (\Exception $exception) {
                 DB::rollBack();
+                $response = response()->format(400, $exception->getMessage(), $responseData);
+            }
+        }
+        return $response;
+    }
+
+    public function update(Request $request, $id)
+    {
+        $param = [
+            'update_type' => 'required'
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            try {
+                switch ($request->update_type) {
+                    case 1:
+                        $model = Agency::findOrFail($id);
+                        $request['agency_name'] = MasterFaskes::getFaskesName($request);
+                        break;
+                    case 2:
+                        $model = Applicant::findOrFail($id);
+                        $request['email'] = (!$request->input('email')) ? '' : $request->input('email', '');
+                        $request['applicants_office'] = (!$request->input('applicants_office')) ? '' : $request->input('applicants_office', '');
+                        if ($request->hasFile('applicant_file')) {
+                            $response = FileUpload::storeApplicantFile($request);
+                            $request->file = $response->id;
+                        }
+                        break;
+                    case 3:
+                        $model = Applicant::findOrFail($id);
+                        if ($request->hasFile('letter_file')) {
+                            $request['agency_id'] = $id;
+                            $response = FileUpload::storeLetterFile($request);
+                        }
+                        break;
+                    default:
+                        $model = Agency::findOrFail($id);
+                        $request['agency_name'] = MasterFaskes::getFaskesName($request);
+                        break;
+                }
+                unset($request['id']);
+                $model->fill($request->all());
+                $model->save();
+                $response = response()->format(200, 'success');
+            } catch (\Exception $exception) {
                 $response = response()->format(400, $exception->getMessage());
             }
         }
@@ -494,7 +537,8 @@ class LogisticRequestController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $request->request->add(['applicant_id' => $id]);
-            $response = FileUpload::storeApplicantFile($request);
+            $response = FileUpload::storeApplicantFile($request);        
+            $applicant = Applicant::where('id', '=', $request->applicant_id)->update(['file' => $response->id]);
         }
         return $response;
     }
