@@ -5,7 +5,6 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use App\Letter;
-use App\Applicant;
 
 class FileUpload extends Model
 {
@@ -25,7 +24,6 @@ class FileUpload extends Model
         $path = Storage::disk(self::DISK)->put(self::LETTER_PATH, $request->letter_file);
         $fileupload = self::create(['name' => $path]);
         $fileuploadid = $fileupload->id;
-        $request->request->add(['agency_id' => $request->id]);
         $request->request->add(['letter' => $fileuploadid]);
         $deleteotherletter = Letter::where('agency_id', '=', $request->agency_id)->delete();
         $letter = Letter::create($request->all());
@@ -38,8 +36,6 @@ class FileUpload extends Model
         $path = Storage::disk(self::DISK)->put(self::APPLICANT_IDENTITY_PATH, $request->applicant_file);
         $fileUpload = self::create(['name' => $path]);
         $fileUploadId = $fileUpload->id;
-        
-        $applicant = Applicant::where('id', '=', $request->applicant_id)->update(['file' => $fileUploadId]);
         return $fileUpload;
     }
 }
