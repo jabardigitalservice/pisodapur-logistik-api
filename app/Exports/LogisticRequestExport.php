@@ -93,20 +93,18 @@ class LogisticRequestExport implements FromCollection, WithMapping, WithHeadings
         $data = [
             $logisticsRequest->logisticRequestItems->map(function ($items) {
                 $isQuantityEmpty = $items['quantity'] == '-' && $items->masterUnit['name'] == '-';
-                if ($isQuantityEmpty) {
-                    $items->quantityUnit = 'jumlah dan satuan tidak ada';
-                } else {
+                if (!$isQuantityEmpty) {
                     $items['quantity'] = $items['quantity'] == '-' ? 'jumlah tidak ada ' : $items['quantity'];
-                    $items['unit'] = $items->masterUnit['name'] == '-' ? ' satuan tidak ada' : $items->masterUnit['name'];
+                    $items['unit'] = $items->masterUnit['name'] ?? 'satuan tidak ada';
                     $items->quantityUnit = $items['quantity'] . ' ' . $items['unit'];
                 }
 
                 $list = [
-                    $items->product['name'],
-                    $items->quantityUnit,
+                    $items->product['name'] ?? '-',
+                    $items->quantityUnit ?? 'jumlah dan satuan tidak ada',
                     $items['priority'] == '-' ? 'urgensi tidak ada' : $items['priority']
                 ];
-                return implode($list, ', ');
+                return implode(', ', $list);
             })->implode('; ', '')
         ];
         return $data;
@@ -115,10 +113,10 @@ class LogisticRequestExport implements FromCollection, WithMapping, WithHeadings
     public function recommendationColumn($logisticsRequest)
     {        
         $data = [
-            $logisticsRequest->applicant->verifiedBy['name'],
+            $logisticsRequest->applicant->verifiedBy['name'] ?? '-',
             $logisticsRequest->recommendationItems->map(function ($items) {
                 $items->quantityUnit = $items['realization_quantity'] . ' ' . $items['realization_unit'];
-                return implode([$items->product_name, $items->quantityUnit,], ', ');
+                return implode(', ', [$items->product_name, $items->quantityUnit]);
             })->implode('; ', '')
         ];
 
@@ -126,14 +124,14 @@ class LogisticRequestExport implements FromCollection, WithMapping, WithHeadings
     }
     
     public function finalizationColumn($logisticsRequest)
-    {        
+    {
         $data = [
-            $logisticsRequest->applicant->approvedBy['name'],
+            $logisticsRequest->applicant->approvedBy['name'] ?? '-',
             $logisticsRequest->finalizationItems->map(function ($items) {
                 $items->quantityUnit = $items['final_quantity'] . ' ' . $items['final_unit'];
-                return implode([$items->final_product_name, $items->quantityUnit,], ', ');
+                return implode(', ', [$items->final_product_name, $items->quantityUnit]);
             })->implode('; ', ''),
-            $logisticsRequest->applicant->finalizedBy['name'],
+            $logisticsRequest->applicant->finalizedBy['name'] ?? '-',
             $logisticsRequest->applicant['status']
         ];
 
