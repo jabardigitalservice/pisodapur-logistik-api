@@ -70,6 +70,7 @@ class LogisticRequestController extends Controller
                 if ($request->hasFile('applicant_file')) {
                     $responseData['applicant_file'] = FileUpload::storeApplicantFile($request);
                     $responseData['applicant']->file = $responseData['applicant_file']->id;
+                    $updateFile = Applicant::where('id', '=', $responseData['applicant']->id)->update(['file' => $responseData['applicant_file']->id]);
                 }
                 $responseData['need'] = $this->needStore($request);
                 
@@ -106,7 +107,7 @@ class LogisticRequestController extends Controller
                         $request['applicants_office'] = (!$request->input('applicants_office')) ? '' : $request->input('applicants_office', '');
                         if ($request->hasFile('applicant_file')) {
                             $response = FileUpload::storeApplicantFile($request);
-                            $request->file = $response->id;
+                            $request['file'] = $response->id;
                         }
                         break;
                     case 3:
