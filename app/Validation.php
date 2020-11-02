@@ -28,4 +28,42 @@ class Validation
         }
         return $response;
     }
+
+    static function completenessDetail($data)
+    {
+        $data->getCollection()->transform(function ($item, $key) {
+            $completeness = 0;
+            $validCompleted = 7;
+            if ($item->applicant->applicant_name) {
+                $completeness++;
+            }
+
+            if ($item->agency_name) {
+                $completeness++;
+            }
+
+            if ($item->location_address) {
+                $completeness++;
+            }
+
+            if ($item->applicant->primary_phone_number) {
+                $completeness++;
+            }
+
+            if ($item->applicant->secondary_phone_number) {
+                $completeness++;
+            }
+
+            if ($item->applicant->letter) {
+                $completeness++;
+            }
+
+            if ($item->applicant->file) {
+                $completeness++;
+            }
+
+            $item->completeness = ($completeness === $validCompleted);
+            return $item;
+        });
+    }
 }
