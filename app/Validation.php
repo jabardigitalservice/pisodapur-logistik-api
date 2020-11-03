@@ -28,4 +28,21 @@ class Validation
         }
         return $response;
     }
+
+    static function completenessDetail($data)
+    {
+        $data->getCollection()->transform(function ($item, $key) {
+            $item->completeness = false;
+            if ($item->applicant->applicant_name 
+                && $item->agency_name 
+                && $item->location_address 
+                && $item->applicant->primary_phone_number 
+                && $item->applicant->letter 
+                && $item->applicant->file
+            ) {
+                $item->completeness = true;
+            }
+            return $item;
+        });
+    }
 }

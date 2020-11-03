@@ -8,7 +8,6 @@ use App\Needs;
 use App\Agency;
 use App\Applicant;
 use App\FileUpload;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\LogisticRequestResource;
 use DB;
 use JWTAuth;
@@ -31,6 +30,7 @@ class LogisticRequestController extends Controller
         $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
         $data = Agency::getList($request, false);        
         $data = $data->orderByRaw(implode($sort))->paginate($limit);
+        Validation::completenessDetail($data);
         return response()->format(200, 'success', $data);
     }
 
