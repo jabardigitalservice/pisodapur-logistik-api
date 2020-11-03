@@ -32,37 +32,16 @@ class Validation
     static function completenessDetail($data)
     {
         $data->getCollection()->transform(function ($item, $key) {
-            $completeness = 0;
-            $validCompleted = 7;
-            if ($item->applicant->applicant_name) {
-                $completeness++;
+            $item->completeness = false;
+            if ($item->applicant->applicant_name 
+                && $item->agency_name 
+                && $item->location_address 
+                && $item->applicant->primary_phone_number 
+                && $item->applicant->letter 
+                && $item->applicant->file
+            ) {
+                $item->completeness = true;
             }
-
-            if ($item->agency_name) {
-                $completeness++;
-            }
-
-            if ($item->location_address) {
-                $completeness++;
-            }
-
-            if ($item->applicant->primary_phone_number) {
-                $completeness++;
-            }
-
-            if ($item->applicant->secondary_phone_number) {
-                $completeness++;
-            }
-
-            if ($item->applicant->letter) {
-                $completeness++;
-            }
-
-            if ($item->applicant->file) {
-                $completeness++;
-            }
-
-            $item->completeness = ($completeness === $validCompleted);
             return $item;
         });
     }

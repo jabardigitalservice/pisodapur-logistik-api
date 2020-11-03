@@ -263,45 +263,7 @@ class LogisticRealizationItemController extends Controller
             unset($request['unit_id']);
             unset($request['realization_date']);
         }
-        if ($request->input('store_type') === 'recommendation') {
-            $request['realization_quantity'] = $request->input('recommendation_quantity');
-            $request['realization_date'] = $request->input('recommendation_date');
-            $request['recommendation_by'] = JWTAuth::user()->id;
-            $request['recommendation_at'] = date('Y-m-d H:i:s');
-        } else {
-            $request['final_product_id'] = $request->input('product_id');
-            $request['final_product_name'] = $request->input('product_name');
-            $request['final_quantity'] = $request->input('realization_quantity');
-            $request['final_unit'] = $request['realization_unit'];
-            $request['final_date'] = $request->input('realization_date');
-            $request['final_status'] = $request->input('status');
-            $request['final_by'] = JWTAuth::user()->id;
-            $request['final_at'] = date('Y-m-d H:i:s');                    
-            if ($findOne) {
-                $request['product_id'] = $findOne->product_id;
-                $request['product_name'] = $findOne->product_name;
-                $request['realization_quantity'] = $findOne->realization_quantity;
-                $request['realization_unit'] = $findOne->realization_unit;
-                $request['realization_date'] = $findOne->realization_date;
-                $request['material_group'] = $findOne->material_group;
-                $request['quantity'] = $findOne->quantity;
-                $request['date'] = $findOne->date;
-                $request['status'] = $findOne->status;
-                $request['recommendation_by'] = $findOne->recommendation_by;
-                $request['recommendation_at'] = $findOne->recommendation_at;
-            } else {
-                unset($request['product_id']);
-                unset($request['product_name']);
-                unset($request['realization_unit']);
-                unset($request['material_group']);
-                unset($request['quantity']);
-                unset($request['date']);
-                unset($request['status']);
-                unset($request['unit_id']);
-                unset($request['recommendation_by']);
-                unset($request['recommendation_at']);
-            }
-        }
+        $request = LogisticRealizationItems::setValue($request, $findOne);
         $result = [
             'request' => $request, 
             'findOne' => $findOne
