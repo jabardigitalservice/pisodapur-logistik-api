@@ -1389,59 +1389,6 @@
             "time": "2020-04-07T20:44:10+00:00"
         },
         {
-            "name": "laravel-notification-channels/aws-sns",
-            "version": "1.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/laravel-notification-channels/aws-sns.git",
-                "reference": "988f79bafa69899e7c72e8899d7b15a5d556c644"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/laravel-notification-channels/aws-sns/zipball/988f79bafa69899e7c72e8899d7b15a5d556c644",
-                "reference": "988f79bafa69899e7c72e8899d7b15a5d556c644",
-                "shasum": ""
-            },
-            "require": {
-                "aws/aws-sdk-php": "^3.0",
-                "illuminate/notifications": "~5.5 || ~6.0 || ~7.0 || ~8.0",
-                "illuminate/support": "~5.5 || ~6.0 || ~7.0 || ~8.0",
-                "php": ">=7.2"
-            },
-            "require-dev": {
-                "mockery/mockery": "^1.0",
-                "phpunit/phpunit": "^8.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "NotificationChannels\\AwsSns\\SnsServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "NotificationChannels\\AwsSns\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Claudson Martins",
-                    "email": "claudson@outlook.com",
-                    "homepage": "https://claudsonmartins.com",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Amazon Simple Notification Service (AWS SNS) notification channel for Laravel.",
-            "homepage": "https://github.com/laravel-notification-channels/aws-sns",
-            "time": "2020-09-08T11:59:48+00:00"
-        },
-        {
             "name": "laravel/framework",
             "version": "v5.7.29",
             "source": {
