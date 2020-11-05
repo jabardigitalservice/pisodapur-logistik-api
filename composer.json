@@ -10,6 +10,9 @@
     "require": {
         "php": "^7.1.3",
         "ext-pdo_sqlite": "*",
+        "async-aws/core": "^1.6",
+        "async-aws/sns": "^1.1",
+        "async-aws/sqs": "^1.3",
         "barryvdh/laravel-cors": "^0.11.3",
         "doctrine/dbal": "^2.10",
         "fideloper/proxy": "^4.0",
