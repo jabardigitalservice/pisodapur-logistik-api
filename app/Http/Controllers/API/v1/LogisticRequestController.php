@@ -22,6 +22,7 @@ use App\Product;
 use App\Validation;
 use App\Tracking;
 use App\Notifications\ChangeStatusNotification;
+use App\User;
 
 class LogisticRequestController extends Controller
 {
@@ -185,6 +186,8 @@ class LogisticRequestController extends Controller
             $request['verified_at'] = date('Y-m-d H:i:s');
             $applicant = Applicant::updateApplicant($request);
             $email = $this->sendEmailNotification($applicant->agency_id, $request->verification_status);
+            $request['agency_id'] = $applicant->agency_id;
+            $whatsapp = $this->sendWhatsappNotification($request, 'rekomendasi');
             $response = response()->format(200, 'success', $applicant);
         }
         return $response;
@@ -406,6 +409,8 @@ class LogisticRequestController extends Controller
                 $request['finalized_at'] = date('Y-m-d H:i:s');
                 $applicant = Applicant::updateApplicant($request);                
                 $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                $request['agency_id'] = $applicant->agency_id;
+                $whatsapp = $this->sendWhatsappNotification($request, 'realisasi');
                 $response = response()->format(200, 'success', [
                     '(needsSum_realization_sum' => ($needsSum + $realizationSum),
                     'finalSum' => $finalSum,
