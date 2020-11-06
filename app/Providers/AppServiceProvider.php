@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use AsyncAws\Core\AwsClientFactory;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->singleton('aws', function ($app) {
+            return new AwsClientFactory([
+                'region'            => env('AWS_DEFAULT_REGION'),
+                'accessKeyId'       => env('AWS_ACCESS_KEY_ID'),
+                'accessKeySecret'   => env('AWS_SECRET_ACCESS_KEY')
+            ]);
+        });
     }
 }

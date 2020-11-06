@@ -147,6 +147,9 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
     Route::get('v1/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
     Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
+
+    //Notification via Whatsapp
+    Route::post('v1/notify', 'ChangeStatusNotifyController@sendNotification');
 });
 
 //Route for Another App that want integrate data

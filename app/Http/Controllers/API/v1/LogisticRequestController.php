@@ -21,6 +21,8 @@ use App\LogisticRealizationItems;
 use App\Product;
 use App\Validation;
 use App\Tracking;
+use App\Notifications\ChangeStatusNotification;
+use App\User;
 
 class LogisticRequestController extends Controller
 {
@@ -78,6 +80,7 @@ class LogisticRequestController extends Controller
                     $responseData['letter'] = FileUpload::storeLetterFile($request);
                 }
                 $email = $this->sendEmailNotification($responseData['agency']->id, Applicant::STATUS_NOT_VERIFIED);
+                $whatsapp = $this->sendWhatsappNotification($request, 'surat');
                 DB::commit();
                 $response = response()->format(200, 'success', new LogisticRequestResource($responseData));
             } catch (\Exception $exception) {
@@ -183,6 +186,10 @@ class LogisticRequestController extends Controller
             $request['verified_at'] = date('Y-m-d H:i:s');
             $applicant = Applicant::updateApplicant($request);
             $email = $this->sendEmailNotification($applicant->agency_id, $request->verification_status);
+            if ($request->verification_status !== Applicant::STATUS_REJECTED) {
+                $request['agency_id'] = $applicant->agency_id;
+                $whatsapp = $this->sendWhatsappNotification($request, 'rekomendasi');
+            }
             $response = response()->format(200, 'success', $applicant);
         }
         return $response;
@@ -333,6 +340,19 @@ class LogisticRequestController extends Controller
         }
     }
 
+    public function sendWhatsappNotification($request, $phase)
+    {
+        $requiredData = [
+            'phase' => $phase,
+            'id' => $request['agency_id'],
+            'url' => $request['url'],
+        ];
+        $users = User::where('phase', $phase)->where('handphone', '!=', '')->get();
+        foreach ($users as $user) {
+            $notify[] = $user->notify(new ChangeStatusNotification($requiredData));
+        }
+    }
+
     public function approval(Request $request)
     {
         $param = [
@@ -358,6 +378,10 @@ class LogisticRequestController extends Controller
                 $request['approved_at'] = date('Y-m-d H:i:s');
                 $applicant = Applicant::updateApplicant($request);
                 $email = $this->sendEmailNotification($applicant->agency_id, $request->approval_status);
+                if ($request->approval_status === Applicant::STATUS_APPROVED) {
+                    $request['agency_id'] = $applicant->agency_id;
+                    $whatsapp = $this->sendWhatsappNotification($request, 'realisasi');
+                }
                 $response = response()->format(200, 'success', $applicant);
             }
         }
