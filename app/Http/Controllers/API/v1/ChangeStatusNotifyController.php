@@ -20,9 +20,14 @@ class ChangeStatusNotifyController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $notify = [];
-            $users = User::where('phase', $request->phase)->whereNotNull('handphone')->get();
+            $users = User::where('phase', $request->phase)->where('handphone', '!=', '')->get();
+            $requiredData = [
+                'id' => $request->id,
+                'url' => $request->url,
+                'phase' => $request->phase,
+            ];
             foreach ($users as $user) {
-                $notify[] = $user->notify(new ChangeStatusNotification($request));
+                $notify[] = $user->notify(new ChangeStatusNotification($requiredData));
             }
             $responseData = [
                 'request' => $request->all(),

@@ -21,6 +21,7 @@ use App\LogisticRealizationItems;
 use App\Product;
 use App\Validation;
 use App\Tracking;
+use App\Notifications\ChangeStatusNotification;
 
 class LogisticRequestController extends Controller
 {
@@ -78,6 +79,7 @@ class LogisticRequestController extends Controller
                     $responseData['letter'] = FileUpload::storeLetterFile($request);
                 }
                 $email = $this->sendEmailNotification($responseData['agency']->id, Applicant::STATUS_NOT_VERIFIED);
+                $whatsapp = $this->sendWhatsappNotification($request, 'surat');
                 DB::commit();
                 $response = response()->format(200, 'success', new LogisticRequestResource($responseData));
             } catch (\Exception $exception) {
@@ -330,6 +332,19 @@ class LogisticRequestController extends Controller
             Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));    
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
+        }
+    }
+
+    public function sendWhatsappNotification($request, $phase)
+    {
+        $requiredData = [
+            'phase' => $phase,
+            'id' => $request['agency_id'],
+            'url' => $request['url'],
+        ];
+        $users = User::where('phase', $phase)->where('handphone', '!=', '')->get();
+        foreach ($users as $user) {
+            $notify[] = $user->notify(new ChangeStatusNotification($requiredData));
         }
     }
 

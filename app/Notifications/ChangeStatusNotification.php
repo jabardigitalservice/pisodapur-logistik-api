@@ -6,7 +6,6 @@ use App\Channels\SmsChannel;
 use App\Channels\WhatsappChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Http\Request;
 
 class ChangeStatusNotification extends Notification
 {
@@ -20,11 +19,11 @@ class ChangeStatusNotification extends Notification
      *
      * @return void
      */
-    public function __construct(Request $request)
+    public function __construct($param)
     {
-        $this->id = $request->id;
-        $this->phase = $request->phase;
-        $this->link = $request->url . '/alat-kesehatan/detail/' . $this->id;
+        $this->id = $param['id'];
+        $this->phase = $param['phase'];
+        $this->link = $param['url'] . '/alat-kesehatan/detail/' . $this->id;
     }
 
     /**
@@ -55,29 +54,25 @@ class ChangeStatusNotification extends Notification
         $message = '';
         switch ($this->phase) {
             case 'surat':
-                $message = 'Redaksi:
-                Kepada Yth.
+                $message = 'Kepada Yth.
                 PIC Surat
                 
                 Saat ini pada aplikasi permohonan logistik telah masuk surat permohonan logistik baru dengan kode: ' . $this->id .' Mohon ditindaklanjuti untuk melakukan verifikasi administrasi dokumen permohonan tersebut. Surat permohonan tersebut dapat diakses dengan menggunakan aplikasi permohonan logistik. Berikut ini link permohonan yang perlu diverifikasi: ' . $this->link;
                 break;
             case 'rekomendasi':
-                $message = 'Redaksi:
-                Kepada Yth.
+                $message = 'Kepada Yth.
                 PIC Rekomendasi Salur
                 
                 Saat ini pada aplikasi permohonan logistik surat permohonan logistik dengan kode: ' . $this->id . ' telah berada pada tahapan rekomendasi salur. Mohon ditindaklanjuti untuk melakukan rekomendasi salur terhadap permohonan tersebut. Adapun untuk melakukan rekomendasi salur dapat diakses dengan menggunakan aplikasi permohonan logistik. Berikut ini link permohonan yang perlu dilakukan rekomendasi salur: ' . $this->link;
                 break;
             case 'realisasi':
-                $message = 'Redaksi:
-                Kepada Yth.
+                $message = 'Kepada Yth.
                 PIC Realisasi Salur
                 
                 Saat ini pada aplikasi permohonan logistik surat permohonan logistik dengan kode: ' . $this->id . ' telah berada pada tahapan realisasi salur. Mohon ditindaklanjuti untuk melakukan realisasi salur terhadap permohonan tersebut. Adapun untuk melakukan realisasi salur dapat diakses dengan menggunakan aplikasi permohonan logistik. Berikut ini link permohonan yang perlu dilakukan realisasi salur: ' . $this->link;
                 break;
             default:
-                $message = 'Redaksi:
-                Kepada Yth.
+                $message = 'Kepada Yth.
                 PIC Surat
                 
                 Saat ini pada aplikasi permohonan logistik telah masuk surat permohonan logistik baru dengan kode: ' . $this->id .' Mohon ditindaklanjuti untuk melakukan verifikasi administrasi dokumen permohonan tersebut. Surat permohonan tersebut dapat diakses dengan menggunakan aplikasi permohonan logistik. Berikut ini link permohonan yang perlu diverifikasi: ' . $this->link;
