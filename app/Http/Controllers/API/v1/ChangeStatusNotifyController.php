@@ -5,7 +5,7 @@ namespace App\Http\Controllers\API\v1;
 use App\User;
 use App\Validation;
 use App\Http\Controllers\Controller;
-use App\Notifications\TestResult;
+use App\Notifications\ChangeStatusNotification;
 use Illuminate\Http\Request;
 
 class ChangeStatusNotifyController extends Controller
@@ -22,7 +22,7 @@ class ChangeStatusNotifyController extends Controller
             $notify = [];
             $users = User::where('phase', $request->phase)->whereNotNull('handphone')->get();
             foreach ($users as $user) {
-                $notify[] = $user->notify(new TestResult($request));
+                $notify[] = $user->notify(new ChangeStatusNotification($request));
             }
             $responseData = [
                 'request' => $request->all(),

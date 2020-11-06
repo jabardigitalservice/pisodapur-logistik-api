@@ -2,69 +2,78 @@
 
 namespace App\Notifications;
 
+use App\Channels\SmsChannel;
 use App\Channels\WhatsappChannel;
-use App\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Http\Request;
 
 class ChangeStatusNotification extends Notification
 {
     use Queueable;
 
-    public $user;
-
+    public $link;
+    public $id;
+    public $phase;
     /**
      * Create a new notification instance.
      *
-     * @param User $user
+     * @return void
      */
-    public function __construct(User $user)
+    public function __construct(Request $request)
     {
-        $this->user = $user;
+        $this->id = $request->id;
+        $this->phase = $request->phase;
+        $this->link = $request->url . '/alat-kesehatan/detail/' . $this->id;
     }
 
     /**
      * Get the notification's delivery channels.
      *
-     * @param  mixed  $notifiable
+     * @param mixed $notifiable
      * @return array
      */
     public function via($notifiable)
     {
-        return [WhatsappChannel::class, SmsChannel::class];
-    }
-
-    public function toWhatsapp($notifiable)
-    {
-        $message = 'Permohonan dengan kode: xxxx sudah diterima mohon ditindaklanjuti dengan melakukan verifikasi. Berikut link permohonan yang perlu diverifikasi [link]';
-        return $message;
+        return [WhatsappChannel::class];
     }
 
     public function toSms($notifiable)
     {
-        $message = 'Permohonan dengan kode: xxxx sudah diterima mohon ditindaklanjuti dengan melakukan verifikasi. Berikut link permohonan yang perlu diverifikasi [link]';
+        $message = $this->setMessage();
         return $message;
     }
 
-    /**
-     * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
-     */
-    public function toMail($notifiable)
+    public function toWhatsapp($notifiable)
     {
-        return (new MailMessage())
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
+        $message = $this->setMessage();
+        return $message;
+    }
+
+    public function setMessage()
+    {
+        $message = '';
+        switch ($this->phase) {
+            case 'surat':
+                $message = 'Permohonan dengan kode: ' . $this->id . ' sudah diterima mohon ditindaklanjuti dengan melakukan verifikasi. Berikut link permohonan yang perlu diverifikasi ' . $this->link;
+                break;
+            case 'rekomendasi':
+                $message = 'Permohonan dengan kode: ' . $this->id . ' sudah dilakukan verifikasi administrasi dan perlu dilakukan rekomendasi salur. Berikut link permohonan yang perlu dilakukan rekomendasi salur ' . $this->link;
+                break;
+            case 'realisasi':
+                $message = 'Permohonan dengan kode: ' . $this->id . ' sudah dilakukan rekomendasi salur dan perlu dilakukan realisasi salur. Berikut link permohonan yang perlu dilakukan realisasi salur ' . $this->link;
+                break;
+            default:
+                $message = 'Permohonan dengan kode: ' . $this->id . ' sudah diterima mohon ditindaklanjuti dengan melakukan verifikasi. Berikut link permohonan yang perlu diverifikasi ' . $this->link;
+                break;
+        }
+        return $message;
     }
 
     /**
      * Get the array representation of the notification.
      *
-     * @param  mixed  $notifiable
+     * @param mixed $notifiable
      * @return array
      */
     public function toArray($notifiable)
