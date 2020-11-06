@@ -58,7 +58,7 @@ class LogisticEmailNotification extends Mailable
         } else {
             $subject = '[Pikobar] Persetujuan Permohonan Logistik';
             $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
-            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' sudah kami setujui.';
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' dalam tahapan realisasi salurnya sudah disetujui dan barang sudah siap untuk dikirimkan. Jika barang sudah dapat diterima anda dapat mengisi form penerimaan barang dengan tautan http://bit.ly/formlogistikpemdaprov.';
             $notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan konfirmasi dan pengecekan terhadap permohonan tersebut.';
         }
         return $this->view('email.logisticemailnotification')
