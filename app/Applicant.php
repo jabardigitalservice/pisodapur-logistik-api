@@ -73,7 +73,7 @@ class Applicant extends Model
 
     public function letter()
     {
-        return $this->hasOne('App\Letter', 'agency_id', 'id');
+        return $this->hasOne('App\Letter', 'applicant_id', 'id');
     }
 
     public function village()

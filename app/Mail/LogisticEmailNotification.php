@@ -41,25 +41,41 @@ class LogisticEmailNotification extends Mailable
         if ($this->status === Applicant::STATUS_NOT_VERIFIED) {
             $subject = '[Pikobar] Permohonan Logistik Diterima';
             $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.'; 
-            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' sudah kami terima.';
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' sudah kami terima.';
             $notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan pengecekan terhadap permohonan tersebut.';
         } elseif ($this->status === Applicant::STATUS_REJECTED) {
             $subject = '[Pikobar] Penolakan Permohonan Logistik';
             $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.'; 
-            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' tidak bisa kami penuhi.';
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' tidak bisa kami penuhi.';
             $texts[] = 'Dengan alasan penolakan sebagai berikut:'; 
             $notes[] = $this->agency->applicant->note;
             $notes[] = 'Mohon maaf atas ketidaknyamanan ini.';
         } elseif ($this->status === Applicant::STATUS_VERIFIED) {
             $subject = '[Pikobar] Permohonan Logistik Terverifikasi';
             $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
-            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . '  sudah dalam status terverifikasi. Selanjutnya kami akan melakukan pengecekan ketersediaan barang pada gudang logistik.';
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . '  sudah dalam status terverifikasi. Selanjutnya kami akan melakukan pengecekan ketersediaan barang pada gudang logistik.';
             $notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan pengecekan dan konfirmasi terhadap permohonan tersebut.';
         } else {
-            $subject = '[Pikobar] Persetujuan Permohonan Logistik';
+            $subject = '[Pikobar] Permohonan Logistik Sudah Realisasi Salur';
             $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
-            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' sudah kami setujui.';
-            $notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan konfirmasi dan pengecekan terhadap permohonan tersebut.';
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' sudah disetujui untuk realisasi salur logistik dan barang sudah siap untuk diambil/ dikirimkan.';
+            $texts[] = '';
+            $texts[] = 'Jika barang sudah diterima oleh pemohon, silahkan untuk melaporkan penggunaan logistik dengan ketentuan berikut:';
+            $texts[] = '';
+            $texts[] = '1. Pemohon tanpa adanya mutasi barang dapat langsung menjalankan alur pelaporan sebagai berikut:';
+            $texts[] = 'a. Pemohon dapat mengisi formulir penerimaan barang dari Pemdaprov Jabar melalui laman http://bit.ly/LaporPenerimaanLogistik. Pengisian form dilakukan sebanyak 1 kali sejak penerimaan barang dilakukan, dengan batas maksimum pelaporan yaitu 2x24 jam setelah barang diterima.';
+            $texts[] = 'b. Pemohon mengisi formulir penggunaan barang dari setiap pengguna melalui laman http://bit.ly/LaporPenggunaanLogistik secara berkala setiap kali ada penggunaan barang. ';
+            $texts[] = '';
+            $texts[] = '2. Pemohon yang melakukan mutasi barang dapat menjalankan alur pelaporan seperti berikut:';
+            $texts[] = 'a. Dinas Kesehatan Kab/Kota dapat mengisi formulir penerimaan barang dari Pemdaprov Jabar melalui laman http://bit.ly/LaporPenerimaanLogistik. Pengisian form dilakukan sebanyak 1 kali sejak penerimaan barang dilakukan, dengan batas maksimum pelaporan yaitu 2x24 jam setelah barang diterima. Dinas Kesehatan Kab/Kota dapat mendistribusikan barang logistik yang telah diterima dari Pemdaprov Jabar ke setiap fasyankes sesuai dengan rencana alokasi masing-masing. dengan batas waktu distribusi selama 4x24 jam.';
+            $texts[] = 'b. Fasyankes yang telah menerima barang dari Pemdaprov Jabar melalui Dinas Kesehatan Kab/Kota dapat melaporkan penerimaan barang tersebut melalui laman http://bit.ly/LaporPenerimaanLogistik dengan batas waktu maksimal 2x24 jam sejak barang diterima. Fasyankes diharapkan dapat koordinasi dengan Dinkes Kab/Kota mengenai kode permohonan dan nomor surat pemohon.';
+            $texts[] = 'c. Fasyankes yang menerima bantuan logistik dipersilakan untuk mengisi formulir penggunaan barang melalui laman http://bit.ly/LaporPenggunaanLogistik secara berkala setiap kali ada penggunaan barang.';
+            $texts[] = '';
+            $texts[] = '3. Jika barang yang diterima sudah habis terpakai, maka pelaporan penggunaan logistik dapat dihentikan.';
+            $texts[] = '';
+            $texts[] = 'Untuk panduan lebih lengkap, dapat dilihat pada link berikut :';
+            $texts[] = 'https://bit.ly/PanduanPelaporanLogistik';
+            $notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan pengecekan dan konfirmasi terhadap permohonan tersebut.';
         }
         return $this->view('email.logisticemailnotification')
                     ->subject($subject)
