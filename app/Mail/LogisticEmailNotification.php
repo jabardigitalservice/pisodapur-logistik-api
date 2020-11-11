@@ -41,24 +41,24 @@ class LogisticEmailNotification extends Mailable
         if ($this->status === Applicant::STATUS_NOT_VERIFIED) {
             $subject = '[Pikobar] Permohonan Logistik Diterima';
             $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.'; 
-            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' sudah kami terima.';
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' sudah kami terima.';
             $notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan pengecekan terhadap permohonan tersebut.';
         } elseif ($this->status === Applicant::STATUS_REJECTED) {
             $subject = '[Pikobar] Penolakan Permohonan Logistik';
             $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.'; 
-            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' tidak bisa kami penuhi.';
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' tidak bisa kami penuhi.';
             $texts[] = 'Dengan alasan penolakan sebagai berikut:'; 
             $notes[] = $this->agency->applicant->note;
             $notes[] = 'Mohon maaf atas ketidaknyamanan ini.';
         } elseif ($this->status === Applicant::STATUS_VERIFIED) {
             $subject = '[Pikobar] Permohonan Logistik Terverifikasi';
             $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
-            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . '  sudah dalam status terverifikasi. Selanjutnya kami akan melakukan pengecekan ketersediaan barang pada gudang logistik.';
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . '  sudah dalam status terverifikasi. Selanjutnya kami akan melakukan pengecekan ketersediaan barang pada gudang logistik.';
             $notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan pengecekan dan konfirmasi terhadap permohonan tersebut.';
         } else {
             $subject = '[Pikobar] Permohonan Logistik Sudah Realisasi Salur';
             $texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
-            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->applicant->id . ' sudah disetujui untuk realisasi salur logistik dan barang sudah siap untuk diambil/ dikirimkan.';
+            $texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' sudah disetujui untuk realisasi salur logistik dan barang sudah siap untuk diambil/ dikirimkan.';
             $texts[] = '';
             $texts[] = 'Jika barang sudah diterima oleh pemohon, silahkan untuk melaporkan penggunaan logistik dengan ketentuan berikut:';
             $texts[] = '';
