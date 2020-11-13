@@ -74,39 +74,13 @@ class Usage
     }
 
     /**
-     * Request used RDT result status
+     * Request used Pelaporan Integrate
      *
      * @return Array [ error, result_array ]
      */
-    static function getRdtResultSummary($city_code)
+    static function getPelaporanData($url)
     {
         $token = static::getPelaporanAuthToken();
-        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-result-by-cities?city_code=' . $city_code;
-        $res = static::getClient()->get($url, [
-            'verify' => false,
-            'headers' => [
-                'Authorization' => "Bearer $token",
-            ],
-        ]);
-
-        if ($res->getStatusCode() != 200) {
-            error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
-            return [ response()->format(500, 'Internal server error'), null ];
-        } else {
-            // Extract the data
-            return [ null, json_decode($res->getBody())->data ];
-        }
-    }
-
-    /**
-     * Request used RDT result status
-     *
-     * @return Array [ error, result_array ]
-     */
-    static function getRdtResultList($city_code)
-    {
-        $token = static::getPelaporanAuthToken();
-        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-result-list-by-cities?city_code=' . $city_code;
         $res = static::getClient()->get($url, [
             'verify' => false,
             'headers' => [

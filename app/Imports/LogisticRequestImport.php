@@ -18,6 +18,7 @@ use App\Village;
 use App\Product;
 use App\MasterUnit;
 use App\ProductUnit;
+use App\Imports\LogisticImport;
 use DB;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
@@ -32,7 +33,7 @@ class LogisticRequestImport implements ToCollection, WithStartRow
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
-            $dataImport = array(
+            $dataImport = [
                 'tanggal_pengajuan' => $row[0],
                 'jenis_instansi' => $row[1],
                 'nama_instansi' => $row[2],
@@ -50,12 +51,12 @@ class LogisticRequestImport implements ToCollection, WithStartRow
                 'file_surat_permohonan' => $row[14],
                 'list_logistik' => $row[15],
                 'status_verifikasi' => $row[16]
-            );
+            ];
 
             $createdAt = Date::excelToDateTimeObject($dataImport['tanggal_pengajuan']);
             $masterFaskesTypeId = $this->getMasterFaskesType($dataImport);
             $dataImport['master_faskes_type_id'] = $masterFaskesTypeId;
-            $masterFaskesId = $this->getMasterFaskes($dataImport);
+            $masterFaskesId = LogisticImport::getMasterFaskes($dataImport);
             $districtCityId = $this->getDistrictCity($dataImport);
             $subDistrictId = $this->getSubDistrict($dataImport);
             $villageId = $this->getVillage($dataImport);
@@ -163,24 +164,6 @@ class LogisticRequestImport implements ToCollection, WithStartRow
             ]);
         }
         return $masterFaskesType->id;
-    }
-
-    public function getMasterFaskes($data)
-    {
-        $masterFaskes = MasterFaskes::where('nama_faskes', 'LIKE', "%{$data['nama_instansi']}%")->first();
-
-        if (!$masterFaskes) {
-            $masterFaskes = MasterFaskes::create([
-                'id_tipe_faskes' => $data['master_faskes_type_id'],
-                'verification_status' => 'verified',
-                'nama_faskes' => $data['nama_instansi'],
-                'nama_atasan' => '-',
-                'nomor_registrasi' => '-',
-                'verification_status' => 'verified',
-                'is_imported' => true
-            ]);
-        }
-        return $masterFaskes->id;
     }
 
     public function getDistrictCity($data)
