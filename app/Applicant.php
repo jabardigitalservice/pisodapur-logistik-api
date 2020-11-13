@@ -192,4 +192,57 @@ class Applicant extends Model
         }
         return $applicant;
     }
+
+    static function undoStep($request)
+    {
+        $updateData = [];
+        switch ($request->step) {
+            case 'final':
+                $updateData = self::setNotYetFinalized($updateData);
+                $request['status'] = 'realisasi';
+                break;
+            case 'realisasi':
+                $updateData = self::setNotYetApproved($updateData);
+                $request['status'] = 'rekomendasi';
+                break;
+            case 'ditolak rekomendasi':
+                $updateData = self::setNotYetApproved($updateData);
+                $request['status'] = 'rekomendasi';
+                break;
+            default:
+                $updateData = self::setNotYetVerified($updateData);
+                $request['status'] = 'surat';
+                break;
+        }
+        $update = self::where('agency_id', '=', $request->id)->update($updateData);
+        return $request;
+    }
+
+    static function setNotYetFinalized($model) 
+    {
+        $model['finalized_by'] = null;
+        $model['finalized_at'] = null;
+        return $model;
+    }
+
+    static function setNotYetApproved($model) 
+    {
+        $model['approval_status'] = 'not_approved';
+        $model['approved_by'] = null;
+        $model['approved_at'] = null;
+        $model['approval_note'] = null;
+        $model = self::setNotYetFinalized($model);
+        return $model;
+    }
+
+    static function setNotYetVerified($model) 
+    {
+        $model['verification_status'] = 'not_verified';
+        $model['verified_by'] = null;
+        $model['verified_at'] = null;
+        $model['note'] = null;
+        $model = self::setNotYetApproved($model);
+        $model = self::setNotYetFinalized($model);
+        return $model;
+    }
 }

@@ -583,4 +583,21 @@ class LogisticRequestController extends Controller
         }
         return $response;
     }
+
+    public function undoStep(Request $request)
+    {
+        $param = [
+            'id' => 'required|numeric',
+            'step' => 'required',
+            'url' => 'required'
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            $request = Applicant::undoStep($request);
+            $request['agency_id'] = $request->id;
+            $whatsapp = $this->sendWhatsappNotification($request, $request['status']);
+            $response = response()->format(200, 'success', $request->all());
+        }
+        return $response;
+    }
 }
