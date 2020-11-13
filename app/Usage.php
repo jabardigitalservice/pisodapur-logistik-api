@@ -64,13 +64,7 @@ class Usage
             ],
         ]);
 
-        if ($res->getStatusCode() != 200) {
-            error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
-            return [ response()->format(500, 'Internal server error'), null ];
-        } else {
-            // Extract the data
-            return [ null,  json_decode($res->getBody())->data ];
-        }
+        return self::returnData($res);
     }
 
     /**
@@ -88,6 +82,11 @@ class Usage
             ],
         ]);
 
+        return self::returnData($res);
+    }
+
+    static function returnData($res)
+    {
         if ($res->getStatusCode() != 200) {
             error_log("Error: pelaporan API returning status code ".$res->getStatusCode());
             return [ response()->format(500, 'Internal server error'), null ];
