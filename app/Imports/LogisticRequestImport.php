@@ -18,6 +18,7 @@ use App\Village;
 use App\Product;
 use App\MasterUnit;
 use App\ProductUnit;
+use App\Imports\LogisticImport;
 use DB;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
@@ -32,7 +33,7 @@ class LogisticRequestImport implements ToCollection, WithStartRow
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
-            $dataImport = array(
+            $dataImport = [
                 'tanggal_pengajuan' => $row[0],
                 'jenis_instansi' => $row[1],
                 'nama_instansi' => $row[2],
@@ -50,103 +51,12 @@ class LogisticRequestImport implements ToCollection, WithStartRow
                 'file_surat_permohonan' => $row[14],
                 'list_logistik' => $row[15],
                 'status_verifikasi' => $row[16]
-            );
-
-            $createdAt = Date::excelToDateTimeObject($dataImport['tanggal_pengajuan']);
-            $masterFaskesTypeId = $this->getMasterFaskesType($dataImport);
-            $dataImport['master_faskes_type_id'] = $masterFaskesTypeId;
-            $masterFaskesId = $this->getMasterFaskes($dataImport);
-            $districtCityId = $this->getDistrictCity($dataImport);
-            $subDistrictId = $this->getSubDistrict($dataImport);
-            $villageId = $this->getVillage($dataImport);
-            $logisticList = $this->getLogisticList($dataImport);
+            ];
+            $dataSet = $this->setData($dataImport);
+            $dataImport['master_faskes_type_id'] = $dataSet['masterFaskesTypeId'];
 
             if ($dataImport['tanggal_pengajuan'] && $dataImport['jenis_instansi'] && $dataImport['nama_instansi']) {
-
-                if (!$masterFaskesTypeId) {
-
-                    $dataImport['status'] = 'invalid';
-                    $dataImport['notes'] = 'Jenis instansi tidak terdaftar di data master';
-                    $this->result[] = $dataImport;
-                    $this->invalidItemLogistic = [];
-                    $this->invalidFormatLogistic = [];
-                } else if (!$masterFaskesId) {
-
-                    $dataImport['status'] = 'invalid';
-                    $dataImport['notes'] = 'Nama instansi tidak terdaftar di data master';
-                    $this->result[] = $dataImport;
-                    $this->invalidItemLogistic = [];
-                    $this->invalidFormatLogistic = [];
-                } else if (count($this->invalidFormatLogistic) > 0) {
-
-                    $dataImport['status'] = 'invalid';
-                    $dataImport['notes'] = implode(",", $this->invalidFormatLogistic);
-                    $this->result[] = $dataImport;
-                    $this->invalidItemLogistic = [];
-                    $this->invalidFormatLogistic = [];
-                } else if (count($this->invalidItemLogistic) > 0) {
-
-                    $dataImport['status'] = 'invalid';
-                    $dataImport['notes'] = implode(",", $this->invalidItemLogistic);
-                    $this->result[] = $dataImport;
-                    $this->invalidItemLogistic = [];
-                    $this->invalidFormatLogistic = [];
-                } else {
-
-                    $agency = Agency::create([
-                        'master_faskes_id' => $masterFaskesId,
-                        'agency_type' => $masterFaskesTypeId,
-                        'agency_name' => $dataImport['nama_instansi'] ? $dataImport['nama_instansi'] : '-',
-                        'phone_number' => $dataImport['telepon_instansi'] ? $dataImport['telepon_instansi'] : '-',
-                        'location_district_code' => $districtCityId ? $districtCityId : '-',
-                        'location_subdistrict_code' => $subDistrictId ? $subDistrictId : '-',
-                        'location_village_code' => $villageId ? $villageId : '-',
-                        'location_address' => $dataImport['alamat'] ? $dataImport['alamat'] : '-',
-                        'created_at' => $createdAt,
-                        'updated_at' => $createdAt
-                    ]);
-
-                    $applicant = Applicant::create([
-                        'agency_id' => $agency->id,
-                        'applicant_name' => $dataImport['nama_pemohon'] ? $dataImport['nama_pemohon'] : '-',
-                        'applicants_office' => $dataImport['jabatan_pemohon'] ? $dataImport['jabatan_pemohon'] : '-',
-                        'file' => $this->getFileUpload($dataImport['file_ktp']),
-                        'email' => $dataImport['email_pemohon'] ? $dataImport['email_pemohon'] : '-',
-                        'primary_phone_number' => $dataImport['telepon_pemohon_1'] ? $dataImport['telepon_pemohon_1'] : '-',
-                        'secondary_phone_number' => $dataImport['telepon_pemohon_2'] ? $dataImport['telepon_pemohon_2'] : '-',
-                        'verification_status' => $dataImport['status_verifikasi'],
-                        'created_at' => $createdAt,
-                        'updated_at' => $createdAt
-                    ]);
-
-                    $letter = Letter::create([
-                        'agency_id' => $agency->id,
-                        'applicant_id' => $applicant->id,
-                        'letter' => $this->getFileUpload($dataImport['file_surat_permohonan'])
-                    ]);
-
-                    foreach ($logisticList as $logisticItem) {
-                        $unitId = $this->getMasterUnit($logisticItem);
-                        $need = Needs::create(
-                            [
-                                'agency_id' => $agency->id,
-                                'applicant_id' => $applicant->id,
-                                'product_id' => $logisticItem['product_id'],
-                                'brand' => $logisticItem[1],
-                                'quantity' => $logisticItem[2],
-                                'unit' => $unitId,
-                                'usage' => $logisticItem[4],
-                                'priority' => $logisticItem[5]
-                            ]
-                        );
-                    }
-
-                    $dataImport['status'] = 'valid';
-                    $dataImport['notes'] = '';
-                    $this->result[] = $dataImport;
-                    $this->invalidItemLogistic = [];
-                    $this->invalidFormatLogistic = [];
-                }
+                $this->validatingDataImport($dataSet, $dataImport);
             }
         }
 
@@ -163,24 +73,6 @@ class LogisticRequestImport implements ToCollection, WithStartRow
             ]);
         }
         return $masterFaskesType->id;
-    }
-
-    public function getMasterFaskes($data)
-    {
-        $masterFaskes = MasterFaskes::where('nama_faskes', 'LIKE', "%{$data['nama_instansi']}%")->first();
-
-        if (!$masterFaskes) {
-            $masterFaskes = MasterFaskes::create([
-                'id_tipe_faskes' => $data['master_faskes_type_id'],
-                'verification_status' => 'verified',
-                'nama_faskes' => $data['nama_instansi'],
-                'nama_atasan' => '-',
-                'nomor_registrasi' => '-',
-                'verification_status' => 'verified',
-                'is_imported' => true
-            ]);
-        }
-        return $masterFaskes->id;
     }
 
     public function getDistrictCity($data)
@@ -277,5 +169,109 @@ class LogisticRequestImport implements ToCollection, WithStartRow
     public function startRow(): int
     {
         return 2;
+    }
+    
+    public function setData($dataImport)
+    {
+        $ret['createdAt'] = Date::excelToDateTimeObject($dataImport['tanggal_pengajuan']);
+        $ret['masterFaskesTypeId'] = $this->getMasterFaskesType($dataImport);
+        $dataImport['master_faskes_type_id'] = $ret['masterFaskesTypeId'];
+        $ret['masterFaskesId'] = LogisticImport::getMasterFaskes($dataImport);
+        $ret['districtCityId'] = $this->getDistrictCity($dataImport);
+        $ret['subDistrictId'] = $this->getSubDistrict($dataImport);
+        $ret['villageId'] = $this->getVillage($dataImport);
+        $ret['logisticList'] = $this->getLogisticList($dataImport);
+
+        return $ret;
+    }
+
+    public function validatingDataImport($dataSet, $dataImport)
+    {
+        $dataImport['status'] = 'invalid';
+        if (!$dataSet['masterFaskesTypeId']) {
+            $dataImport['notes'] = 'Jenis instansi tidak terdaftar di data master';
+        } else if (!$dataSet['masterFaskesId']) {
+            $dataImport['notes'] = 'Nama instansi tidak terdaftar di data master';
+        } else if (count($this->invalidFormatLogistic) > 0) {
+            $dataImport['notes'] = implode(",", $this->invalidFormatLogistic);
+            $this->result[] = $dataImport;
+        } else if (count($this->invalidItemLogistic) > 0) {
+            $dataImport['notes'] = implode(",", $this->invalidItemLogistic);
+        } else {
+            $this->insertData($dataSet, $dataImport);
+            $dataImport['status'] = 'valid';
+            $dataImport['notes'] = '';
+        }
+        $this->result[] = $dataImport;
+        $this->invalidItemLogistic = [];
+        $this->invalidFormatLogistic = [];
+    }
+
+    public function insertData($dataSet, $dataImport)
+    {
+        $agency = Agency::create($this->setAgencyData($dataSet, $dataImport));
+        $dataSet['agency_id'] = $agency->id;
+        $applicant = Applicant::create($this->setApplicantData($dataSet, $dataImport));
+        $dataSet['applicant_id'] = $applicant->id;
+
+        $letter = Letter::create($this->setLetterData($dataSet, $dataImport));
+
+        foreach ($dataSet['logisticList'] as $logisticItem) {
+            $unitId = $this->getMasterUnit($logisticItem);
+            $need = Needs::create([
+                'agency_id' => $agency->id,
+                'applicant_id' => $applicant->id,
+                'product_id' => $logisticItem['product_id'],
+                'brand' => $logisticItem[1],
+                'quantity' => $logisticItem[2],
+                'unit' => $unitId,
+                'usage' => $logisticItem[4],
+                'priority' => $logisticItem[5]
+            ]);
+        }
+    }
+
+    public function setAgencyData($dataSet, $dataImport)
+    {
+        $result = [
+            'master_faskes_id' => $dataSet['masterFaskesId'],
+            'agency_type' => $dataSet['masterFaskesTypeId'],
+            'agency_name' => $dataImport['nama_instansi'] ? $dataImport['nama_instansi'] : '-',
+            'phone_number' => $dataImport['telepon_instansi'] ? $dataImport['telepon_instansi'] : '-',
+            'location_district_code' => $dataSet['districtCityId'] ? $dataSet['districtCityId'] : '-',
+            'location_subdistrict_code' => $dataSet['subDistrictId'] ? $dataSet['subDistrictId'] : '-',
+            'location_village_code' => $dataSet['villageId'] ? $dataSet['villageId'] : '-',
+            'location_address' => $dataImport['alamat'] ? $dataImport['alamat'] : '-',
+            'created_at' => $dataSet['createdAt'],
+            'updated_at' => $dataSet['createdAt']
+        ];
+        return $result;
+    }
+
+    public function setApplicantData($dataSet, $dataImport)
+    {
+        $result = [
+            'agency_id' => $dataSet['agency_id'],
+            'applicant_name' => $dataImport['nama_pemohon'] ? $dataImport['nama_pemohon'] : '-',
+            'applicants_office' => $dataImport['jabatan_pemohon'] ? $dataImport['jabatan_pemohon'] : '-',
+            'file' => $this->getFileUpload($dataImport['file_ktp']),
+            'email' => $dataImport['email_pemohon'] ? $dataImport['email_pemohon'] : '-',
+            'primary_phone_number' => $dataImport['telepon_pemohon_1'] ? $dataImport['telepon_pemohon_1'] : '-',
+            'secondary_phone_number' => $dataImport['telepon_pemohon_2'] ? $dataImport['telepon_pemohon_2'] : '-',
+            'verification_status' => $dataImport['status_verifikasi'],
+            'created_at' => $dataSet['createdAt'],
+            'updated_at' => $dataSet['createdAt']
+        ];
+        return $result;
+    }
+
+    public function setLetterData($dataSet, $dataImport)
+    {
+        $result = [
+            'agency_id' => $dataSet['agency_id'],
+            'applicant_id' => $dataSet['applicant_id'],
+            'letter' => $this->getFileUpload($dataImport['file_surat_permohonan'])
+        ];
+        return $result;
     }
 }
