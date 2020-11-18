@@ -45,6 +45,7 @@ class UsersController extends ApiController
             'agency_name' => 'required',
             'code_district_city' => 'required',
             'name_district_city' => 'required',
+            'phase' => 'required',
         ];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
@@ -57,6 +58,7 @@ class UsersController extends ApiController
                 'agency_name' => $request->agency_name,
                 'code_district_city' => $request->code_district_city,
                 'name_district_city' => $request->name_district_city,
+                'phase' => $request->phase,
             ]);
             $response = response()->format(200, true, [
                 'token' => JWTAuth::fromUser($user),
