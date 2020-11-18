@@ -235,7 +235,7 @@ class OutgoingLetterController extends Controller
             'soh_location_name as location'
         )
         ->join('agency', 'agency.id', '=', 'agency_id')
-        ->join('poslog_products', 'poslog_products.material_id', '=', 'final_product_id')
+        ->join('poslog_products', 'poslog_products.material_id', '=', 'final_product_id', 'left')
         ->whereIn('applicant_id', $requestLetterList)
         ->whereIn('final_status', ['approved', 'replaced'])
         ->groupBy(
