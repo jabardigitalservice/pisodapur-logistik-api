@@ -38,9 +38,7 @@ class OutgoingLetterController extends Controller
                 $query->where('user_id',  JWTAuth::user()->id);
             }
         });
-        $data = $data->join('request_letters', 'request_letters.outgoing_letter_id', '=', 'outgoing_letters.id');
-        $data = $data->join('applicants', 'request_letters.applicant_id', '=', 'applicants.id');
-        $data = $data->orderBy('applicants.created_at', $sortType)->paginate($limit);
+        $data = $data->orderBy('letter_date', $sortType)->orderBy('created_at', $sortType)->paginate($limit);
         $response = response()->format(200, 'success', $data);
         return $response;
     }
@@ -237,7 +235,7 @@ class OutgoingLetterController extends Controller
             'soh_location_name as location'
         )
         ->join('agency', 'agency.id', '=', 'agency_id')
-        ->join('poslog_products', 'poslog_products.material_id', '=', 'final_product_id')
+        ->join('poslog_products', 'poslog_products.material_id', '=', 'final_product_id', 'left')
         ->whereIn('applicant_id', $requestLetterList)
         ->whereIn('final_status', ['approved', 'replaced'])
         ->groupBy(
