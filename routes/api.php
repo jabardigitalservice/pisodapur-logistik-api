@@ -18,6 +18,11 @@ use Illuminate\Http\Request;
 Route::get('v1/welcome', 'API\v1\WelcomeController@index');
 Route::post('v1/login', 'API\v1\UsersController@authenticate');
 Route::post('v1/authenticate', 'API\v1\UsersController@authenticate');
+Route::get('v1/ping', function() {
+  $response = Response::make(gethostname(), 200);
+  $response->header('Content-Type', 'text/plain');
+  return $response;
+});
 
 // Landing Page Registration
 Route::namespace('API\v1')->group(function () {
@@ -105,6 +110,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/logistic-request/letter/{id}', 'LogisticRequestController@uploadLetter');
     Route::post('v1/logistic-request/identity/{id}', 'LogisticRequestController@uploadApplicantFile');
     Route::post('v1/logistic-request/urgency', 'LogisticRequestController@urgencyChange');
+    Route::post('v1/logistic-request/return', 'LogisticRequestController@undoStep');
     Route::put('v1/logistic-request/{id}', 'LogisticRequestController@update');
     Route::post('v1/logistic-request/applicant-letter/{id}', 'LogisticRequestController@update');
     Route::post('v1/logistic-request/applicant-identity/{id}', 'LogisticRequestController@update');
