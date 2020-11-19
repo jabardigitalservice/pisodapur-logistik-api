@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logistik-api-app
+  namespace: logistik
+  labels:
+    app: logistik-api-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: logistik-api-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: logistik-api-app
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: logistik-api-app
+          image: registry.digitalservice.id/logistik-pikobar/api-logistik-production:%VERSION%
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "1024Mi"
+              cpu: "500m"
+          envFrom:
+          - configMapRef:
+              name: logistik-configmap-file-prod
+          - secretRef:
+              name: logistik-secret-file-prod
+      imagePullSecrets:
+        - name: regcred-logistik
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - jds-rancher-node-01
+                - jds-rancher-node-02
+                - jds-rancher-node-03
+                - jds-rancher-node-04
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/os
+                operator: In
+                values:
+                - linux
