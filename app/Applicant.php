@@ -245,4 +245,42 @@ class Applicant extends Model
         $model = self::setNotYetFinalized($model);
         return $model;
     }
+
+    static function getTotalBy($createdAt, $params)
+    {
+        $total = self::Select('applicants.id', 'applicants.updated_at') 
+        ->whereBetween('created_at', $createdAt)
+        ->where('is_deleted', '!=' , 1);
+
+        if ($params['source_data']) {
+            $total = $total->where('source_data', $params['source_data']);
+        }
+        
+        if ($params['approval_status'] && $params['verification_status']) {
+            $total = $total->where('approval_status', $params['approval_status'])
+            ->where('verification_status', $params['verification_status']);
+        }
+        return $total;
+    }
+
+    static function requestSummaryResult($params)
+    {        
+        $params['totalRejected'] = $params['totalVerificationRejected'] + $params['totalApprovalRejected'];
+        $params['total'] = $params['totalUnverified'] + $params['totalVerified'] + $params['totalApproved'] + $params['totalFinal'] + $params['totalRejected'];
+
+        $data = [
+            'total_request' => $params['total'],
+            'total_approved' => $params['totalApproved'],
+            'total_final' => $params['totalFinal'],
+            'total_unverified' => $params['totalUnverified'],
+            'total_verified' => $params['totalVerified'],
+            'total_rejected' => $params['totalRejected'],
+            'total_approval_rejected' => $params['totalApprovalRejected'],
+            'total_verification_rejected' => $params['totalVerificationRejected'],
+            'total_pikobar' => $params['totalPikobar'],
+            'total_dinkesprov' => $params['totalDinkesprov'],
+            'last_update' => $params['lastUpdate'] ? date('Y-m-d H:i:s', strtotime($params['lastUpdate']->updated_at)) : '2020-01-01 00:00:00'
+        ];
+        return $data;
+    }
 }

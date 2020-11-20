@@ -28,71 +28,88 @@ class LogisticImport extends Model
 
         foreach ($application as $item) {
             if (isset($item['id_permohonan']) && isset($item['tanggal_pengajuan']) && isset($item['jenis_instansi']) && isset($item['nama_instansi'])) {
-
-                $masterFaskesTypeId = self::getMasterFaskesType($item);
-                $item['master_faskes_type_id'] = $masterFaskesTypeId;
-                $masterFaskesId = self::getMasterFaskes($item);
-                $districtCityId = self::getDistrictCity($item);
-                $subDistrictId = self::getSubDistrict($item);
-                $villageId = self::getVillage($item);
-                $products = self::findProductInSheet($data, $item['id_permohonan']);
-
                 $createdAt = Date::excelToDateTimeObject($item['tanggal_pengajuan']);
-
-                $agency = Agency::create([
-                    'master_faskes_id' => $masterFaskesId,
-                    'agency_type' => $masterFaskesTypeId,
-                    'agency_name' => $item['nama_instansi'] ?: '-',
-                    'phone_number' => $item['nomor_telepon'] ?: '-',
-                    'location_district_code' => $districtCityId ?: '-',
-                    'location_subdistrict_code' => $subDistrictId ?: '-',
-                    'location_village_code' => $villageId ?: '-',
-                    'location_address' => $item['alamat'] ?: '-',
-                    'created_at' => $createdAt,
-                    'updated_at' => $createdAt
-                ]);
-
-                $applicant = Applicant::create([
-                    'agency_id' => $agency->id,
-                    'applicant_name' => $item['nama_pemohon'] ?: '-',
-                    'applicants_office' => $item['jabatan_pemohon'] ?: '-',
-                    'file' => self::getFileUpload($item['ktp']),
-                    'email' => $item['email_pemohon'] ?: '-',
-                    'primary_phone_number' => $item['nomor_telepon_pemohon_1'] ?: '-',
-                    'secondary_phone_number' => $item['nomor_telepon_pemohon_2'] ?: '-',
-                    'verification_status' => $item['status_verifikasi'],
-                    'source_data' => $item['source_data'],
-                    'created_by' => $user->id,
-                    'updated_by' => $user->id,
-                    'verified_by' => $user->id,
-                    'created_at' => $createdAt,
-                    'updated_at' => $createdAt
-                ]);
-
-                $letter = Letter::create([
-                    'agency_id' => $agency->id,
-                    'applicant_id' => $applicant->id,
-                    'letter' => self::getFileUpload($item['surat_permohonan'])
-                ]);
-
-                if (count($products) > 0) {
-                    foreach ($products as $product) {
-                        $need = Needs::create(
-                            [
-                                'agency_id' => $agency->id,
-                                'applicant_id' => $applicant->id,
-                                'product_id' => $product['product_id'],
-                                'brand' => $product['deskripsi_produk'],
-                                'quantity' => $product['jumlah'],
-                                'unit' => $product['unit_id'],
-                                'usage' => $product['kegunaan'],
-                                'priority' => $product['urgensi']
-                            ]
-                        );
-                    }
-                }
+                $item['agency'] = self::createAgency($item, $createdAt);
+                $item['applicant'] = self::createApplicant($item, $user, $createdAt);                
+                self::createProducts($products, $data, $item);
+                $letter = self::createLetter($item);
             }
         }
+    }
+
+    static function createAgency($item, $createdAt)
+    {
+        $item['master_faskes_type_id'] = self::getMasterFaskesType($item);
+        $masterFaskesId = self::getMasterFaskes($item);
+        $districtCityId = self::getDistrictCity($item) ?: '-';
+        $subDistrictId = self::getSubDistrict($item) ?: '-';
+        $villageId = self::getVillage($item) ?: '-';
+
+        $agency = Agency::create([
+            'master_faskes_id' => $masterFaskesId,
+            'agency_type' => $item['master_faskes_type_id'],
+            'agency_name' => $item['nama_instansi'] ?: '-',
+            'phone_number' => $item['nomor_telepon'] ?: '-',
+            'location_district_code' => $districtCityId,
+            'location_subdistrict_code' => $subDistrictId,
+            'location_village_code' => $villageId,
+            'location_address' => $item['alamat'] ?: '-',
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt
+        ]);
+
+        return $agency;
+    }
+
+    static function createApplicant($item, $user, $createdAt)
+    {        
+        $applicant = Applicant::create([
+            'agency_id' => $item['agency']->id,
+            'applicant_name' => $item['nama_pemohon'] ?: '-',
+            'applicants_office' => $item['jabatan_pemohon'] ?: '-',
+            'file' => self::getFileUpload($item['ktp']),
+            'email' => $item['email_pemohon'] ?: '-',
+            'primary_phone_number' => $item['nomor_telepon_pemohon_1'] ?: '-',
+            'secondary_phone_number' => $item['nomor_telepon_pemohon_2'] ?: '-',
+            'verification_status' => $item['status_verifikasi'],
+            'source_data' => $item['source_data'],
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'verified_by' => $user->id,
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt
+        ]);
+        return $applicant;
+    }
+
+    static function createProducts($products, $data, $item)
+    {
+        $products = self::findProductInSheet($data, $item['id_permohonan']);
+        if (count($products) > 0) {
+            foreach ($products as $product) {
+                $need = Needs::create(
+                    [
+                        'agency_id' => $item['agency']->id,
+                        'applicant_id' => $item['applicant']->id,
+                        'product_id' => $product['product_id'],
+                        'brand' => $product['deskripsi_produk'],
+                        'quantity' => $product['jumlah'],
+                        'unit' => $product['unit_id'],
+                        'usage' => $product['kegunaan'],
+                        'priority' => $product['urgensi']
+                    ]
+                );
+            }
+        }
+    }
+
+    static function createLetter($item)
+    {
+        $letter = Letter::create([
+            'agency_id' => $item['agency']->id,
+            'applicant_id' => $item['applicant']->id,
+            'letter' => self::getFileUpload($item['surat_permohonan'])
+        ]);
     }
 
     public static function getMasterFaskesType($data)
