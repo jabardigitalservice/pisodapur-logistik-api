@@ -193,9 +193,13 @@ pipeline {
 
                         kubectl apply -f kubernetes/deployment-logistik-api.yaml --dry-run=client --validate
                         kubectl apply -f kubernetes/service-logistik-api.yaml --dry-run=client --validate
+                        kubectl apply -f kubernetes/configmap-logistik-api.yaml --dry-run=client --validate
+                        kubectl apply -f kubernetes/secret-logistik-api.yaml --dry-run=client --validate
 
-                        kubectl apply -f kubernetes/service-logistik-api.yaml
                         kubectl apply -f kubernetes/deployment-logistik-api.yaml
+                        kubectl apply -f kubernetes/configmap-logistik-api.yaml
+                        kubectl apply -f kubernetes/secret-logistik-api.yaml
+                        kubectl apply -f kubernetes/service-logistik-api.yaml
                         kubectl get pods --namespace pikobar-logistik
                     '''
               }
