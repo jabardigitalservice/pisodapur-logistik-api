@@ -244,88 +244,22 @@ class Applicant extends Model
         $model = self::setNotYetApproved($model);
         $model = self::setNotYetFinalized($model);
         return $model;
-    }    
+    }
 
-    static function getTotal($request, $startDate, $endDate)
+    static function getTotalBy($createdAt, $params)
     {
-        $lastUpdate = self::Select('applicants.updated_at') 
-        ->where('is_deleted', '!=' , 1) 
-        ->orderBy('updated_at', 'desc')
-        ->first();
+        $total = self::Select('applicants.id', 'applicants.updated_at') 
+        ->whereBetween('created_at', $createdAt)
+        ->where('is_deleted', '!=' , 1);
 
-        $totalPikobar = self::Select('applicants.id') 
-        ->where('source_data', 'pikobar')
-        ->where('is_deleted', '!=' , 1)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-
-        $totalDinkesprov = self::Select('applicants.id') 
-        ->where('source_data', 'dinkes_provinsi')
-        ->where('is_deleted', '!=' , 1)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-
-        $totalUnverified = self::Select('applicants.id') 
-        ->where('approval_status', self::STATUS_NOT_APPROVED) 
-        ->where('verification_status', self::STATUS_NOT_VERIFIED) 
-        ->where('is_deleted', '!=' , 1)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-
-        $totalApproved = self::Select('applicants.id') 
-        ->where('approval_status', self::STATUS_APPROVED) 
-        ->where('verification_status', self::STATUS_VERIFIED)
-        ->whereNull('finalized_by')
-        ->where('is_deleted', '!=' , 1)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-
-        $totalFinal = self::Select('applicants.id') 
-        ->where('approval_status', self::STATUS_APPROVED) 
-        ->where('verification_status', self::STATUS_VERIFIED)
-        ->whereNotNull('finalized_by')
-        ->where('is_deleted', '!=' , 1)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-
-        $totalVerified = self::Select('applicants.id') 
-        ->where('approval_status', self::STATUS_NOT_APPROVED) 
-        ->where('verification_status', self::STATUS_VERIFIED) 
-        ->where('is_deleted', '!=' , 1)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-
-        $totalVerificationRejected = self::Select('applicants.id') 
-        ->where('approval_status', self::STATUS_NOT_APPROVED) 
-        ->where('verification_status', self::STATUS_REJECTED)
-        ->where('is_deleted', '!=' , 1)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-
-        $totalApprovalRejected = self::Select('applicants.id') 
-        ->where('approval_status', self::STATUS_REJECTED)
-        ->where('verification_status', self::STATUS_VERIFIED)
-        ->where('is_deleted', '!=' , 1)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-
-        $totalRejected = $totalVerificationRejected + $totalApprovalRejected;
-        $total = $totalUnverified + $totalVerified + $totalApproved + $totalFinal + $totalRejected;
-
-        $data = [
-            'total_request' => $total,
-            'total_approved' => $totalApproved,
-            'total_final' => $totalFinal,
-            'total_unverified' => $totalUnverified,
-            'total_verified' => $totalVerified,
-            'total_rejected' => $totalRejected,
-            'total_approval_rejected' => $totalApprovalRejected,
-            'total_verification_rejected' => $totalVerificationRejected,
-            'total_pikobar' => $totalPikobar,
-            'total_dinkesprov' => $totalDinkesprov,
-            'last_update' => $lastUpdate ? date('Y-m-d H:i:s', strtotime($lastUpdate->updated_at)) : '2020-01-01 00:00:00'
-        ];
-
-        return $data;
+        if ($params['source_data']) {
+            $total = $total->where('source_data', $params['source_data']);
+        }
+        
+        if ($params['approval_status'] && $params['verification_status']) {
+            $total = $total->where('approval_status', $params['approval_status'])
+            ->where('verification_status', $params['verification_status']);
+        }
+        return $total;
     }
 }

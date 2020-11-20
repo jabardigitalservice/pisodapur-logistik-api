@@ -243,7 +243,32 @@ class LogisticRequestController extends Controller
         $startDate = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
         $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
         try {
-            $data = Applicant::getTotal($request, $startDate, $endDate);
+            $lastUpdate = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => false, 'verification_status' => false])->orderBy('updated_at', 'desc')->first();
+            $totalPikobar = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => 'pikobar', 'approval_status' => false, 'verification_status' => false])->count();
+            $totalDinkesprov = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => 'dinkes_provinsi', 'approval_status' => false, 'verification_status' => false])->count();
+            $totalUnverified = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_NOT_VERIFIED])->count();
+            $totalApproved = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->whereNull('finalized_by')->count();
+            $totalFinal = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->whereNotNull('finalized_by')->count();
+            $totalVerified = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->count();
+            $totalVerificationRejected = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_REJECTED])->count();
+            $totalApprovalRejected = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_REJECTED, 'verification_status' => Applicant::STATUS_VERIFIED])->count();
+
+            $totalRejected = $totalVerificationRejected + $totalApprovalRejected;
+            $total = $totalUnverified + $totalVerified + $totalApproved + $totalFinal + $totalRejected;
+
+            $data = [
+                'total_request' => $total,
+                'total_approved' => $totalApproved,
+                'total_final' => $totalFinal,
+                'total_unverified' => $totalUnverified,
+                'total_verified' => $totalVerified,
+                'total_rejected' => $totalRejected,
+                'total_approval_rejected' => $totalApprovalRejected,
+                'total_verification_rejected' => $totalVerificationRejected,
+                'total_pikobar' => $totalPikobar,
+                'total_dinkesprov' => $totalDinkesprov,
+                'last_update' => $lastUpdate ? date('Y-m-d H:i:s', strtotime($lastUpdate->updated_at)) : '2020-01-01 00:00:00'
+            ];
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
