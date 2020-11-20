@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Needs;
 use App\Agency;
 use App\Applicant;
+use App\LogisticRequest;
 use App\FileUpload;
 use App\Http\Resources\LogisticRequestResource;
 use DB;
@@ -93,45 +94,28 @@ class LogisticRequestController extends Controller
 
     public function update(Request $request, $id)
     {
-        $param = [
-            'update_type' => 'required'
-        ];
+        $param['update_type'] = 'required';
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            try {
-                switch ($request->update_type) {
-                    case 1:
-                        $model = Agency::findOrFail($id);
-                        $request['agency_name'] = MasterFaskes::getFaskesName($request);
-                        break;
-                    case 2:
-                        $model = Applicant::findOrFail($id);
-                        $request['email'] = (!$request->input('email')) ? '' : $request->input('email', '');
-                        $request['applicants_office'] = (!$request->input('applicants_office')) ? '' : $request->input('applicants_office', '');
-                        if ($request->hasFile('applicant_file')) {
-                            $response = FileUpload::storeApplicantFile($request);
-                            $request['file'] = $response->id;
-                        }
-                        break;
-                    case 3:
-                        $model = Applicant::findOrFail($id);
-                        if ($request->hasFile('letter_file')) {
-                            $request['agency_id'] = $id;
-                            $response = FileUpload::storeLetterFile($request);
-                        }
-                        break;
-                    default:
-                        $model = Agency::findOrFail($id);
-                        $request['agency_name'] = MasterFaskes::getFaskesName($request);
-                        break;
-                }
-                unset($request['id']);
-                $model->fill($request->all());
-                $model->save();
-                $response = response()->format(200, 'success');
-            } catch (\Exception $exception) {
-                $response = response()->format(400, $exception->getMessage());
+            switch ($request->update_type) {
+                case 1:
+                    $model = Agency::findOrFail($id);
+                    $request['agency_name'] = MasterFaskes::getFaskesName($request);
+                    break;
+                case 2:
+                    $model = Applicant::findOrFail($id);
+                    $request = LogisticRequest::setRequestApplicant($request);
+                    break;
+                case 3:
+                    $model = Applicant::findOrFail($id);
+                    $request = LogisticRequest::setRequestEditLetter($request, $id);
+                    break;
+                default:
+                    $model = Agency::findOrFail($id);
+                    $request['agency_name'] = MasterFaskes::getFaskesName($request);
+                    break;
             }
+            $response = LogisticRequest::saveData($model, $request);
         }
         return $response;
     }
