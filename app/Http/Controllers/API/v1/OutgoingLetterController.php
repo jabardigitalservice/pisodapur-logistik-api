@@ -94,42 +94,11 @@ class OutgoingLetterController extends Controller
     {
         $data = [];
         try {
-            $outgoingLetter = OutgoingLetter::select(
-                'id',
-                'letter_number',
-                'letter_date'
-            )->find($id);
-            $requestLetter = RequestLetter::select(
-                'request_letters.id',
-                'request_letters.outgoing_letter_id',
-                'request_letters.applicant_id',
-                'applicants.application_letter_number',
-                'applicants.agency_id',
-                'applicants.created_at',
-                'agency.agency_name',
-                'agency.location_district_code',
-                'districtcities.kemendagri_kabupaten_nama',
-                'applicants.applicant_name'
-            )
-            ->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
-            ->join('agency', 'agency.id', '=', 'applicants.agency_id')
-            ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
-            ->where('request_letters.outgoing_letter_id', $id)
-            ->orderBy('request_letters.id')->get();
+            $requestLetter = RequestLetter::getForPrint($id);
             $materials = $this->getAllMaterials($requestLetter);
-            //Return Image to base64 format
-            $pathPemprov = env('AWS_CLOUDFRONT_URL') . 'logo/pemprov_jabar.png';
-            $pathDivLog = env('AWS_CLOUDFRONT_URL') . 'logo/divisi_managemen_logistik.png';
-            $dataPemprov = file_get_contents($pathPemprov);
-            $dataDivlog = file_get_contents($pathDivLog);
-            $pemprovLogo = 'data:image/png;base64,' . base64_encode($dataPemprov);
-            $divlogLogo = 'data:image/png;base64,' . base64_encode($dataDivlog);
             $data = [
-                'image' => [
-                    'pemprov' => $pemprovLogo,
-                    'divlog' => $divlogLogo,
-                ],
-                'outgoing_letter' => $outgoingLetter,
+                'image' => $this->getImageBlog(),
+                'outgoing_letter' => OutgoingLetter::getPrintOutgoingLetter($id),
                 'request_letter' => $requestLetter,
                 'material' => $materials,
             ];
@@ -137,6 +106,21 @@ class OutgoingLetterController extends Controller
             return response()->format(400, $exception->getMessage());
         }
         return response()->format(200, 'success', $data);
+    }
+
+    public function getImageBlog()
+    {
+        //Return Image to base64 format
+        $pathPemprov = env('AWS_CLOUDFRONT_URL') . 'logo/pemprov_jabar.png';
+        $pathDivLog = env('AWS_CLOUDFRONT_URL') . 'logo/divisi_managemen_logistik.png';
+        $dataPemprov = file_get_contents($pathPemprov);
+        $dataDivlog = file_get_contents($pathDivLog);
+        $pemprovLogo = 'data:image/png;base64,' . base64_encode($dataPemprov);
+        $divlogLogo = 'data:image/png;base64,' . base64_encode($dataDivlog);
+        return [
+            'pemprov' => $pemprovLogo,
+            'divlog' => $divlogLogo,
+        ];
     }
 
     public function upload(Request $request)

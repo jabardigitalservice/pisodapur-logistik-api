@@ -68,4 +68,14 @@ class OutgoingLetter extends Model
         ->where('applicants.verification_status', '=', Applicant::STATUS_VERIFIED)
         ->count();
     }
+
+    static function getPrintOutgoingLetter($id)
+    {
+        $outgoingLetter = self::select(
+            'id',
+            'letter_number',
+            'letter_date'
+        )->find($id);
+        return $outgoingLetter;
+    }
 }
