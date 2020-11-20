@@ -90,52 +90,7 @@ class LogisticRealizationItemController extends Controller
         $response = Validation::validate($request, $params);        
         if ($response->getStatusCode() === 200) {
             $limit = $request->input('limit', 3);
-            $data = LogisticRealizationItems::select(
-                'id',
-                'realization_ref_id',
-                'agency_id',
-                'applicant_id',
-                'created_at',
-                'created_by',
-                'material_group',
-                'need_id',
-                'product_id',
-                'unit_id',
-                'updated_at',
-                'updated_by',
-                'final_at',
-                'final_by',
-
-                'product_id as recommendation_product_id',
-                'product_name as recommendation_product_name',
-                'realization_ref_id as recommendation_ref_id',
-                'realization_date as recommendation_date',
-                'realization_quantity as recommendation_quantity',
-                'realization_unit as recommendation_unit',
-                'status as recommendation_status',
-                'recommendation_by',
-                'recommendation_at',
-
-                'final_product_id as realization_product_id',
-                'final_product_name as realization_product_name',
-                'final_date as realization_date',
-                'final_quantity as realization_quantity',
-                'final_unit as realization_unit',
-                'final_status as realization_status',
-                'final_unit_id as realization_unit_id',
-                'final_at as realization_at',
-                'final_by as realization_by'
-            );
-            $data = LogisticRealizationItems::withPICData($data);
-            $data = $data->whereNotNull('created_by')
-                ->orderBy('logistic_realization_items.id') 
-                ->where('logistic_realization_items.agency_id', $request->agency_id)->paginate($limit);
-            $logisticItemSummary = LogisticRealizationItems::where('agency_id', $request->agency_id)->sum('realization_quantity');
-            $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
-                $item->status = !$item->status ? 'not_approved' : $item->status;
-                $item->logistic_item_summary = (int)$logisticItemSummary;
-                return $item;
-            });
+            $data = LogisticRealizationItems::selectList($request);
             $response = response()->format(200, 'success', $data);
         }
         return $response;
