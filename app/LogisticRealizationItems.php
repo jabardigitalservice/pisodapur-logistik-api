@@ -220,7 +220,7 @@ class LogisticRealizationItems extends Model
 
     static function selectList()
     {
-        return self::select(
+        return self::select([
             'id',
             'realization_ref_id',
             'agency_id',
@@ -255,6 +255,6 @@ class LogisticRealizationItems extends Model
             'final_unit_id as realization_unit_id',
             'final_at as realization_at',
             'final_by as realization_by'
-        );
+        ]);
     }
 }
