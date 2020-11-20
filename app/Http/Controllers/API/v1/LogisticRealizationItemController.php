@@ -90,7 +90,7 @@ class LogisticRealizationItemController extends Controller
         $response = Validation::validate($request, $params);        
         if ($response->getStatusCode() === 200) {
             $limit = $request->input('limit', 3);
-            $data = LogisticRealizationItems::selectList($request);
+            $data = LogisticRealizationItems::getList($request);
             $response = response()->format(200, 'success', $data);
         }
         return $response;

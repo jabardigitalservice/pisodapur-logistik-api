@@ -200,10 +200,27 @@ class LogisticRealizationItems extends Model
         return $request;
     }
 
-    static function selectList($request)
+    static function getList($request)
     {
         $limit = $request->input('limit', 3);
-        $data = self::select(
+        $data = self::selectList();
+        $data = self::withPICData($data);
+        $data = $data->whereNotNull('created_by')
+            ->orderBy('logistic_realization_items.id') 
+            ->where('logistic_realization_items.agency_id', $request->agency_id)->paginate($limit);
+        $logisticItemSummary = self::where('agency_id', $request->agency_id)->sum('realization_quantity');
+        $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
+            $item->status = !$item->status ? 'not_approved' : $item->status;
+            $item->logistic_item_summary = (int)$logisticItemSummary;
+            return $item;
+        });
+
+        return $data;
+    }
+
+    static function selectList()
+    {
+        return self::select(
             'id',
             'realization_ref_id',
             'agency_id',
@@ -239,17 +256,5 @@ class LogisticRealizationItems extends Model
             'final_at as realization_at',
             'final_by as realization_by'
         );
-        $data = self::withPICData($data);
-        $data = $data->whereNotNull('created_by')
-            ->orderBy('logistic_realization_items.id') 
-            ->where('logistic_realization_items.agency_id', $request->agency_id)->paginate($limit);
-        $logisticItemSummary = self::where('agency_id', $request->agency_id)->sum('realization_quantity');
-        $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
-            $item->status = !$item->status ? 'not_approved' : $item->status;
-            $item->logistic_item_summary = (int)$logisticItemSummary;
-            return $item;
-        });
-
-        return $data;
     }
 }
