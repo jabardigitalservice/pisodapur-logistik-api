@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: logistik-api-app
-  namespace: logistik
+  namespace: pikobar-logistik
   labels:
     app: logistik-api-app
 spec:
