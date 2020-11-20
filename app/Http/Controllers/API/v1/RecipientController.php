@@ -110,36 +110,49 @@ class RecipientController extends Controller
         foreach ($res->total_used_list as $key => $value) {
             $collections[$key]['name'] = $value->_id ;
             $collections[$key]['total_used'] = $value->total_used;
-
-            $totalPositif = 0;
-            foreach ($res->total_positif_list as $valPositif) {
-                if ($valPositif->_id == $value->_id) {
-                    $totalPositif = $valPositif->total_positif;
-                }
-            }
-            $collections[$key]['total_positif'] = $totalPositif;
-
-            $totalNegatif = 0;
-            foreach ($res->total_negatif_list as $valNegatif) {
-                if ($valNegatif->_id == $value->_id) {
-                    $totalNegatif = $valNegatif->total_negatif;
-                }
-            }
-            $collections[$key]['total_negatif'] = $totalNegatif;
-
-            $totalInvalid = 0;
-            foreach ($res->total_invalid_list as $valInvalid) {
-                if ($valInvalid->_id == $value->_id) {
-                    $totalInvalid = $valInvalid->total_invalid;
-                }
-            }
-            $collections[$key]['total_invalid'] = $totalInvalid;
+            $collections[$key]['total_positif'] = $this->setTotalPositif($res, $value);
+            $collections[$key]['total_negatif'] = $this->setTotalNegatif($res, $value);
+            $collections[$key]['total_invalid'] = $this->setTotalInvalid($res, $value);
         }
 
         // Make pagination
         $data = $this->paginateArray($collections, $request);
 
         return response()->format(200, 'success', $data);
+    }
+
+    public function setTotalPositif($res, $value)
+    {
+        $totalPositif = 0;
+        foreach ($res->total_positif_list as $valPositif) {
+            if ($valPositif->_id == $value->_id) {
+                $totalPositif = $valPositif->total_positif;
+            }
+        }
+        return $totalPositif;
+    }
+
+    public function setTotalNegatif($res, $value)
+    {
+        $totalNegatif = 0;
+        foreach ($res->total_negatif_list as $valNegatif) {
+            if ($valNegatif->_id == $value->_id) {
+                $totalNegatif = $valNegatif->total_negatif;
+            }
+        }
+        return $totalNegatif;
+    }
+
+    public function setTotalInvalid($res, $value)
+    {
+        $totalInvalid = 0;
+        foreach ($res->total_invalid_list as $valInvalid) {
+            if ($valInvalid->_id == $value->_id) {
+                $totalInvalid = $valInvalid->total_invalid;
+            }
+        }
+
+        return $totalInvalid;
     }
 
     /**
