@@ -195,9 +195,9 @@ pipeline {
                         kubectl apply -f kubernetes/service-logistik-api.yaml --dry-run=client --validate
 
                         kubectl apply -f kubernetes/service-logistik-api.yaml
+                        kubectl apply -f kubernetes/deployment-logistik-api.yaml
                         kubectl get pods --namespace pikobar-logistik
                     '''
-                    //kubectl apply -f kubernetes/deployment-logistik-api.yaml
               }
 
               post {
