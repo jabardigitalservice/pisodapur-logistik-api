@@ -177,7 +177,7 @@ pipeline {
                     sh 'sed -i "s/%HOTLINE_PIKOBAR%/${HOTLINE_PIKOBAR}/g" kubernetes/configmap-logistik-api.yaml'
 
                     sh 'sed -i "s/%WMS_JABAR_BASE_URL%/${WMS_JABAR_BASE_URL}/g" kubernetes/configmap-logistik-api.yaml'
-                    sh 'sed -i "s/%WMS_JABAR_API_KEY%/${WMS_JABAR_API_KEY}/g" secret/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%WMS_JABAR_API_KEY%/${WMS_JABAR_API_KEY}/g" kubernetes/configmap-logistik-api.yaml'
 
                     sh 'sed -i "s/%DASHBOARD_PIKOBAR_API_BASE_URL%/${DASHBOARD_PIKOBAR_API_BASE_URL}/g" kubernetes/configmap-logistik-api.yaml'
                     sh 'sed -i "s/%DASHBOARD_PIKOBAR_API_KEY%/${DASHBOARD_PIKOBAR_API_KEY}/g" kubernetes/secret-logistik-api.yaml'
@@ -195,7 +195,7 @@ pipeline {
                         kubectl apply -f kubernetes/service-logistik-api.yaml --dry-run=client --validate
 
                         kubectl apply -f kubernetes/service-logistik-api.yaml
-                        kubectl get pods --namespace logistik
+                        kubectl get pods --namespace pikobar-logistik
                     '''
                     //kubectl apply -f kubernetes/deployment-logistik-api.yaml
               }
