@@ -14,20 +14,89 @@ class IncomingLetter extends Model
         $limit = $request->input('limit', 10);
         $sort = $request->filled('sort') ? ['applicants.application_letter_number ' . $request->input('sort') ] : ['applicants.created_at ASC'];
 
-        $data = Applicant::select(
+        $data = Applicant::select(self::getIncomingLetterSelectList());
+        $data = self::joinTable($data);
+        $data = $data->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code');
+        $data = self::whereList($request, $data);
+        $data = $data->orderByRaw(implode($sort))->paginate($limit);
+
+        $data->getCollection()->transform(function ($applicant, $key) {
+            $applicant->letter_date = date('Y-m-d', strtotime($applicant->letter_date));
+            return $applicant;
+        });
+
+        return $data;
+    }
+
+    static function showIncomingLetterDetail(Request $request, $id)
+    {
+        $data = Applicant::select(self::showIncomingLetterDetailSelectList())
+            ->with([
+                'masterFaskesType',
+                'agency',
+                'letter',
+                'city',
+                'subDistrict',
+                'village'
+            ]);        
+        $data = self::joinTable($data);
+        $data = $data->findOrFail($id);
+        $data->letter_date = date('Y-m-d', strtotime($data->letter_date));
+
+        return $data;
+    }
+
+    static function getIncomingLetterSelectList()
+    {
+        return [
             'applicants.id',
             'applicants.application_letter_number as letter_number',
             'applicants.agency_id',
-            'agency.agency_name',
-            'agency.agency_type',
-            'agency.location_district_code as district_code',
-            'districtcities.kemendagri_kabupaten_nama as district_name',
             'applicants.applicant_name',
             'applicants.created_at as letter_date',
+            'agency.agency_type',
             'request_letters.id as incoming_mail_status',
-            'request_letters.id as request_letters_id'
-        )
-        ->where(function ($query) use ($request) {
+            'request_letters.id as request_letters_id',
+
+            'agency.agency_name',
+            'agency.location_district_code as district_code',
+            'districtcities.kemendagri_kabupaten_nama as district_name'
+        ];
+    }
+
+    static function showIncomingLetterDetailSelectList()
+    {
+        return [
+            'applicants.id',
+            'applicants.application_letter_number as letter_number',
+            'applicants.agency_id',
+            'applicants.applicant_name',
+            'applicants.created_at as letter_date',
+            'agency.agency_type',
+            'request_letters.id as incoming_mail_status',
+            'request_letters.id as request_letters_id',
+
+            'applicants.applicants_office', 
+            'applicants.file', 
+            'applicants.email', 
+            'applicants.primary_phone_number', 
+            'applicants.secondary_phone_number', 
+            'applicants.verification_status', 
+            'applicants.note', 
+            'applicants.approval_status', 
+            'applicants.approval_note', 
+            'applicants.stock_checking_status',  
+            'applicants.created_at',  
+            'applicants.updated_at',
+            'agency.location_district_code',   
+            'agency.location_subdistrict_code',   
+            'agency.location_village_code'
+        ];
+    }
+
+    static function whereList(Request $request, $data)
+    {
+        return $data->where(function ($query) use ($request) {
             if ($request->filled('letter_date')) {
                 $query->whereRaw("DATE(applicants.created_at) = '" . $request->input('letter_date') . "'");
             }
@@ -48,72 +117,13 @@ class IncomingLetter extends Model
                 }
             }
         })
-        ->join('agency', 'agency.id', '=', 'applicants.agency_id')
-        ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
-        ->leftJoin('request_letters', 'request_letters.applicant_id', '=', 'applicants.id')
         ->where('applicants.is_deleted', '!=', 1)
-        ->whereNotNull('applicants.finalized_by')
-        ->orderByRaw(implode($sort))->paginate($limit);
-
-        $data->getCollection()->transform(function ($applicant, $key) {
-            $applicant->letter_date = date('Y-m-d', strtotime($applicant->letter_date));
-            return $applicant;
-        });
-
-        return $data;
+        ->whereNotNull('applicants.finalized_by');
     }
 
-    static function showIncomingLetterDetail(Request $request, $id)
+    static function joinTable($data)
     {
-        $data = Applicant::select(
-            'applicants.id',
-            'applicants.application_letter_number as letter_number',
-            'applicants.agency_id',   
-            'applicants.applicants_office', 
-            'applicants.file', 
-            'applicants.email', 
-            'applicants.primary_phone_number', 
-            'applicants.secondary_phone_number', 
-            'applicants.verification_status', 
-            'applicants.note', 
-            'applicants.approval_status', 
-            'applicants.approval_note', 
-            'applicants.stock_checking_status',  
-            'applicants.created_at',  
-            'applicants.updated_at',  
-            'agency.location_district_code',   
-            'agency.location_subdistrict_code',   
-            'agency.location_village_code',   
-            'agency.agency_type',   
-            'applicants.applicant_name',
-            'applicants.created_at as letter_date',
-            'request_letters.id as incoming_mail_status',
-            'request_letters.id as request_letters_id'
-            )
-            ->with([
-                'masterFaskesType' => function ($query) {
-                    return $query->select(['id', 'name']);
-                },
-                'agency' => function ($query) {
-                    return $query;
-                },
-                'letter' => function ($query) {
-                    return $query->select(['id', 'agency_id', 'letter']);
-                },
-                'city' => function ($query) {
-                    return $query->select(['id', 'kemendagri_provinsi_nama', 'kemendagri_kabupaten_kode', 'kemendagri_kabupaten_nama']);
-                },
-                'subDistrict' => function ($query) {
-                    return $query->select(['id', 'kemendagri_kecamatan_kode', 'kemendagri_kecamatan_nama']);
-                },
-                'village' => function ($query) {
-                    return $query->select(['id', 'kemendagri_desa_kode', 'kemendagri_desa_nama']);
-                }
-            ])
-            ->join('agency', 'agency.id', '=', 'applicants.agency_id')
-            ->findOrFail($id);
-            $data->letter_date = date('Y-m-d', strtotime($data->letter_date));
-
-        return $data;
+        return $data->join('agency', 'agency.id', '=', 'applicants.agency_id')
+        ->leftJoin('request_letters', 'request_letters.applicant_id', '=', 'applicants.id');
     }
 }
