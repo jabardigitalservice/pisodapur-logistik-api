@@ -11,7 +11,7 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 ENV MAX_UPLOAD_SIZE 10M
 
 
-RUN composer.phar install
+RUN php composer.phar install --no-dev
 
 RUN chown -R www-data:www-data \
         /var/www/html/storage \
