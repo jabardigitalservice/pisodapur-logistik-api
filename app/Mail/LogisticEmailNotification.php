@@ -80,15 +80,15 @@ class LogisticEmailNotification extends Mailable
     {
         $this->subject = '[Pikobar] Permohonan Logistik Terverifikasi';
         $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
-        $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . '  sudah dalam status terverifikasi. Selanjutnya kami akan melakukan pengecekan ketersediaan barang pada gudang logistik.';
-        $this->notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan pengecekan dan konfirmasi terhadap permohonan tersebut.';
+        $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . '  sudah dalam status terverifikasi dan sedang dalam tahap rekomendasi salur. Selanjutnya kami akan melakukan pengecekan ketersediaan barang pada gudang logistik untuk permohonan Anda.';
+        $this->notes[] = 'Silahkan hubungi nomor kontak hotline atau email di bawah ini atau gunakan Fitur Lacak Pengajuan Logistik pada https://logistik.pikobar.jabarprov.go.id/#/landing-page jika diperlukan pengecekan terhadap permohonan tersebut.';
     }
 
     public function textOther()
     {
         $this->subject = '[Pikobar] Permohonan Logistik Sudah Realisasi Salur';
         $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
-        $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' sudah disetujui untuk realisasi salur logistik dan barang sudah siap untuk diambil/ dikirimkan.';
+        $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' sudah selesai ditindaklanjuti. Silakan buka Fitur Lacak Pengajuan Logistik untuk mengetahui hasil tindaklanjut atas permohonan Anda pada laman https://logistik.pikobar.jabarprov.go.id/#/landing-page. Diharapkan untuk menunggu konfirmasi via telepon dari tim terkait untuk pengambilan barang di gudang jika terdapat barang yang disetujui.';
         $this->texts[] = '';
         $this->texts[] = 'Jika barang sudah diterima oleh pemohon, silahkan untuk melaporkan penggunaan logistik dengan ketentuan berikut:';
         $this->texts[] = '';
