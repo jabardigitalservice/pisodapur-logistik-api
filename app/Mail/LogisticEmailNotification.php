@@ -21,9 +21,9 @@ class LogisticEmailNotification extends Mailable
 
     protected $agency;
     protected $status;
-    protected $subject;
-    protected $texts;
-    protected $notes;
+    public $subject;
+    public $texts;
+    public $notes;
      
     public function __construct(Agency $agency, $status)
     {
@@ -57,7 +57,7 @@ class LogisticEmailNotification extends Mailable
         }
         return $this->getContent();
     }
-
+    
     public function textNotVerified()
     {
         $this->subject = '[Pikobar] Permohonan Logistik Diterima';
@@ -107,7 +107,7 @@ class LogisticEmailNotification extends Mailable
         $this->texts[] = 'https://bit.ly/PanduanPelaporanLogistik';
         $this->notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan pengecekan dan konfirmasi terhadap permohonan tersebut.';
     }
-
+    
     public function getContent()
     {
         return $this->view('email.logisticemailnotification')
