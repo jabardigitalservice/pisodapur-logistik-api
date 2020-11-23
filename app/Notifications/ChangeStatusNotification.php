@@ -54,25 +54,37 @@ class ChangeStatusNotification extends Notification
         $message = '';
         switch ($this->phase) {
             case 'surat':
-                $message = 'Kepada Yth.
+                $message = '*Info Logistik PIKOBAR*
+                *Butuh Verifikasi Administrasi, kode : ' . $this->id .'*
+                
+                Kepada Yth.  
                 PIC Surat
                 
                 Saat ini pada aplikasi permohonan logistik telah masuk surat permohonan logistik baru dengan kode: ' . $this->id .' Mohon ditindaklanjuti untuk melakukan verifikasi administrasi dokumen permohonan tersebut. Surat permohonan tersebut dapat diakses dengan menggunakan aplikasi permohonan logistik. Berikut ini link permohonan yang perlu diverifikasi: ' . $this->link;
                 break;
             case 'rekomendasi':
-                $message = 'Kepada Yth.
+                $message = '*Info Logistik PIKOBAR*
+                *Butuh Rekomendasi Salur, kode : ' . $this->id .'*
+                
+                Kepada Yth.  
                 PIC Rekomendasi Salur
                 
                 Saat ini pada aplikasi permohonan logistik surat permohonan logistik dengan kode: ' . $this->id . ' telah berada pada tahapan rekomendasi salur. Mohon ditindaklanjuti untuk melakukan rekomendasi salur terhadap permohonan tersebut. Adapun untuk melakukan rekomendasi salur dapat diakses dengan menggunakan aplikasi permohonan logistik. Berikut ini link permohonan yang perlu dilakukan rekomendasi salur: ' . $this->link;
                 break;
             case 'realisasi':
-                $message = 'Kepada Yth.
+                $message = '*Info Logistik PIKOBAR*
+                *Butuh Realisasi Salur, kode : ' . $this->id .'*
+                
+                Kepada Yth.  
                 PIC Realisasi Salur
                 
                 Saat ini pada aplikasi permohonan logistik surat permohonan logistik dengan kode: ' . $this->id . ' telah berada pada tahapan realisasi salur. Mohon ditindaklanjuti untuk melakukan realisasi salur terhadap permohonan tersebut. Adapun untuk melakukan realisasi salur dapat diakses dengan menggunakan aplikasi permohonan logistik. Berikut ini link permohonan yang perlu dilakukan realisasi salur: ' . $this->link;
                 break;
             default:
-                $message = 'Kepada Yth.
+                $message = '*Info Logistik PIKOBAR*
+                *Butuh Verifikasi Administrasi, kode : ' . $this->id .'*
+                
+                Kepada Yth.  
                 PIC Surat
                 
                 Saat ini pada aplikasi permohonan logistik telah masuk surat permohonan logistik baru dengan kode: ' . $this->id .' Mohon ditindaklanjuti untuk melakukan verifikasi administrasi dokumen permohonan tersebut. Surat permohonan tersebut dapat diakses dengan menggunakan aplikasi permohonan logistik. Berikut ini link permohonan yang perlu diverifikasi: ' . $this->link;
