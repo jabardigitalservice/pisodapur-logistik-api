@@ -1,0 +1,215 @@
+def secretsProd = [
+  [path: 'kv-logistik-api/production/app', engineVersion: 2, secretValues: [
+    [envVar: 'APP_NAME', vaultKey: 'APP_NAME'],
+    [envVar: 'APP_ENV', vaultKey: 'APP_ENV'],
+    [envVar: 'APP_KEY', vaultKey: 'APP_KEY'],
+    [envVar: 'APP_DEBUG', vaultKey: 'APP_DEBUG'],
+    [envVar: 'APP_URL', vaultKey: 'APP_URL'],
+    [envVar: 'LOG_CHANNEL', vaultKey: 'LOG_CHANNEL'],
+    [envVar: 'DB_CONNECTION', vaultKey: 'DB_CONNECTION'],
+    [envVar: 'DB_HOST', vaultKey: 'DB_HOST'],
+    [envVar: 'DB_PORT', vaultKey: 'DB_PORT'],
+    [envVar: 'DB_DATABASE', vaultKey: 'DB_DATABASE'],
+    [envVar: 'DB_USERNAME', vaultKey: 'DB_USERNAME'],
+    [envVar: 'DB_PASSWORD', vaultKey: 'DB_PASSWORD'],
+    [envVar: 'BROADCAST_DRIVER', vaultKey: 'BROADCAST_DRIVER'],
+    [envVar: 'CACHE_DRIVER', vaultKey: 'CACHE_DRIVER'],
+    [envVar: 'QUEUE_CONNECTION', vaultKey: 'QUEUE_CONNECTION'],
+    [envVar: 'SESSION_DRIVER', vaultKey: 'SESSION_DRIVER'],
+    [envVar: 'SESSION_LIFETIME', vaultKey: 'SESSION_LIFETIME'],
+    [envVar: 'JWT_SECRET', vaultKey: 'JWT_SECRET'],
+    [envVar: 'IMAGE_API', vaultKey: 'IMAGE_API'],
+    [envVar: 'IMAGE_NGINX', vaultKey: 'IMAGE_NGINX'],
+    [envVar: 'IMAGE_DATABASE', vaultKey: 'IMAGE_DATABASE'],
+    [envVar: 'PELAPORAN_API_BASE_URL', vaultKey: 'PELAPORAN_API_BASE_URL'],
+    [envVar: 'PELAPORAN_AUTH_USER', vaultKey: 'PELAPORAN_AUTH_USER'],
+    [envVar: 'PELAPORAN_AUTH_PASSWORD', vaultKey: 'PELAPORAN_AUTH_PASSWORD'],
+    [envVar: 'AWS_ACCESS_KEY_ID', vaultKey: 'AWS_ACCESS_KEY_ID'],
+    [envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'AWS_SECRET_ACCESS_KEY'],
+    [envVar: 'AWS_DEFAULT_REGION', vaultKey: 'AWS_DEFAULT_REGION'],
+    [envVar: 'AWS_BUCKET', vaultKey: 'AWS_BUCKET'],
+    [envVar: 'AWS_CLOUDFRONT_URL', vaultKey: 'AWS_CLOUDFRONT_URL'],
+    [envVar: 'MAIL_TRANSPORT_FILE', vaultKey: 'MAIL_TRANSPORT_FILE'],
+    [envVar: 'MAIL_HOST', vaultKey: 'MAIL_HOST'],
+    [envVar: 'MAIL_USERNAME', vaultKey: 'MAIL_USERNAME'],
+    [envVar: 'MAIL_PASSWORD', vaultKey: 'MAIL_PASSWORD'],
+    [envVar: 'MAIL_PORT', vaultKey: 'MAIL_PORT'],
+    [envVar: 'MAIL_ENCRYPTION', vaultKey: 'MAIL_ENCRYPTION'],
+    [envVar: 'MAIL_FROM_ADDRESS', vaultKey: 'MAIL_FROM_ADDRESS'],
+    [envVar: 'MAIL_FROM_NAME', vaultKey: 'MAIL_FROM_NAME'],
+    [envVar: 'HOTLINE_PIKOBAR', vaultKey: 'HOTLINE_PIKOBAR'],
+    [envVar: 'WMS_JABAR_BASE_URL', vaultKey: 'WMS_JABAR_BASE_URL'],
+    [envVar: 'WMS_JABAR_API_KEY', vaultKey: 'WMS_JABAR_API_KEY'],
+    [envVar: 'DASHBOARD_PIKOBAR_API_BASE_URL', vaultKey: 'DASHBOARD_PIKOBAR_API_BASE_URL'],
+    [envVar: 'DASHBOARD_PIKOBAR_API_KEY', vaultKey: 'DASHBOARD_PIKOBAR_API_KEY']]],
+]
+
+def configuration = [vaultUrl: 'https://vault.jacloud.digitalservice.id/',  vaultCredentialId: 'approle-logistik', engineVersion: 2]
+
+pipeline {
+
+    agent any
+
+    environment {
+        appName = 'api-logistik-production'
+        PROJECT_REGISTRY ='logistik-pikobar'
+        VERSION = "${BUILD_TAG}"
+        URL_REGISTRY = "${env.URL_REGISTRY_JACLOUD}"
+
+        KUBECONFIG_LOGISTIK_STAGING = "${env.KUBECONFIG_LOGISTIK_STAGING}"
+        CLIENT_KEY_LOGISTIK_STAGING = "${env.CLIENT_KEY_LOGISTIK_STAGING}"
+        CLUSTER_NAME_JACLOUD = "k8s-jacloud001-JDS-RANCHER-NODE-03"        
+    }
+
+    options {
+        timeout(time: 1, unit: 'HOURS')
+    }
+
+     triggers {
+                githubPush()
+     }
+
+    stages{
+
+        stage('stage build logistik api production'){
+
+            steps {
+
+                withVault([configuration: configuration, vaultSecrets: secretsProd]) { 
+                        sh 'docker --version'
+                        sh 'echo ${VERSION}'
+                        sh 'echo $VERSION > version.txt'
+                        sh 'docker build --tag $appName:$VERSION -f Dockerfile.jacloud . --no-cache'
+                    }
+                stash includes: 'version.txt', name: 'version'
+            }
+
+            post {
+                always {
+                    archiveArtifacts artifacts: 'version.txt', fingerprint: true
+                    cleanWs()
+                }
+            }
+        }
+
+        stage('push to registry logistik jabarcloud'){
+
+            steps {
+                script {
+                    withDockerRegistry([credentialsId: '1d7c4e03-7bbb-44d4-8202-0612c5b2bc45', url: "https://${URL_REGISTRY}"]) {
+                    // code block
+                    unstash 'version'
+                    sh 'cat version.txt'
+                    sh 'export REGISTRY_HTTP_RELATIVEURLS=true \
+                        && docker tag $appName:$VERSION $URL_REGISTRY/$PROJECT_REGISTRY/$appName:$VERSION \
+                        && docker push $URL_REGISTRY/$PROJECT_REGISTRY/$appName:$VERSION \
+                        && docker rmi $appName:$VERSION \
+                        && docker rmi $URL_REGISTRY/$PROJECT_REGISTRY/$appName:$VERSION'
+                        }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'version.txt', fingerprint: true
+                    cleanWs()
+                }
+            }
+        }
+
+         stage ('deploy to kubernetes jabarcloud'){
+            agent {
+                docker { 
+                    image 'dtzar/helm-kubectl:3.3.1'
+                    args '-u root'
+                }
+            }
+
+            steps {
+                    // deploy kubernetes cluster production
+                    sh 'sed -i "s/%VERSION%/${VERSION}/g" kubernetes/deployment-logistik-api.yaml'
+                    sh 'sed -i "s/%APP_NAME%/${APP_NAME}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%APP_ENV%/${APP_ENV}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%APP_KEY%/${APP_KEY}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%APP_URL%/${APP_URL}/g" kubernetes/configmap-logistik-api.yaml'
+
+                    sh 'sed -i "s/%LOG_CHANNEL%/${LOG_CHANNEL}/g" kubernetes/configmap-logistik-api.yaml'
+
+                    sh 'sed -i "s/%DB_CONNECTION%/${DB_CONNECTION}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%DB_HOST%/${DB_HOST}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%DB_PORT%/${DB_PORT}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%DB_DATABASE%/${DB_DATABASE}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%DB_USERNAME%/${DB_USERNAME}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%DB_PASSWORD%/${DB_PASSWORD}/g" kubernetes/secret-logistik-api.yaml'
+
+
+                    sh 'sed -i "s/%BROADCAST_DRIVER%/${BROADCAST_DRIVER}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%CACHE_DRIVER%/${CACHE_DRIVER}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%QUEUE_CONNECTION%/${QUEUE_CONNECTION}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%SESSION_DRIVER%/${SESSION_DRIVER}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%SESSION_LIFETIME%/${SESSION_LIFETIME}/g" kubernetes/configmap-logistik-api.yaml'
+
+                    sh 'sed -i "s/%JWT_SECRET%/${JWT_SECRET}/g" kubernetes/secret-logistik-api.yaml'
+
+                    sh 'sed -i "s/%IMAGE_API%/${IMAGE_API}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%IMAGE_NGINX%/${IMAGE_NGINX}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%IMAGE_DATABASE%/${IMAGE_DATABASE}/g" kubernetes/configmap-logistik-api.yaml'
+
+                    sh 'sed -i "s/%PELAPORAN_API_BASE_URL%/${PELAPORAN_API_BASE_URL}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%PELAPORAN_AUTH_USER%/${PELAPORAN_AUTH_USER}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%PELAPORAN_AUTH_PASSWORD%/${PELAPORAN_AUTH_PASSWORD}/g" kubernetes/secret-logistik-api.yaml'
+
+                    sh 'sed -i "s/%AWS_ACCESS_KEY_ID%/${AWS_ACCESS_KEY_ID}/g" kubernetes/secret-logistik-api.yaml'
+                    sh 'sed -i "s/%AWS_SECRET_ACCESS_KEY%/${AWS_SECRET_ACCESS_KEY}/g" kubernetes/secret-logistik-api.yaml'
+
+                    sh 'sed -i "s/%AWS_DEFAULT_REGION%/${AWS_DEFAULT_REGION}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%AWS_BUCKET%/${AWS_BUCKET}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%AWS_CLOUDFRONT_URL%/${AWS_CLOUDFRONT_URL}/g" kubernetes/configmap-logistik-api.yaml'
+
+                    sh 'sed -i "s/%MAIL_TRANSPORT_FILE%/${MAIL_TRANSPORT_FILE}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%MAIL_HOST%/${MAIL_HOST}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%MAIL_USERNAME%/${MAIL_USERNAME}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%MAIL_PASSWORD%/${MAIL_PASSWORD}/g" kubernetes/secret-logistik-api.yaml'
+                    sh 'sed -i "s/%MAIL_PORT%/${MAIL_PORT}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%MAIL_ENCRYPTION%/${MAIL_ENCRYPTION}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%MAIL_FROM_ADDRESS%/${MAIL_FROM_ADDRESS}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%MAIL_FROM_NAME%/${MAIL_FROM_NAME}/g" kubernetes/configmap-logistik-api.yaml'
+
+                    sh 'sed -i "s/%HOTLINE_PIKOBAR%/${HOTLINE_PIKOBAR}/g" kubernetes/configmap-logistik-api.yaml'
+
+                    sh 'sed -i "s/%WMS_JABAR_BASE_URL%/${WMS_JABAR_BASE_URL}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%WMS_JABAR_API_KEY%/${WMS_JABAR_API_KEY}/g" secret/configmap-logistik-api.yaml'
+
+                    sh 'sed -i "s/%DASHBOARD_PIKOBAR_API_BASE_URL%/${DASHBOARD_PIKOBAR_API_BASE_URL}/g" kubernetes/configmap-logistik-api.yaml'
+                    sh 'sed -i "s/%DASHBOARD_PIKOBAR_API_KEY%/${DASHBOARD_PIKOBAR_API_KEY}/g" kubernetes/secret-logistik-api.yaml'
+
+                    sh '''
+                        set +x
+                        echo $KUBECONFIG_LOGISTIK_STAGING | base64 -d > kubeconfig
+                        export KUBECONFIG=./kubeconfig
+                        echo $CLIENT_KEY_LOGISTIK_STAGING | base64 -d > client.key
+                        set -x
+                        kubectl config set-credentials logistik-dev --client-key=client.key --embed-certs=true
+                        kubectl config set-cluster $CLUSTER_NAME_JACLOUD --insecure-skip-tls-verify=true
+
+                        kubectl apply -f kubernetes/deployment-logistik-api.yaml --dry-run=client --validate
+                        kubectl apply -f kubernetes/service-logistik-api.yaml --dry-run=client --validate
+
+                        kubectl apply -f kubernetes/service-logistik-api.yaml
+                        kubectl get pods --namespace logistik
+                    '''
+                    //kubectl apply -f kubernetes/deployment-logistik-api.yaml
+              }
+
+              post {
+                  always{
+                    cleanWs()
+                  }
+              }
+        }
+
+
+
+        
+    } 
+
+}

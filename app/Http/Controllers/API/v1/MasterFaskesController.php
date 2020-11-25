@@ -9,66 +9,11 @@ use App\Validation;
 use Illuminate\Support\Facades\Storage;
 
 class MasterFaskesController extends Controller
-{
+{    
     public function index(Request $request)
     {
-        $limit = $request->filled('limit') ? $request->input('limit') : 20;
-        $sort = $request->filled('sort') ? $request->input('sort') : 'asc';
-
-        try {
-            $data = MasterFaskes::with('masterFaskesType')
-                ->select(
-                    'id',
-                    'id_tipe_faskes',
-                    'nama_faskes as name',
-                    'nama_faskes',
-                    'kode_kab_bps',
-                    'kode_kec_bps',
-                    'kode_kel_bps',
-                    'kode_kab_kemendagri',
-                    'kode_kec_kemendagri',
-                    'kode_kel_kemendagri',
-                    'nama_kab',
-                    'nama_kec',
-                    'nama_kel',
-                    'alamat',
-                    'nomor_telepon',
-                    'nama_atasan',
-                    'nomor_registrasi',
-                    'nomor_izin_sarana',
-                    'verification_status',
-                    'latitude',
-                    'longitude',
-                    'is_imported',
-                    'point_latitude_longitude'
-                )
-                ->where(function ($query) use ($request) {
-                    if ($request->filled('nama_faskes')) {
-                        $query->where('master_faskes.nama_faskes', 'LIKE', "%{$request->input('nama_faskes')}%");
-                    }
-
-                    if ($request->filled('id_tipe_faskes')) {
-                        $query->where('master_faskes.id_tipe_faskes', '=', $request->input('id_tipe_faskes'));
-                    }
-
-                    if ($request->filled('verification_status')) {
-                        $query->where('master_faskes.verification_status', '=', $request->input('verification_status'));
-                    } else {
-                        $query->where('master_faskes.verification_status', '=', MasterFaskes::STATUS_VERIFIED);
-                    }
-
-                    if ($request->filled('is_imported')) {
-                        $query->where('master_faskes.is_imported', $request->input('is_imported'));
-                    }
-
-                })
-                ->orderBy('nama_faskes', $sort)
-                ->paginate($limit);
-
-                $response = response()->format(200, 'success', $data);
-        } catch (\Exception $exception) {
-            $response = response()->format(400, $exception->getMessage());
-        }
+        $data = MasterFaskes::getFaskesList($request);
+        $response = response()->format(200, 'success', $data);
         return $response;
     }
 

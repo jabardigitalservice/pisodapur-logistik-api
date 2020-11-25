@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Needs;
 use App\Agency;
 use App\Applicant;
+use App\LogisticRequest;
 use App\FileUpload;
 use App\Http\Resources\LogisticRequestResource;
 use DB;
@@ -93,45 +94,28 @@ class LogisticRequestController extends Controller
 
     public function update(Request $request, $id)
     {
-        $param = [
-            'update_type' => 'required'
-        ];
+        $param['update_type'] = 'required';
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            try {
-                switch ($request->update_type) {
-                    case 1:
-                        $model = Agency::findOrFail($id);
-                        $request['agency_name'] = MasterFaskes::getFaskesName($request);
-                        break;
-                    case 2:
-                        $model = Applicant::findOrFail($id);
-                        $request['email'] = (!$request->input('email')) ? '' : $request->input('email', '');
-                        $request['applicants_office'] = (!$request->input('applicants_office')) ? '' : $request->input('applicants_office', '');
-                        if ($request->hasFile('applicant_file')) {
-                            $response = FileUpload::storeApplicantFile($request);
-                            $request['file'] = $response->id;
-                        }
-                        break;
-                    case 3:
-                        $model = Applicant::findOrFail($id);
-                        if ($request->hasFile('letter_file')) {
-                            $request['agency_id'] = $id;
-                            $response = FileUpload::storeLetterFile($request);
-                        }
-                        break;
-                    default:
-                        $model = Agency::findOrFail($id);
-                        $request['agency_name'] = MasterFaskes::getFaskesName($request);
-                        break;
-                }
-                unset($request['id']);
-                $model->fill($request->all());
-                $model->save();
-                $response = response()->format(200, 'success');
-            } catch (\Exception $exception) {
-                $response = response()->format(400, $exception->getMessage());
+            switch ($request->update_type) {
+                case 1:
+                    $model = Agency::findOrFail($id);
+                    $request['agency_name'] = MasterFaskes::getFaskesName($request);
+                    break;
+                case 2:
+                    $model = Applicant::findOrFail($id);
+                    $request = LogisticRequest::setRequestApplicant($request);
+                    break;
+                case 3:
+                    $model = Applicant::findOrFail($id);
+                    $request = LogisticRequest::setRequestEditLetter($request, $id);
+                    break;
+                default:
+                    $model = Agency::findOrFail($id);
+                    $request['agency_name'] = MasterFaskes::getFaskesName($request);
+                    break;
             }
+            $response = LogisticRequest::saveData($model, $request);
         }
         return $response;
     }
@@ -242,87 +226,18 @@ class LogisticRequestController extends Controller
     {
         $startDate = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
         $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
-        try {
-            $lastUpdate = Applicant::Select('applicants.updated_at') 
-            ->where('is_deleted', '!=' , 1) 
-            ->orderBy('updated_at', 'desc')
-            ->first();
 
-            $totalPikobar = Applicant::Select('applicants.id') 
-            ->where('source_data', 'pikobar')
-            ->where('is_deleted', '!=' , 1)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-
-            $totalDinkesprov = Applicant::Select('applicants.id') 
-            ->where('source_data', 'dinkes_provinsi')
-            ->where('is_deleted', '!=' , 1)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-
-            $totalUnverified = Applicant::Select('applicants.id') 
-            ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
-            ->where('verification_status', Applicant::STATUS_NOT_VERIFIED) 
-            ->where('is_deleted', '!=' , 1)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-
-            $totalApproved = Applicant::Select('applicants.id') 
-            ->where('approval_status', Applicant::STATUS_APPROVED) 
-            ->where('verification_status', Applicant::STATUS_VERIFIED)
-            ->whereNull('finalized_by')
-            ->where('is_deleted', '!=' , 1)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-
-            $totalFinal = Applicant::Select('applicants.id') 
-            ->where('approval_status', Applicant::STATUS_APPROVED) 
-            ->where('verification_status', Applicant::STATUS_VERIFIED)
-            ->whereNotNull('finalized_by')
-            ->where('is_deleted', '!=' , 1)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-
-            $totalVerified = Applicant::Select('applicants.id') 
-            ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
-            ->where('verification_status', Applicant::STATUS_VERIFIED) 
-            ->where('is_deleted', '!=' , 1)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-
-            $totalVerificationRejected = Applicant::Select('applicants.id') 
-            ->where('approval_status', Applicant::STATUS_NOT_APPROVED) 
-            ->where('verification_status', Applicant::STATUS_REJECTED)
-            ->where('is_deleted', '!=' , 1)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-
-            $totalApprovalRejected = Applicant::Select('applicants.id') 
-            ->where('approval_status', Applicant::STATUS_REJECTED)
-            ->where('verification_status', Applicant::STATUS_VERIFIED)
-            ->where('is_deleted', '!=' , 1)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-
-            $totalRejected = $totalVerificationRejected + $totalApprovalRejected;
-            $total = $totalUnverified + $totalVerified + $totalApproved + $totalFinal + $totalRejected;
-
-            $data = [
-                'total_request' => $total,
-                'total_approved' => $totalApproved,
-                'total_final' => $totalFinal,
-                'total_unverified' => $totalUnverified,
-                'total_verified' => $totalVerified,
-                'total_rejected' => $totalRejected,
-                'total_approval_rejected' => $totalApprovalRejected,
-                'total_verification_rejected' => $totalVerificationRejected,
-                'total_pikobar' => $totalPikobar,
-                'total_dinkesprov' => $totalDinkesprov,
-                'last_update' => $lastUpdate ? date('Y-m-d H:i:s', strtotime($lastUpdate->updated_at)) : '2020-01-01 00:00:00'
-            ];            
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
-        }
+        $requestSummaryResult['lastUpdate'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => false, 'verification_status' => false])->orderBy('updated_at', 'desc')->first();
+        $requestSummaryResult['totalPikobar'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => 'pikobar', 'approval_status' => false, 'verification_status' => false])->count();
+        $requestSummaryResult['totalDinkesprov'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => 'dinkes_provinsi', 'approval_status' => false, 'verification_status' => false])->count();
+        $requestSummaryResult['totalUnverified'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_NOT_VERIFIED])->count();
+        $requestSummaryResult['totalApproved'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->whereNull('finalized_by')->count();
+        $requestSummaryResult['totalFinal'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->whereNotNull('finalized_by')->count();
+        $requestSummaryResult['totalVerified'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->count();
+        $requestSummaryResult['totalVerificationRejected'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_REJECTED])->count();
+        $requestSummaryResult['totalApprovalRejected'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_REJECTED, 'verification_status' => Applicant::STATUS_VERIFIED])->count();
+        
+        $data = Applicant::requestSummaryResult($requestSummaryResult);
         return response()->format(200, 'success', $data);
     }
 

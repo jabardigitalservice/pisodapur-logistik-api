@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API\v1;
 
 use Illuminate\Http\Request;
-use JWTAuth;
 
 use App\Http\Controllers\Controller;
 use App\Product;
@@ -126,42 +125,47 @@ class ProductsController extends Controller
     {
         $startDate = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
         $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
-        $sort = ['total DESC, ', 'products.name ASC'];
 
-        try {             
-            $totalMax = Product::select(
-                    'products.id', 
-                    'products.name',
-                    DB::raw('SUM(needs.quantity) as total'),
-                    'needs.unit',
-                    'products.category'
-            )
-            ->leftJoin('needs', function ($join) use ($startDate, $endDate) {
-                $join->on('needs.product_id', '=', 'products.id')
-                ->join('applicants', function($join) use ($startDate, $endDate) {
-                    $join->on('needs.agency_id', '=', 'applicants.agency_id');
-                });
-            })    
-            ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
-            ->where('applicants.is_deleted', '!=', 1)
-            ->whereBetween('applicants.created_at', [$startDate, $endDate]) 
-            ->where('products.material_group_status', 1)
-            ->orderByRaw(implode($sort))
-            ->groupBy('products.id', 'products.name', 'needs.unit', 'products.category')->first();
-
-            $totalItems = Needs::join('applicants', 'needs.agency_id', '=', 'applicants.agency_id') 
-            ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
-            ->where('applicants.is_deleted', '!=', 1)
-            ->whereBetween('applicants.created_at', [$startDate, $endDate]) 
-            ->sum('quantity');
-            $data = [
-                'total_items' => $totalItems,
-                'total_max' => $totalMax
-            ];
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
-        }
-
+        $data = [
+            'total_items' => $this->totalItems($startDate, $endDate),
+            'total_max' => $this->totalMax($startDate, $endDate)
+        ];
         return response()->format(200, 'success', $data);
+    }
+
+    public function totalItems($startDate, $endDate)
+    {
+        $totalItems = Needs::join('applicants', 'needs.agency_id', '=', 'applicants.agency_id') 
+        ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
+        ->where('applicants.is_deleted', '!=', 1)
+        ->whereBetween('applicants.created_at', [$startDate, $endDate]) 
+        ->sum('quantity');
+        return $totalItems;
+    }
+
+    public function totalMax($startDate, $endDate)
+    {
+        $sort = ['total DESC, ', 'products.name ASC'];
+        $totalMax = Product::select(
+            'products.id', 
+            'products.name',
+            DB::raw('SUM(needs.quantity) as total'),
+            'needs.unit',
+            'products.category'
+        )
+        ->leftJoin('needs', function ($join) use ($startDate, $endDate) {
+            $join->on('needs.product_id', '=', 'products.id')
+            ->join('applicants', function($join) use ($startDate, $endDate) {
+                $join->on('needs.agency_id', '=', 'applicants.agency_id');
+            });
+        })
+        ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
+        ->where('applicants.is_deleted', '!=', 1)
+        ->whereBetween('applicants.created_at', [$startDate, $endDate])
+        ->where('products.material_group_status', 1)
+        ->orderByRaw(implode($sort))
+        ->groupBy('products.id', 'products.name', 'needs.unit', 'products.category')->first();
+
+        return $totalMax;
     }
 }

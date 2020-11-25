@@ -199,4 +199,76 @@ class LogisticRealizationItems extends Model
         }
         return $request;
     }
+
+    static function getList($request)
+    {
+        $limit = $request->input('limit', 3);
+        $data = self::selectList();
+        $data = self::withPICData($data);
+        $data = $data->whereNotNull('created_by')
+            ->orderBy('logistic_realization_items.id') 
+            ->where('logistic_realization_items.agency_id', $request->agency_id)->paginate($limit);
+        $logisticItemSummary = self::where('agency_id', $request->agency_id)->sum('realization_quantity');
+        $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
+            $item->status = !$item->status ? 'not_approved' : $item->status;
+            $item->logistic_item_summary = (int)$logisticItemSummary;
+            return $item;
+        });
+
+        return $data;
+    }
+
+    static function selectList()
+    {
+        $fields = self::fieldNeeds([]);
+        $fields = self::fieldRecommendations($fields);
+        $fields = self::fieldRealizations($fields);
+        return self::select($fields);
+    }
+
+    static function fieldRealizations($fields)
+    {
+        $fields[] = 'final_product_id as realization_product_id';
+        $fields[] = 'final_product_name as realization_product_name';
+        $fields[] = 'final_date as realization_date';
+        $fields[] = 'final_quantity as realization_quantity';
+        $fields[] = 'final_unit as realization_unit';
+        $fields[] = 'final_status as realization_status';
+        $fields[] = 'final_unit_id as realization_unit_id';
+        $fields[] = 'final_at as realization_at';
+        $fields[] = 'final_by as realization_by';
+        return $fields;
+    }
+
+    static function fieldRecommendations($fields)
+    {
+        $fields[] = 'product_id as recommendation_product_id';
+        $fields[] = 'product_name as recommendation_product_name';
+        $fields[] = 'realization_ref_id as recommendation_ref_id';
+        $fields[] = 'realization_date as recommendation_date';
+        $fields[] = 'realization_quantity as recommendation_quantity';
+        $fields[] = 'realization_unit as recommendation_unit';
+        $fields[] = 'status as recommendation_status';
+        $fields[] = 'recommendation_by';
+        $fields[] = 'recommendation_at';
+        return $fields;
+    }
+
+    static function fieldNeeds($fields)
+    {
+        $fields[] = 'id';
+        $fields[] = 'realization_ref_id';
+        $fields[] = 'agency_id';
+        $fields[] = 'applicant_id';
+        $fields[] = 'created_at';
+        $fields[] = 'created_by';
+        $fields[] = 'need_id';
+        $fields[] = 'product_id';
+        $fields[] = 'unit_id';
+        $fields[] = 'updated_at';
+        $fields[] = 'updated_by';
+        $fields[] = 'final_at';
+        $fields[] = 'final_by';
+        return $fields;
+    }
 }

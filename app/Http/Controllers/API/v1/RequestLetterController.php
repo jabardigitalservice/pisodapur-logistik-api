@@ -18,43 +18,26 @@ class RequestLetterController extends Controller
         $param = [ 'outgoing_letter_id' => 'required' ];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            try {
-                $limit = $request->input('limit', 10);
-                $data = RequestLetter::select(
-                    'request_letters.id',
-                    'request_letters.outgoing_letter_id',
-                    'request_letters.applicant_id',
-                    'applicants.application_letter_number',
-                    'applicants.agency_id',
-                    'applicants.verification_status',
-                    'agency.agency_name',
-                    'agency.location_district_code',
-                    'districtcities.kemendagri_kabupaten_nama',
-                    'applicants.applicant_name',
-                    DB::raw('0 as realization_total'),
-                    DB::raw('"" as realization_date')
-                )
-                ->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
-                ->join('agency', 'agency.id', '=', 'applicants.agency_id')
-                ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
-                ->where('request_letters.outgoing_letter_id', $request->outgoing_letter_id)
-                ->where(function ($query) use ($request) {
-                    if ($request->filled('application_letter_number')) {
-                        $query->where('applicants.application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%");
-                    }    
-                })
-                ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
-                ->where('applicants.approval_status', '=', Applicant::STATUS_APPROVED)
-                ->whereNotNull('applicants.finalized_by')
-                ->orderBy('request_letters.id')
-                ->paginate($limit);
-                foreach ($data as $key => $val) {
-                    $data[$key] = $this->getRealizationData($val);
+            $limit = $request->input('limit', 10);
+            $defaultField = $this->defaultField();
+            $defaultField[] = 'applicants.verification_status';
+            $data = RequestLetter::select($defaultField);
+            $data = $this->defaultJoinTable($data);                
+            $data = $data->where('request_letters.outgoing_letter_id', $request->outgoing_letter_id)
+            ->where(function ($query) use ($request) {
+                if ($request->filled('application_letter_number')) {
+                    $query->where('applicants.application_letter_number', 'LIKE', "%{$request->input('application_letter_number')}%");
                 }
-                $response = response()->format(200, 'success', $data);
-            } catch (\Exception $exception) {
-                $response = response()->format(400, $exception->getMessage());
+            })
+            ->where('verification_status', '=', Applicant::STATUS_VERIFIED)
+            ->where('applicants.approval_status', '=', Applicant::STATUS_APPROVED)
+            ->whereNotNull('applicants.finalized_by');
+
+            $data = $data->orderBy('request_letters.id')->paginate($limit);
+            foreach ($data as $key => $val) {
+                $data[$key] = $this->getRealizationData($val);
             }
+            $response = response()->format(200, 'success', $data);
         }
         return $response;
     }
@@ -62,33 +45,14 @@ class RequestLetterController extends Controller
     public function show($id)
     {
         $data = [];
+        $defaultField = $this->defaultField();
+        $requestLetter = RequestLetter::select($defaultField);            
+        $requestLetter = $this->defaultJoinTable($requestLetter);
+        $requestLetter = $requestLetter->where('request_letters.id', $id);
+        $requestLetter = $requestLetter->orderBy('request_letters.id')->get();
 
-        try { 
-            $requestLetter = RequestLetter::select(
-                'request_letters.id',
-                'request_letters.outgoing_letter_id',
-                'request_letters.applicant_id',
-                'applicants.application_letter_number',
-                'applicants.agency_id',
-                'agency.agency_name',
-                'agency.location_district_code',
-                'districtcities.kemendagri_kabupaten_nama',
-                'applicants.applicant_name',
-                DB::raw('0 as realization_total'),
-                DB::raw('"" as realization_date')
-            )
-            ->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
-            ->join('agency', 'agency.id', '=', 'applicants.agency_id')
-            ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code')
-            ->where('request_letters.id', $id)
-            ->orderBy('request_letters.id')
-            ->get();
-
-            foreach ($requestLetter as $key => $val) {
-                $data[] = $this->getRealizationData($val);
-            }
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
+        foreach ($requestLetter as $key => $val) {
+            $data[] = $this->getRealizationData($val);
         }
 
         return response()->format(200, 'success', $data);
@@ -245,5 +209,30 @@ class RequestLetterController extends Controller
         }
 
         return $data; 
+    }
+
+    public function defaultField()
+    {
+        return [
+            'request_letters.id',
+            'request_letters.outgoing_letter_id',
+            'request_letters.applicant_id',
+            'applicants.application_letter_number',
+            'applicants.agency_id',
+            'agency.agency_name',
+            'districtcities.kemendagri_kabupaten_nama',
+            'applicants.applicant_name',
+            'agency.location_district_code',
+            DB::raw('0 as realization_total'),
+            DB::raw('"" as realization_date')
+        ];
+    }
+
+    public function defaultJoinTable($data)
+    {
+        $data = $data->join('applicants', 'applicants.id', '=', 'request_letters.applicant_id')
+        ->join('agency', 'agency.id', '=', 'applicants.agency_id')
+        ->join('districtcities', 'districtcities.kemendagri_kabupaten_kode', '=', 'agency.location_district_code');
+        return $data;
     }
 }
