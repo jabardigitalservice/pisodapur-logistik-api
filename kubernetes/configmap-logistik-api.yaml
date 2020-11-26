@@ -4,17 +4,6 @@ metadata:
   name: logistik-configmap-file-prod
   namespace: pikobar-logistik
 data:
-  # environment on secret # 
-  # DB_PASSWORD: "%DB_PASSWORD%"
-  # JWT_SECRET: "%JWT_SECRET%"
-  # PELAPORAN_AUTH_PASSWORD: "%PELAPORAN_AUTH_PASSWORD%"
-  # AWS_ACCESS_KEY_ID: "%AWS_ACCESS_KEY_ID%"
-  # AWS_SECRET_ACCESS_KEY: "%AWS_SECRET_ACCESS_KEY%"
-  # MAIL_PASSWORD: "%MAIL_PASSWORD%"
-  # WMS_JABAR_API_KEY: "%WMS_JABAR_API_KEY%"
-  # DASHBOARD_PIKOBAR_API_KEY: "%DASHBOARD_PIKOBAR_API_KEY%"
-  # # # # # # # # # # #
-
   APP_NAME: "%APP_NAME%"
   APP_ENV: "%APP_ENV%"
   APP_KEY: "%APP_KEY%"
