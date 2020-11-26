@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 printf "Checking database connection...\n\n"
 mysql_ready() {
     /usr/bin/mysqladmin ping --host=$DB_HOST --user=$DB_USERNAME --password=$DB_PASSWORD > /dev/null 2>&1
@@ -16,3 +16,6 @@ php artisan route:clear
 #php artisan migrate --no-interaction -vvv
 
 echo "done!"
+
+printf "\nstart apache2...\n"
+apache2ctl -D FOREGROUND
