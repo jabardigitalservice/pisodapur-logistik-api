@@ -12,8 +12,7 @@ ENV MAX_UPLOAD_SIZE 10M
 
 RUN apt-get update && apt-get install mysql-client -y
 
-RUN php composer.phar install --no-dev
-RUN php composer.phar dump-autoload
+RUN php composer.phar install
 RUN chown -R www-data:www-data \
         /var/www/html/storage \
         /var/www/html/bootstrap \

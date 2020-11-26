@@ -10,6 +10,7 @@ do
     echo "Waiting for database connection ..."
 done
 
+php composer.phar dump-autoload
 php artisan config:clear
 php artisan cache:clear
 php artisan route:clear
