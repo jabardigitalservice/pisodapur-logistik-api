@@ -82,7 +82,9 @@ pipeline {
                         sh 'docker --version'
                         sh 'echo ${VERSION}'
                         sh 'echo $VERSION > version.txt'
-                        sh 'docker build --tag $appName:$VERSION -f Dockerfile.jacloud . --no-cache'
+                        sh 'sed -i "s/%VERSION%/${VERSION}/g" kubernetes/deployment-logistik-api.yaml'
+                        sh 'sed -i "s/%APP_NAME%/${APP_NAME}/g" kubernetes/configmap-logistik-api.yaml'
+                        //sh 'docker build --tag $appName:$VERSION -f Dockerfile.jacloud . --no-cache'
                     }
                 stash includes: 'version.txt', name: 'version'
             }
@@ -132,7 +134,7 @@ pipeline {
                     withVault([configuration: configuration, vaultSecrets: secretsProd]) {   
             
                         sh 'sed -i "s/%VERSION%/${VERSION}/g" kubernetes/deployment-logistik-api.yaml'
-                        // sh 'sed -i "s/%APP_NAME%/${env.APP_NAME}/g" kubernetes/configmap-logistik-api.yaml'
+                        sh 'sed -i "s/%APP_NAME%/${APP_NAME}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%APP_ENV%/${env.APP_ENV}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%APP_KEY%/${env.APP_KEY}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%APP_URL%/${env.APP_URL}/g" kubernetes/configmap-logistik-api.yaml'
