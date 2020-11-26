@@ -1,7 +1,7 @@
 #!/bin/sh
 printf "Checking database connection...\n\n"
 mysql_ready() {
-    mysqladmin ping --host=$DB_HOST --user=$DB_USERNAME --password=$DB_PASSWORD > /dev/null 2>&1
+    /usr/bin/mysqladmin ping --host=$DB_HOST --user=$DB_USERNAME --password=$DB_PASSWORD > /dev/null 2>&1
 }
 
 while !(mysql_ready)
