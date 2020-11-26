@@ -129,7 +129,9 @@ pipeline {
             steps {
                     // deploy kubernetes cluster production
                     withVault([configuration: configuration, vaultSecrets: secretsProd]) {  
-                        sh 'sed -i "s/%VERSION%/${env.VERSION}/g" kubernetes/deployment-logistik-api.yaml'
+                        
+
+                        sh 'sed -i "s/%VERSION%/${VERSION}/g" kubernetes/deployment-logistik-api.yaml'
                         sh 'sed -i "s/%APP_NAME%/${env.APP_NAME}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%APP_ENV%/${env.APP_ENV}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%APP_KEY%/${env.APP_KEY}/g" kubernetes/configmap-logistik-api.yaml'
