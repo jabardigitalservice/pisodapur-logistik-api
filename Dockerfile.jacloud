@@ -10,7 +10,7 @@ ENV APACHE_PID_FILE /var/run/apache2.pid
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 ENV MAX_UPLOAD_SIZE 10M
 
-RUN apt-get update && apt-get install mysql-client
+RUN apt-get update && apt-get install mysql-client -y
 
 RUN php composer.phar install --no-dev
 
