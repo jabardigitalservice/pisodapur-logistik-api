@@ -82,7 +82,7 @@ pipeline {
                         sh 'docker --version'
                         sh 'echo ${VERSION}'
                         sh 'echo $VERSION > version.txt'
-                        //sh 'docker build --tag $appName:$VERSION -f Dockerfile.jacloud . --no-cache'
+                        sh 'docker build --tag $appName:$VERSION -f Dockerfile.jacloud . --no-cache'
                     }
                 stash includes: 'version.txt', name: 'version'
             }
