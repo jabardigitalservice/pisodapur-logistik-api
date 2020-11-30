@@ -23,7 +23,7 @@ class Agency extends Model
     static function getList($request, $defaultOnly)
     {
         try {
-            $data = self::selectRaw('*, 0 as completeness');
+            $data = self::selectRaw('*, 0 as completeness, 0 as is_reference');
             $data = self::getDefaultWith($data);
 
             if (!$defaultOnly) {
@@ -41,7 +41,8 @@ class Agency extends Model
     
     static function getDefaultWith($data)
     {
-        return $data->with([
+        return $data->with([    
+            'masterFaskes',            
             'masterFaskesType',            
             'city',
             'subDistrict',
@@ -154,6 +155,11 @@ class Agency extends Model
     public function masterFaskesType()
     {
         return $this->hasOne('App\MasterFaskesType', 'id', 'agency_type');
+    }
+
+    public function masterFaskes()
+    {
+        return $this->hasOne('App\MasterFaskes', 'id', 'master_faskes_id');
     }
 
     public function applicant()
