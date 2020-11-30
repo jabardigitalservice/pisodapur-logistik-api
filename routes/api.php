@@ -53,6 +53,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     // USER
     Route::get('v1/users/me', 'UsersController@me');
     Route::post('v1/users/register', 'UsersController@register');
+    Route::put('v1/users/change-password', 'UsersController@changePassword');
 
     // AREAS
     Route::get('v1/areas/cities', 'AreasController@getCities');
