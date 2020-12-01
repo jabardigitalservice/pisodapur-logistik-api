@@ -18,51 +18,26 @@ class AddIsReferenceToMasterFaskesTable extends Migration
         });
 
         // Updating faskes of reference
-        DB::table('master_faskes')->where('id', '<=', 12)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '>=', 14)->where('id', '<=', 38)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 38)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 40)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 42)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 45)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '>=', 61)->where('id', '<=', 67)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '>=', 75)->where('id', '<=', 76)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 85)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 94)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 102)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 113)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 121)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 142)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 150)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 152)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 162)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 164)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 167)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 178)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 189)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 192)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 197)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 198)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '>=', 203)->where('id', '<=', 206)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '>=', 214)->where('id', '<=', 216)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '>=', 218)->where('id', '<=', 220)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '>=', 222)->where('id', '<=', 235)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 247)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 249)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 256)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 262)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 263)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 266)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 267)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 270)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 277)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 281)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 283)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 299)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 300)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 302)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 304)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 305)->update(['is_reference' => 1]);
-        DB::table('master_faskes')->where('id', '=', 308)->update(['is_reference' => 1]);
+        $this->setDefaultReference();
+    }
+
+    public function setDefaultReference()
+    {
+        $ids = [
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 
+            11, 12, 14, 15, 16, 17, 18, 19, 
+            20, 21, 22, 23, 24, 25, 26, 27, 
+            28, 29, 30, 31, 32, 33, 34, 35, 
+            36, 37, 38, 40, 42, 45, 61, 62, 
+            63, 64, 65, 66, 67, 75, 76, 85, 
+            94, 102, 113, 121, 142, 150, 152, 162, 164, 167, 
+            178, 189, 192, 197, 198, 203, 204, 205, 206, 214, 
+            215, 216, 218, 219, 220, 222, 223, 224, 225, 226, 
+            227, 228, 229, 230, 231, 232, 233, 234, 235,
+            247, 249, 256, 262, 263, 266, 267, 270, 277, 281, 
+            283, 299, 300, 302, 304, 305, 308
+        ];
+        DB::table('master_faskes')->whereIn('id', $ids)->update(['is_reference' => 1]);
     }
 
     /**
