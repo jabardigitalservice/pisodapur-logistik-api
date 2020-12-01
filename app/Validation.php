@@ -4,7 +4,7 @@ namespace App;
 use Validator;
 
 class Validation
-{    
+{
     static function validate($request, $param)
     {
         $response = response()->format(200, 'success');

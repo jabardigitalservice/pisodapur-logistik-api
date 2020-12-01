@@ -18,6 +18,10 @@ use App\MasterUnit;
 use App\ProductUnit;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use JWTAuth;
+use DB;
+use App\Validation;
+use App\Imports\MultipleSheetImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LogisticImport extends Model
 {
@@ -214,5 +218,22 @@ class LogisticImport extends Model
         }
 
         return $masterUnit->id;
+    }
+
+    static function importProcess(Request $request)
+    {
+        $response = Validation::defaultError();
+        DB::beginTransaction();
+        try {
+            $import = new MultipleSheetImport();
+            $ts = Excel::import($import, request()->file('file'));
+            self::import($import);
+            DB::commit();
+            $response = response()->format(200, 'success', '');
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            $response = response()->format(400, $exception->getMessage());
+        }
+        return $response;
     }
 }

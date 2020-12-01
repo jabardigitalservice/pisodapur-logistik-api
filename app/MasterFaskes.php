@@ -76,4 +76,25 @@ class MasterFaskes extends Model
         ->paginate($limit);
         return $data;
     }
+
+    static function createFaskes(Request $request)
+    {
+        try {
+            $model = new MasterFaskes();
+            $model->fill([
+                'id_tipe_faskes' => $request->agency_type,
+                'nama_faskes' => $request->agency_name
+            ]);
+            $model->nomor_izin_sarana = '-';
+            $model->nama_atasan = '-';
+            $model->point_latitude_longitude = '-';
+            $model->verification_status = 'verified';
+            $model->is_imported = 0;
+            $model->non_medical = 1;
+            $model->save();
+        } catch (\Exception $exception) {
+            return response()->format(400, $exception->getMessage());
+        }
+        return $model;
+    }
 }
