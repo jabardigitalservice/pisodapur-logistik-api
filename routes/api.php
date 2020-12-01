@@ -30,8 +30,7 @@ Route::namespace('API\v1')->group(function () {
 
     // AREAS, for public
     Route::get('/areas/cities', 'AreasController@getCities');
-    Route::get('/areas/subdistricts', 'AreasController@getSubDistricts');
-    Route::get('/areas/villages', 'AreasController@getVillages');
+    Route::get('/areas/subarea', 'AreasController@subArea');
 
     Route::get('/products', 'ProductsController@index');
     Route::get('/product-unit/{id}', 'ProductsController@productUnit');
