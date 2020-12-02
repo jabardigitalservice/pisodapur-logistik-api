@@ -60,20 +60,6 @@ class LogisticRequestController extends Controller
         return response()->format(200, 'success', $data);
     }
 
-    public function verification(Request $request)
-    {
-        $param = [
-            'applicant_id' => 'required|numeric',
-            'verification_status' => 'required|string'
-        ];
-        $param['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? 'required' : '';
-        $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === 200) {
-            $response = LogisticRequest::verificationProcess($request);
-        }
-        return $response;
-    }
-
     public function listNeed(Request $request)
     {
         $param = ['agency_id' => 'required'];
@@ -113,32 +99,39 @@ class LogisticRequestController extends Controller
         return response()->format(200, 'success', $data);
     }
 
-    public function approval(Request $request)
+    public function changeStatus(Request $request)
     {
-        $param = [
-            'applicant_id' => 'required|numeric',
-            'approval_status' => 'required|string'
-        ];
-        $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+        $param['applicant_id'] = 'required|numeric';
+        $processType = 'verification';
+        $changeStatusParam = $this->setChangeStatusParam($request, $param, $processType);
+        $param = $changeStatusParam['param'];
+        $processType = $changeStatusParam['processType'];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            $response = LogisticRequest::approvalProcess($request);
+            $response = LogisticRequest::changeStatus($request, $processType);
         }
         return $response;
     }
 
-    public function final(Request $request)
+    public function setChangeStatusParam(Request $request, $param, $processType)
     {
-        $param = [
-            'applicant_id' => 'required|numeric',
-            'approval_status' => 'required|string'
-        ];
-        $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
-        $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === 200) {
-            $response = LogisticRequest::finalProcess($request);
+        if ($request->route()->named('verification')) {
+            $param['verification_status'] = 'required|string';
+            $param['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? 'required' : '';
+        } else if ($request->route()->named('approval')) {
+            $processType = 'approval';
+            $param['approval_status'] = 'required|string';
+            $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+        } else {
+            $processType = 'final';
+            $param['approval_status'] = 'required|string';
+            $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
         }
-        return $response;
+
+        $changeStatusParam['param'] = $param;
+        $changeStatusParam['processType'] = $processType;
+
+        return $changeStatusParam;
     }
 
     public function stockCheking(Request $request)

@@ -53,7 +53,7 @@ class LogisticRequest extends Model
         $response = Validation::defaultError();
         DB::beginTransaction();
         try {
-            $responseData['agency'] = LogisticRequest::agencyStore($request);
+            $responseData['agency'] = self::agencyStore($request);
             $request->request->add(['agency_id' => $responseData['agency']->id]);
             
             $responseData['applicant'] = Applicant::applicantStore($request);
@@ -64,13 +64,13 @@ class LogisticRequest extends Model
                 $responseData['applicant']->file = $responseData['applicant_file']->id;
                 $updateFile = Applicant::where('id', '=', $responseData['applicant']->id)->update(['file' => $responseData['applicant_file']->id]);
             }
-            $responseData['need'] = LogisticRequest::needStore($request);
+            $responseData['need'] = self::needStore($request);
             
             if ($request->hasFile('letter_file')) {
                 $responseData['letter'] = FileUpload::storeLetterFile($request);
             }
-            $email = LogisticRequest::sendEmailNotification($responseData['agency']->id, Applicant::STATUS_NOT_VERIFIED);
-            $whatsapp = LogisticRequest::sendWhatsappNotification($request, 'surat');
+            $email = self::sendEmailNotification($responseData['agency']->id, Applicant::STATUS_NOT_VERIFIED);
+            $whatsapp = self::sendWhatsappNotification($request, 'surat');
             DB::commit();
             $response = response()->format(200, 'success', new LogisticRequestResource($responseData));
         } catch (\Exception $exception) {
@@ -162,11 +162,11 @@ class LogisticRequest extends Model
                 break;
             case 2:
                 $model = Applicant::findOrFail($id);
-                $request = LogisticRequest::setRequestApplicant($request);
+                $request = self::setRequestApplicant($request);
                 break;
             case 3:
                 $model = Applicant::findOrFail($id);
-                $request = LogisticRequest::setRequestEditLetter($request, $id);
+                $request = self::setRequestEditLetter($request, $id);
                 break;
             default:
                 $model = Agency::findOrFail($id);
@@ -179,16 +179,32 @@ class LogisticRequest extends Model
         return response()->format(200, 'success');
     }
 
+    static function changeStatus(Request $request, $processType)
+    {
+        switch ($processType) {
+            case 'verification':
+                $response = LogisticRequest::verificationProcess($request);
+                break;
+            case 'approval':
+                $response = LogisticRequest::approvalProcess($request);
+                break;
+            case 'final':
+                $response = LogisticRequest::finalProcess($request);
+                break;
+        }
+        return $response;
+    }
+
     static function verificationProcess(Request $request)
     {        
         $response = Validation::defaultError();
         $request['verified_by'] = JWTAuth::user()->id;
         $request['verified_at'] = date('Y-m-d H:i:s');
         $applicant = Applicant::updateApplicant($request);
-        $email = LogisticRequest::sendEmailNotification($applicant->agency_id, $request->verification_status);
+        $email = self::sendEmailNotification($applicant->agency_id, $request->verification_status);
         if ($request->verification_status !== Applicant::STATUS_REJECTED) {
             $request['agency_id'] = $applicant->agency_id;
-            $whatsapp = LogisticRequest::sendEmailNotification($request, 'rekomendasi');
+            $whatsapp = self::sendEmailNotification($request, 'rekomendasi');
         }
         $response = response()->format(200, 'success', $applicant);
         return $response;
@@ -212,10 +228,10 @@ class LogisticRequest extends Model
             $request['approved_by'] = JWTAuth::user()->id;
             $request['approved_at'] = date('Y-m-d H:i:s');
             $applicant = Applicant::updateApplicant($request);
-            $email = LogisticRequest::sendEmailNotification($applicant->agency_id, $request->approval_status);
+            $email = self::sendEmailNotification($applicant->agency_id, $request->approval_status);
             if ($request->approval_status === Applicant::STATUS_APPROVED) {
                 $request['agency_id'] = $applicant->agency_id;
-                $whatsapp = LogisticRequest::sendEmailNotification($request, 'realisasi');
+                $whatsapp = self::sendEmailNotification($request, 'realisasi');
             }
             $response = response()->format(200, 'success', $applicant);
         }
@@ -242,7 +258,7 @@ class LogisticRequest extends Model
             $request['finalized_by'] = JWTAuth::user()->id;
             $request['finalized_at'] = date('Y-m-d H:i:s');
             $applicant = Applicant::updateApplicant($request);                
-            $email = LogisticRequest::sendEmailNotification($applicant->agency_id, $request->approval_status);
+            $email = self::sendEmailNotification($applicant->agency_id, $request->approval_status);
             $response = response()->format(200, 'success', [
                 '(needsSum_realization_sum' => ($needsSum + $realizationSum),
                 'finalSum' => $finalSum,
