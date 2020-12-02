@@ -177,7 +177,7 @@ class LogisticRequestController extends Controller
     public function trackDetail(Request $request, $id)
     {
         $limit = $request->input('limit', 3);
-        $select = Tracking::selectFields();
+        $select = Tracking::selectFieldsDetail();
         $logisticRealizationItems = Tracking::getLogisticAdmin($select, $request, $id); //List of item(s) added from admin
         $data = Tracking::getLogisticRequest($select, $request, $id); //List of updated item(s)
         $data = $data->union($logisticRealizationItems)->paginate($limit);
