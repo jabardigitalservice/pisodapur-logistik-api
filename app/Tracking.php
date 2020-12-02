@@ -4,10 +4,29 @@ namespace App;
 
 use DB;
 use App\LogisticRealizationItems;
+use App\Agency;
 
 class Tracking
 {
-    static function selectFields()
+    static function selectFieldsList()
+    {
+        return [
+            'id',
+            'agency_id',
+            DB::raw('applicant_name as request'),
+            DB::raw('verification_status'),
+            DB::raw('approval_status'),
+            DB::raw('verification_status as verification'),
+            DB::raw('approval_status as approval'),
+            DB::raw('FALSE as delivering'), // Waiting for Integration data with POSLOG
+            DB::raw('FALSE as delivered'), // Waiting for Integration data with POSLOG
+            DB::raw('concat(approval_status, "-", verification_status) as status'),
+            DB::raw('concat(approval_status, "-", verification_status) as statusDetail'),
+            DB::raw('IFNULL(approval_note, note) as reject_note')
+        ];
+    }
+
+    static function selectFieldsDetail()
     {
         return $select = [
             DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
@@ -62,5 +81,25 @@ class Tracking
         return $data->whereNotNull('logistic_realization_items.created_by')
             ->orderBy('logistic_realization_items.id')
             ->where('logistic_realization_items.applicant_id', $id);
+    }
+
+    static function trackList(Request $request)
+    {        
+        $list = Agency::with([
+            'tracking' => function ($query) {
+                return $query->select(self::selectFieldsList())->where('is_deleted', '!=' , 1);
+            }
+        ])
+        ->whereHas('applicant', function ($query) use ($request) { 
+            $query->where('id', '=', $request->input('search'));
+            $query->orWhere('email', '=', $request->input('search'));
+            $query->orWhere('primary_phone_number', '=', $request->input('search'));
+            $query->orWhere('secondary_phone_number', '=', $request->input('search'));
+        });
+        $list = Agency::getDefaultWith($list);
+        $list = Agency::whereHasApplicantData($list, $request);
+        $list = $list->orderBy('agency.created_at', 'desc')->limit(5)->get();
+
+        return $list;
     }
 }

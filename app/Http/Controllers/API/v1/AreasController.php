@@ -32,54 +32,47 @@ class AreasController extends Controller
         return response()->format(200, true, $query->get());
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function getSubDistricts(Request $request)
+    public function subArea(Request $request)
     {
-        $cityCode = '32.01';
-
-        $query = Subdistrict::select('*')
-                     ->orderBy('kemendagri_kecamatan_nama', 'asc');
-
-        if ($request->query('city_code')) {
-            $query->where('kemendagri_kabupaten_kode', '=', $request->query('city_code'));
+        $query = [];
+        $param = $this->getParamAreas($request->area_type);
+        if ($request->area_type === 'village') {
+            $query = Village::select('*');
         } else {
-            $query->where('kemendagri_kabupaten_kode', '=', $cityCode);
+            $query = Subdistrict::select('*');
         }
+        $query->orderBy($param['orderBy'], 'asc');
 
-        if ($request->query('subdistrict_code')) {
-            $query->where('kemendagri_kecamatan_kode', '=', $request->query('subdistrict_code'));
+        $valueCodeLevelOne = $request->query($param['requestQueryLevelOne']) ? $request->query($param['requestQueryLevelOne']) : $param['code'];
+        $query->where($param['whereCodeLevelOne'], '=', $valueCodeLevelOne);
+
+        if ($request->query($param['requestQueryLevelTwo'])) {
+            $query->where($param['whereCodeLevelTwo'], '=', $request->query($param['requestQueryLevelTwo']));
         }
 
         return response()->format(200, true, $query->get());
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function getVillages(Request $request)
+    public function getParamAreas($areasType)
     {
-        $subdistrictCode = '32.01.01';
 
-        $query = Village::select('*')
-                     ->orderBy('kemendagri_desa_nama', 'asc');
-
-        if ($request->query('subdistrict_code')) {
-            $query->where('kemendagri_kecamatan_kode', '=', $request->query('subdistrict_code'));
+        if ($areasType === 'village') {
+            $param['orderBy'] = 'kemendagri_desa_nama';
+            $param['whereCodeLevelOne'] = 'kemendagri_kecamatan_kode';
+            $param['code'] = '32.01.01';
+            $param['requestQueryLevelOne'] = 'subdistrict_code';
+            $param['whereCodeLevelTwo'] = 'kemendagri_desa_kode';
+            $param['requestQueryLevelTwo'] = 'village_code';
         } else {
-            $query->where('kemendagri_kecamatan_kode', '=', $subdistrictCode);
+            $param['orderBy'] = 'kemendagri_kecamatan_nama';
+            $param['whereCodeLevelOne'] = 'kemendagri_kabupaten_kode';
+            $param['code'] = '32.01';
+            $param['requestQueryLevelOne'] = 'city_code';
+            $param['whereCodeLevelTwo'] = 'kemendagri_kecamatan_kode';
+            $param['requestQueryLevelTwo'] = 'subdistrict_code';
         }
 
-        if ($request->query('village_code')) {
-            $query->where('kemendagri_desa_kode', '=', $request->query('village_code'));
-        }
-
-        return response()->format(200, true, $query->get());
+        return $param;
     }
 
     public function getCitiesTotalRequest(Request $request)
