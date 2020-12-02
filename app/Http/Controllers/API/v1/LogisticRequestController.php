@@ -44,7 +44,7 @@ class LogisticRequestController extends Controller
         $param['update_type'] = 'required';
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            $response = LogisticRequest::saveData($request);
+            $response = LogisticRequest::saveData($request, $id);
         }
         return $response;
     }

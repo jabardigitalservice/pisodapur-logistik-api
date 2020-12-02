@@ -153,7 +153,7 @@ class LogisticRequest extends Model
         return $request;
     }
 
-    static function saveData(Request $request)
+    static function saveData(Request $request, $id)
     {
         switch ($request->update_type) {
             case 1:
