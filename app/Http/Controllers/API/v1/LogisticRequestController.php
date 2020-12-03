@@ -21,9 +21,29 @@ class LogisticRequestController extends Controller
     {
         $limit = $request->filled('limit') ? $request->input('limit') : 10;
         $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
-        $data = Agency::getList($request, false);        
+        $data = Agency::getList($request, false);
         $data = $data->orderByRaw(implode($sort))->paginate($limit);
         Validation::completenessDetail($data);
+        return response()->format(200, 'success', $data);
+    }
+
+    public function finalList(Request $request)
+    {
+        $logisticRequest = Agency::getList($request, false)
+        ->join('applicants', 'agency.id', '=', 'applicants.agency_id')
+        ->where('is_deleted', '!=' , 1)
+        ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
+        ->where('applicants.approval_status', Applicant::STATUS_APPROVED)
+        ->whereNotNull('applicants.finalized_by');
+        if ($request->filled('is_integrated')) {
+            $logisticRequest = $logisticRequest->where('is_integrated', '=', $request->input('is_integrated'));
+        }
+        $logisticRequest = $logisticRequest->get();
+
+        $data = [
+            'data' => $logisticRequest,
+            'total' => count($logisticRequest)
+        ];
         return response()->format(200, 'success', $data);
     }
 
