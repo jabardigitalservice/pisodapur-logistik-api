@@ -35,8 +35,7 @@ Route::namespace('API\v1')->group(function () {
 
     // AREAS, for public
     Route::get('/areas/cities', 'AreasController@getCities');
-    Route::get('/areas/subdistricts', 'AreasController@getSubDistricts');
-    Route::get('/areas/villages', 'AreasController@getVillages');
+    Route::get('/areas/subarea', 'AreasController@subArea');
 
     Route::get('/products', 'ProductsController@index');
     Route::get('/product-unit/{id}', 'ProductsController@productUnit');
@@ -58,6 +57,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     // USER
     Route::get('v1/users/me', 'UsersController@me');
     Route::post('v1/users/register', 'UsersController@register');
+    Route::put('v1/users/change-password', 'UsersController@changePassword');
 
     // AREAS
     Route::get('v1/areas/cities', 'AreasController@getCities');
@@ -97,15 +97,15 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
 
     Route::get('v1/logistic-request', 'LogisticRequestController@index');
     Route::get('v1/logistic-request/{id}', 'LogisticRequestController@show');
-    Route::post('v1/logistic-request/verification', 'LogisticRequestController@verification');
+    Route::post('v1/logistic-request/verification', 'LogisticRequestController@changeStatus')->name('verification');
     Route::get('v1/logistic-request/need/list', 'LogisticRequestController@listNeed');
     Route::post('v1/logistic-request/import', 'LogisticRequestController@import');
     Route::post('v1/logistic-request/realization', 'LogisticRealizationItemController@store');
     Route::get('v1/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
     Route::get('v1/logistic-request/data/export', 'ExportLogisticRequestController@export');
     Route::post('v1/logistic-request-non-public', 'LogisticRequestController@store')->name('non-public');
-    Route::post('v1/logistic-request/approval', 'LogisticRequestController@approval');
-    Route::post('v1/logistic-request/final', 'LogisticRequestController@final');
+    Route::post('v1/logistic-request/approval', 'LogisticRequestController@changeStatus')->name('approval');
+    Route::post('v1/logistic-request/final', 'LogisticRequestController@changeStatus')->name('final');
     Route::post('v1/logistic-request/stock-checking', 'LogisticRequestController@stockCheking');
     Route::post('v1/logistic-request/letter/{id}', 'LogisticRequestController@uploadLetter');
     Route::post('v1/logistic-request/identity/{id}', 'LogisticRequestController@uploadApplicantFile');
@@ -166,4 +166,7 @@ Route::namespace('API\v1')->middleware('auth-key')->group(function () {
   Route::get('v1/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
   Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
   Route::get('v1/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
+  // Integrate with POSLOG
+  Route::get('v1/logistic-request-list', 'LogisticRequestController@finalList');
+  Route::get('v1/logistic-request/{id}', 'LogisticRequestController@show');
 });

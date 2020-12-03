@@ -5,6 +5,8 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use DB;
+use App\Product;
+use Illuminate\Http\Request;
 
 class Needs extends Model
 {
@@ -153,6 +155,25 @@ class Needs extends Model
     public function realizedBy()
     {
         return $this->hasOne('App\User', 'id', 'realization_by');
+    }
+
+    static function listNeed(Request $request)
+    {        
+        $limit = $request->input('limit', 3);
+        $data = Needs::getFields();
+        $data = Needs::getListNeed($data, $request)->paginate($limit);
+        $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
+        $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) { 
+            if (!$item->realization_product_name) {
+                $product = Product::where('id', $item->realization_product_id)->first();
+                $item->realization_product_name = $product ? $product->name : '';
+            }
+            $item->status = !$item->status ? 'not_approved' : $item->status;
+            $item->logistic_item_summary = (int)$logisticItemSummary;
+            return $item;
+        });
+        $response = response()->format(200, 'success', $data);
+        return $response;
     }
     
 }

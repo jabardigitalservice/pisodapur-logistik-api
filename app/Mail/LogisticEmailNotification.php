@@ -46,7 +46,7 @@ class LogisticEmailNotification extends Mailable
                 $this->textNotVerified();
                 break;
             case Applicant::STATUS_REJECTED:
-                $$this->textRejected();
+                $this->textRejected();
                 break;
             case Applicant::STATUS_VERIFIED:
                 $this->textVerified();
