@@ -5,6 +5,7 @@ namespace App;
 use DB;
 use App\LogisticRealizationItems;
 use App\Agency;
+use Illuminate\Http\Request;
 
 class Tracking
 {
