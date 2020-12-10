@@ -18,6 +18,8 @@ use Illuminate\Http\Request;
 Route::get('v1/welcome', 'API\v1\WelcomeController@index');
 Route::post('v1/login', 'API\v1\UsersController@authenticate');
 Route::post('v1/authenticate', 'API\v1\UsersController@authenticate');
+Route::post('v1/verification-registration', 'API\v1\LogisticReportController@verificationRegistration');
+Route::post('v1/verification-confirmation', 'API\v1\LogisticReportController@verificationConfirmation');
 
 // Landing Page Registration
 Route::namespace('API\v1')->group(function () {
