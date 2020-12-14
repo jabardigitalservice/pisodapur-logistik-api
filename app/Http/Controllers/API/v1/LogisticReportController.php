@@ -134,4 +134,24 @@ class LogisticReportController extends Controller
 
         return $file;
     }
+
+    public function realizationLogisticList(Request $request, $id) 
+    {
+        $select = [
+            'logistic_realization_items.id as id',
+            'logistic_realization_items.final_product_id as product_id',
+            'logistic_realization_items.final_product_name as name',
+            'logistic_realization_items.final_quantity as qty',
+            'logistic_realization_items.final_unit as unit',
+            'logistic_realization_items.final_status as status',
+            DB::raw('0 as qty_ok'),
+            DB::raw('0 as qty_nok')
+        ];
+        $data = LogisticRealizationItems::select($select)
+        ->where('agency_id', $id)
+        ->whereIn('logistic_realization_items.final_status', [LogisticRealizationItems::STATUS_REPLACED, LogisticRealizationItems::STATUS_APPROVED])
+        ->get();
+        $response = response()->format(200, 'success', $data);
+        return $response;
+    }
 }
