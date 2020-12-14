@@ -155,10 +155,6 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
 
     //Notification via Whatsapp
     Route::post('v1/notify', 'ChangeStatusNotifyController@sendNotification');
-    
-    //Auth Key
-    Route::post('v1/auth-key/register', 'AuthKeysController@register');
-    Route::post('v1/auth-key/reset', 'AuthKeysController@reset');
 });
 
 //Route for Another App that want integrate data

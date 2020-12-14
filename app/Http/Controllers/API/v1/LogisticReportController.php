@@ -30,7 +30,7 @@ class LogisticReportController extends Controller
                 $logisticVerification = $this->sendEmailCondition($logisticVerification);
                 $response = response()->format(200, 'success', $logisticVerification);
             } catch (\Exception $exception) {
-                $response = response()->format(422, 'Permohonan dengan Kode Permohonan ' . $request->id . ' tidak ditemukan.', $exception);
+                $response = response()->format(422, 'Permohonan dengan Kode Permohonan ' . $request->id . ' tidak ditemukan.', ['message' => $exception->getMessage(), 'detail' => $exception]);
             }
         }
         return $response;
