@@ -5,6 +5,7 @@ namespace App;
 use DB;
 use App\LogisticRealizationItems;
 use App\Agency;
+use Illuminate\Http\Request;
 
 class Tracking
 {
@@ -71,6 +72,9 @@ class Tracking
     {
         $data = LogisticRealizationItems::select($select);
         $data = self::getJoin($data, false);
+        if ($request->filled('final_status')) {
+            $data = $data->whereIn('final_status', ['approved', 'replaced']);
+        } 
         return $data->orderBy('needs.id')->where('needs.applicant_id', $id);
     }
 
@@ -78,6 +82,9 @@ class Tracking
     {
         $data = LogisticRealizationItems::select($select);
         $data = self::getJoin($data, true);
+        if ($request->filled('final_status')) {
+            $data = $data->whereIn('final_status', ['approved', 'replaced']);
+        } 
         return $data->whereNotNull('logistic_realization_items.created_by')
             ->orderBy('logistic_realization_items.id')
             ->where('logistic_realization_items.applicant_id', $id);

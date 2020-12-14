@@ -12,6 +12,7 @@ class FileUpload extends Model
 
     const LETTER_PATH = 'registration/letter';
     const APPLICANT_IDENTITY_PATH = 'registration/applicant_identity';
+    const ACCEPTANCE_REPORT_PATH = 'registration/acceptance_report';
     const DISK = 's3';
 
     protected $fillable = [
@@ -36,6 +37,13 @@ class FileUpload extends Model
         $path = Storage::disk(self::DISK)->put(self::APPLICANT_IDENTITY_PATH, $request->applicant_file);
         $fileUpload = self::create(['name' => $path]);
         $fileUploadId = $fileUpload->id;
+        return $fileUpload;
+    }
+
+    static function uploadAcceptanceReportFile($request, $paramName)
+    {
+        $path = Storage::disk(self::DISK)->put(self::ACCEPTANCE_REPORT_PATH, $request->input($paramName));
+        $fileUpload = FileUpload::create(['name' => $path]);
         return $fileUpload;
     }
 }
