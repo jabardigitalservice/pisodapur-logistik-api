@@ -7,8 +7,13 @@ use App\Http\Controllers\Controller;
 use App\Validation;
 use App\LogisticVerification;
 use App\Applicant;
+use DB;
+use App\LogisticRealizationItems;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TokenEmailNotification;
+use App\AcceptanceReport;
+use App\AcceptanceReportDetail;
+use App\FileUpload;
 
 class LogisticReportController extends Controller
 {
@@ -25,7 +30,7 @@ class LogisticReportController extends Controller
                 $logisticVerification = $this->sendEmailCondition($logisticVerification);
                 $response = response()->format(200, 'success', $logisticVerification);
             } catch (\Exception $exception) {
-                $response = response()->format(422, 'Permohonan dengan Kode Permohonan ' . $request->id . ' tidak ditemukan.', $exception->getMessage());
+                $response = response()->format(422, 'Permohonan dengan Kode Permohonan ' . $request->id . ' tidak ditemukan.', $exception);
             }
         }
         return $response;
@@ -64,5 +69,69 @@ class LogisticReportController extends Controller
             }
         }
         return $response;
+    }
+
+    public function acceptanceStore(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $acceptanceReport = $this->storeAcceptanceReport($request);
+            $this->itemStore($request, $acceptanceReport);
+            // Upload Seluruh File
+            $proof_pic = $this->uploadAcceptanceFile($request, 'proof_pic');
+            $bast_proof = $this->uploadAcceptanceFile($request, 'bast_proof');
+            $item_proof = $this->uploadAcceptanceFile($request, 'item_proof');
+            DB::commit();
+            $response = response()->format(200, 'success');
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            $response = response()->format(422, 'Terjadi Kesalahan', ['message' => $exception->getMessage(), 'exception' => $exception]);
+        }
+        return $response;
+    }
+
+    public function storeAcceptanceReport($request)
+    {
+        $acceptanceReport = new AcceptanceReport;
+        $acceptanceReport->fullname = $request->fullname;
+        $acceptanceReport->position = $request->position;
+        $acceptanceReport->phone = $request->phone;
+        $acceptanceReport->date = $request->date;
+        $acceptanceReport->officer_fullname = $request->officer_fullname;
+        $acceptanceReport->note = $request->note;
+        $acceptanceReport->agency_id = $request->agency_id;
+        $acceptanceReport->save();
+        return $acceptanceReport;
+    }
+
+    public function itemStore($request, $acceptanceReport)
+    {
+        foreach (json_decode($request->items, true) as $value) {
+            $acceptanceReportDetail = new AcceptanceReportDetail;
+            $acceptanceReportDetail->acceptance_report_id = $acceptanceReport->id;
+            $acceptanceReportDetail->agency_id = $request->agency_id;
+            $acceptanceReportDetail->logistic_realization_item_id = $value['id'];
+            $acceptanceReportDetail->product_id = $value['product_id'];
+            $acceptanceReportDetail->product_name = $value['name'];
+            $acceptanceReportDetail->qty = $value['qty'];
+            $acceptanceReportDetail->unit = $value['unit'];
+            $acceptanceReportDetail->status = $value['status'];
+            $acceptanceReportDetail->qty_ok = $value['qty_ok'];
+            $acceptanceReportDetail->qty_nok = $value['qty_nok'];
+            $acceptanceReportDetail->quality = $value['quality'];
+            $acceptanceReportDetail->save();
+        }
+    }
+
+    public function uploadAcceptanceFile($request, $paramName)
+    {
+        $file = [];
+        for ($i = 0; $i < $request->input($paramName . '_length'); $i++) {
+            if ($request->hasFile($paramName . $i)) {
+                $file[] = FileUpload::uploadAcceptanceReportFile($request, $paramName . $i);
+            }
+        }
+
+        return $file;
     }
 }
