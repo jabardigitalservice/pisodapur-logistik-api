@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 Route::get('v1/welcome', 'API\v1\WelcomeController@index');
 Route::post('v1/login', 'API\v1\UsersController@authenticate');
 Route::post('v1/authenticate', 'API\v1\UsersController@authenticate');
+// API Report of Logistics Acceptance
 Route::post('v1/verification-registration', 'API\v1\LogisticReportController@verificationRegistration');
 Route::post('v1/verification-confirmation', 'API\v1\LogisticReportController@verificationConfirmation');
 Route::get('v1/logistic-report/realization-item/{id}', 'API\v1\LogisticReportController@realizationLogisticList');
