@@ -67,7 +67,8 @@ class LogisticRealizationItemController extends Controller
         if ($response->getStatusCode() === 200) {
             $response = $this->isValidStatus($request);
             if ($response->getStatusCode() === 200) { //Validate applicant verification status must VERIFIED
-                $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));  
+                $applicant = Applicant::select('id')->where('agency_id', $request->agency_id)->first();
+                $request['applicant_id'] = $request->input('applicant_id', $applicant->id);
                 //Get Material from PosLog by Id
                 $request = $this->getPosLogData($request);
                 $realization = $this->realizationStore($request);
