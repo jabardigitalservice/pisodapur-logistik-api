@@ -265,6 +265,7 @@ class LogisticRequest extends Model
                 'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
             ]);
         }
+        return $response;
     }
 
     

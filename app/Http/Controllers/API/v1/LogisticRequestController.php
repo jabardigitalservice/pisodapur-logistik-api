@@ -136,6 +136,7 @@ class LogisticRequestController extends Controller
     public function setChangeStatusParam(Request $request, $param, $processType)
     {
         if ($request->route()->named('verification')) {
+            $processType = 'verification';
             $param['verification_status'] = 'required|string';
             $param['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? 'required' : '';
         } else if ($request->route()->named('approval')) {
