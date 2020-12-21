@@ -27,25 +27,27 @@ class LogisticReportController extends Controller
             try {
                 $applicant = Applicant::where('agency_id', $request->id)->firstOrFail();
                 $logisticVerification = LogisticVerification::firstOrCreate(['agency_id' => $request->id], ['email' => $applicant->email]);
-                $logisticVerification = $this->sendEmailCondition($logisticVerification);
                 $response = response()->format(200, 'success', $logisticVerification);
             } catch (\Exception $exception) {
                 $response = response()->format(422, 'Permohonan dengan Kode Permohonan ' . $request->id . ' tidak ditemukan.', ['message' => $exception->getMessage(), 'detail' => $exception]);
             }
         }
+        $logisticVerification = $this->sendEmailCondition($logisticVerification, $response);
         return $response;
     }
 
-    public function sendEmailCondition($logisticVerification)
+    public function sendEmailCondition($logisticVerification, $response)
     {
-        if ($logisticVerification->expired_at <= date('Y-m-d H:i:s')) {
-            // reset token
-            $token = rand(10000, 99999);
-            $logisticVerification->token = $token;
-            $logisticVerification->expired_at = date('Y-m-d H:i:s', strtotime('+1 days'));
-            $logisticVerification->save();
-            // send email
-            Mail::to($logisticVerification->email)->send(new TokenEmailNotification($token));
+        if ($response->getStatusCode() === 200) {
+            if ($logisticVerification->expired_at <= date('Y-m-d H:i:s')) {
+                // reset token
+                $token = rand(10000, 99999);
+                $logisticVerification->token = $token;
+                $logisticVerification->expired_at = date('Y-m-d H:i:s', strtotime('+1 days'));
+                $logisticVerification->save();
+                // send email
+                Mail::to($logisticVerification->email)->send(new TokenEmailNotification($token));
+            }
         }
         return $logisticVerification;
     }
@@ -73,6 +75,8 @@ class LogisticReportController extends Controller
 
     public function acceptanceStore(Request $request)
     {
+        $param = AcceptanceReport::setParamStore();
+        $response = Validation::validate($request, $param);
         DB::beginTransaction();
         try {
             $acceptanceReport = $this->storeAcceptanceReport($request);

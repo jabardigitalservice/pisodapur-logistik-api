@@ -54,6 +54,7 @@ class StockController extends Controller
                 $result['material_name'] = 'VTM';
             }
         }
+        $result['material_name'] = $request->material_name ? $request->material_name : $result['material_name'];
         return $result;
     }
 
