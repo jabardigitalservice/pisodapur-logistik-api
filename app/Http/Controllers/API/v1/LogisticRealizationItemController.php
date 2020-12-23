@@ -54,6 +54,7 @@ class LogisticRealizationItemController extends Controller
     {
         $params = [
             'agency_id' => 'numeric', 
+            'applicant_id' => 'numeric', 
             'product_id' => 'string',
             'usage' => 'string',
             'priority' => 'string',
@@ -64,15 +65,11 @@ class LogisticRealizationItemController extends Controller
         $request = $cleansingData['request'];
         $response = Validation::validate($request, $params);        
         if ($response->getStatusCode() === 200) {
-            $response = $this->isValidStatus($request);
-            if ($response->getStatusCode() === 200) { //Validate applicant verification status must VERIFIED
-                $applicant = Applicant::select('id')->where('agency_id', $request->agency_id)->first();
-                $request['applicant_id'] = $request->input('applicant_id', $applicant->id);
-                //Get Material from PosLog by Id
-                $request = $this->getPosLogData($request);
-                $realization = $this->realizationStore($request);
-                $response = response()->format(200, 'success');
-            }
+            $applicant = Applicant::select('id')->where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->first();
+            //Get Material from PosLog by Id
+            $request = $this->getPosLogData($request);
+            $realization = $this->realizationStore($request);
+            $response = response()->format(200, 'success');
         }
         return $response;
     }
