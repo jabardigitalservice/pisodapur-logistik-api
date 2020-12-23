@@ -17,6 +17,8 @@ class LogisticRealizationItemController extends Controller
     public function store(Request $request)
     {
         $params = [
+            'agency_id' => 'numeric',
+            'applicant_id' => 'numeric',
             'need_id' => 'numeric',
             'status' => 'string'
         ];
@@ -25,26 +27,23 @@ class LogisticRealizationItemController extends Controller
         $request = $cleansingData['request'];
         $response = Validation::validate($request, $params);
         if ($response->getStatusCode() === 200) {
-            $response = $this->isValidStatus($request);
-            if ($response->getStatusCode() === 200) { //Validate applicant verification status must VERIFIED
-                if ($this->isApplicantExists($request, 'store')) {
-                    try {
-                        $model = new LogisticRealizationItems();
-                        $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
-                        $resultset = $this->setValue($request, $findOne);
-                        $findOne = $resultset['findOne'];
-                        $request = $resultset['request'];
-                        $model->fill($request->input());
-                        $model->save();
-                        if ($findOne) { //updating latest log realization record
-                            $findOne->realization_ref_id = $model->id;
-                            $findOne->deleted_at = date('Y-m-d H:i:s');
-                            $findOne->save();
-                        }
-                        $response = response()->format(200, 'success', $model);
-                    } catch (\Exception $exception) { //Return Error Exception
-                        $response = response()->format(400, $exception->getMessage());
+            if ($this->isApplicantExists($request, 'store')) {
+                try {
+                    $model = new LogisticRealizationItems();
+                    $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
+                    $resultset = $this->setValue($request, $findOne);
+                    $findOne = $resultset['findOne'];
+                    $request = $resultset['request'];
+                    $model->fill($request->input());
+                    $model->save();
+                    if ($findOne) { //updating latest log realization record
+                        $findOne->realization_ref_id = $model->id;
+                        $findOne->deleted_at = date('Y-m-d H:i:s');
+                        $findOne->save();
                     }
+                    $response = response()->format(200, 'success', $model);
+                } catch (\Exception $exception) { //Return Error Exception
+                    $response = response()->format(400, $exception->getMessage());
                 }
             }
         }
@@ -208,7 +207,6 @@ class LogisticRealizationItemController extends Controller
     public function setValue($request, $findOne)
     {
         unset($request['id']);
-        $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
         if ($request->input('status') !== LogisticRealizationItems::STATUS_NOT_AVAILABLE) {
             //Get Material from PosLog by Id
             $request = $this->getPosLogData($request);
@@ -230,12 +228,8 @@ class LogisticRealizationItemController extends Controller
     public function isApplicantExists($request, $method)
     {
         $applicantCheck = Applicant::where('verification_status', '=', Applicant::STATUS_VERIFIED);
-        if ($method === 'store') {
-            $need = Needs::findOrFail($request->need_id);
-            $applicantCheck = $applicantCheck->where('id', $need->applicant_id);
-        } else {
-            $applicantCheck = $applicantCheck->where('agency_id', $request->agency_id);
-        }
+        $applicantCheck = $applicantCheck->where('id', $request->applicant_id);
+        $applicantCheck = $applicantCheck->where('agency_id', $request->agency_id);
         return $applicantCheck->exists();
     }
 
