@@ -156,6 +156,8 @@ class LogisticRequestController extends Controller
             $processType = 'final';
             $param['approval_status'] = 'required|string';
             $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+            $dataUpdate['approval_status'] = $request->approval_status;
+            $dataUpdate['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? $request->approval_note : '';
         }
 
         $changeStatusParam['param'] = $param;
@@ -280,14 +282,14 @@ class LogisticRequestController extends Controller
     public function undoStep(Request $request)
     {
         $param = [
-            'id' => 'required|numeric',
+            'agency_id' => 'required|numeric',
+            'applicant_id' => 'required|numeric',
             'step' => 'required',
             'url' => 'required'
         ];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $request = Applicant::undoStep($request);
-            $request['agency_id'] = $request->id;
             $whatsapp = LogisticRequest::sendEmailNotification($request, $request['status']);
             $response = response()->format(200, 'success', $request->all());
         }

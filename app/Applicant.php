@@ -195,26 +195,26 @@ class Applicant extends Model
 
     static function undoStep($request)
     {
-        $updateData = [];
+        $dataUpdate = [];
         switch ($request->step) {
             case 'final':
-                $updateData = self::setNotYetFinalized($updateData);
+                $dataUpdate = self::setNotYetFinalized($dataUpdate);
                 $request['status'] = 'realisasi';
                 break;
             case 'realisasi':
-                $updateData = self::setNotYetApproved($updateData);
+                $dataUpdate = self::setNotYetApproved($dataUpdate);
                 $request['status'] = 'rekomendasi';
                 break;
             case 'ditolak rekomendasi':
-                $updateData = self::setNotYetApproved($updateData);
+                $dataUpdate = self::setNotYetApproved($dataUpdate);
                 $request['status'] = 'rekomendasi';
                 break;
             default:
-                $updateData = self::setNotYetVerified($updateData);
+                $dataUpdate = self::setNotYetVerified($dataUpdate);
                 $request['status'] = 'surat';
                 break;
         }
-        $update = self::where('agency_id', '=', $request->id)->update($updateData);
+        $update = self::updateApplicant($request, $dataUpdate);
         return $request;
     }
 
