@@ -179,14 +179,14 @@ class LogisticRequest extends Model
         return response()->format(200, 'success');
     }
 
-    static function changeStatus(Request $request, $processType)
+    static function changeStatus(Request $request, $processType, $dataUpdate)
     {
         switch ($processType) {
             case 'verification':
-                $response = LogisticRequest::verificationProcess($request);
+                $response = LogisticRequest::verificationProcess($request, $dataUpdate);
                 break;
             case 'approval':
-                $response = LogisticRequest::approvalProcess($request);
+                $response = LogisticRequest::approvalProcess($request, $dataUpdate);
                 break;
             case 'final':
                 $response = LogisticRequest::finalProcess($request);
@@ -195,22 +195,21 @@ class LogisticRequest extends Model
         return $response;
     }
 
-    static function verificationProcess(Request $request)
+    static function verificationProcess(Request $request, $dataUpdate)
     {        
         $response = Validation::defaultError();
-        $request['verified_by'] = JWTAuth::user()->id;
-        $request['verified_at'] = date('Y-m-d H:i:s');
-        $applicant = Applicant::updateApplicant($request);
+        $dataUpdate['verified_by'] = JWTAuth::user()->id;
+        $dataUpdate['verified_at'] = date('Y-m-d H:i:s');
+        $applicant = Applicant::updateApplicant($request, $dataUpdate);
         $email = self::sendEmailNotification($applicant->agency_id, $request->verification_status);
         if ($request->verification_status !== Applicant::STATUS_REJECTED) {
-            $request['agency_id'] = $applicant->agency_id;
             $whatsapp = self::sendEmailNotification($request, 'rekomendasi');
         }
         $response = response()->format(200, 'success', $applicant);
         return $response;
     }
 
-    static function approvalProcess(Request $request)
+    static function approvalProcess(Request $request, $dataUpdate)
     {
         $response = Validation::defaultError();
         // check the list of applications that have not been approved
@@ -225,9 +224,9 @@ class LogisticRequest extends Model
                 'total_item_need_update' => ($needsSum - $realizationSum)
             ], 422);
         } else {
-            $request['approved_by'] = JWTAuth::user()->id;
-            $request['approved_at'] = date('Y-m-d H:i:s');
-            $applicant = Applicant::updateApplicant($request);
+            $dataUpdate['approved_by'] = JWTAuth::user()->id;
+            $dataUpdate['approved_at'] = date('Y-m-d H:i:s');
+            $applicant = Applicant::updateApplicant($request, $dataUpdate);
             $email = self::sendEmailNotification($applicant->agency_id, $request->approval_status);
             if ($request->approval_status === Applicant::STATUS_APPROVED) {
                 $request['agency_id'] = $applicant->agency_id;
@@ -255,9 +254,9 @@ class LogisticRequest extends Model
                 'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
             ], 422);
         } else {
-            $request['finalized_by'] = JWTAuth::user()->id;
-            $request['finalized_at'] = date('Y-m-d H:i:s');
-            $applicant = Applicant::updateApplicant($request);                
+            $dataUpdate['finalized_by'] = JWTAuth::user()->id;
+            $dataUpdate['finalized_at'] = date('Y-m-d H:i:s');
+            $applicant = Applicant::updateApplicant($request, $dataUpdate);
             $email = self::sendEmailNotification($applicant->agency_id, $request->approval_status);
             $response = response()->format(200, 'success', [
                 '(needsSum_realization_sum' => ($needsSum + $realizationSum),
