@@ -150,6 +150,8 @@ class LogisticRequestController extends Controller
             $processType = 'approval';
             $param['approval_status'] = 'required|string';
             $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+            $dataUpdate['approval_status'] = $request->approval_status;
+            $dataUpdate['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? $request->approval_note : '';
         } else {
             $processType = 'final';
             $param['approval_status'] = 'required|string';
