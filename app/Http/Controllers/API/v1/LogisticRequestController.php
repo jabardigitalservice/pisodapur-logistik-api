@@ -61,6 +61,8 @@ class LogisticRequestController extends Controller
 
     public function update(Request $request, $id)
     {
+        $param['agency_id'] = 'required';
+        $param['applicant_id'] = 'required';
         $param['update_type'] = 'required';
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
