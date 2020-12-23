@@ -263,12 +263,13 @@ class LogisticRequestController extends Controller
     public function urgencyChange(Request $request)
     {
         $param = [
-            'id' => 'required|numeric',
+            'agency_id' => 'required|numeric',
+            'applicant_id' => 'required|numeric',
             'is_urgency' => 'required|numeric',
         ];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            $model = Applicant::findOrFail($request->id);
+            $model = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->first();
             $model->is_urgency = $request->is_urgency;
             $model->save();
             $response = response()->format(200, 'success', $model);
