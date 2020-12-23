@@ -160,6 +160,7 @@ class LogisticRequestController extends Controller
 
         $changeStatusParam['param'] = $param;
         $changeStatusParam['processType'] = $processType;
+        $changeStatusParam['dataUpdate'] = $dataUpdate;
 
         return $changeStatusParam;
     }
