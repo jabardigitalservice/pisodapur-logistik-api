@@ -256,7 +256,7 @@ class LogisticRequest extends Model
         } else {
             $dataUpdate['finalized_by'] = JWTAuth::user()->id;
             $dataUpdate['finalized_at'] = date('Y-m-d H:i:s');
-            $applicant = Applicant::updateApplicant($request);                
+            $applicant = Applicant::updateApplicant($request, $dataUpdate);
             $email = self::sendEmailNotification($applicant->agency_id, $request->approval_status);
             $response = response()->format(200, 'success', [
                 '(needsSum_realization_sum' => ($needsSum + $realizationSum),
