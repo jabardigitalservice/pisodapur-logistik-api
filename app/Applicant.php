@@ -181,11 +181,11 @@ class Applicant extends Model
         return $applicant;
     }
 
-    static function updateApplicant($request)
+    static function updateApplicant($request, $dataUpdate)
     {
         try {
-            $applicant = Applicant::where('id', $request->applicant_id)->where('is_deleted', '!=' , 1)->firstOrFail();
-            $applicant->fill($request->input());
+            $applicant = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->where('is_deleted', '!=' , 1)->firstOrFail();
+            $applicant->fill($dataUpdate);
             $applicant->save();
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());

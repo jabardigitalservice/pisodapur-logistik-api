@@ -123,24 +123,29 @@ class LogisticRequestController extends Controller
 
     public function changeStatus(Request $request)
     {
+        $param['agency_id'] = 'required|numeric';
         $param['applicant_id'] = 'required|numeric';
         $processType = 'verification';
         $changeStatusParam = $this->setChangeStatusParam($request, $param, $processType);
         $param = $changeStatusParam['param'];
         $processType = $changeStatusParam['processType'];
+        $dataUpdate = $changeStatusParam['dataUpdate'];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            $response = LogisticRequest::changeStatus($request, $processType);
+            $response = LogisticRequest::changeStatus($request, $processType, $dataUpdate);
         }
         return $response;
     }
 
     public function setChangeStatusParam(Request $request, $param, $processType)
     {
+        $dataUpdate = [];
         if ($request->route()->named('verification')) {
             $processType = 'verification';
             $param['verification_status'] = 'required|string';
             $param['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? 'required' : '';
+            $dataUpdate['verification_status'] = $request->verification_status;
+            $dataUpdate['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? $request->note : '';
         } else if ($request->route()->named('approval')) {
             $processType = 'approval';
             $param['approval_status'] = 'required|string';
