@@ -75,7 +75,7 @@ class Tracking
         if ($request->filled('final_status')) {
             $data = $data->whereIn('final_status', ['approved', 'replaced']);
         } 
-        return $data->orderBy('needs.id')->where('needs.applicant_id', $id);
+        return $data->orderBy('needs.id')->where('needs.agency_id', $id);
     }
 
     static function getLogisticAdmin($select, $request, $id)
@@ -87,7 +87,7 @@ class Tracking
         } 
         return $data->whereNotNull('logistic_realization_items.created_by')
             ->orderBy('logistic_realization_items.id')
-            ->where('logistic_realization_items.applicant_id', $id);
+            ->where('logistic_realization_items.agency_id', $id);
     }
 
     static function trackList(Request $request)
