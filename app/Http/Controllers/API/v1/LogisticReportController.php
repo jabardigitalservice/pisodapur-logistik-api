@@ -27,6 +27,9 @@ class LogisticReportController extends Controller
             try {
                 $applicant = Applicant::where('agency_id', $request->id)->firstOrFail();
                 $logisticVerification = LogisticVerification::firstOrCreate(['agency_id' => $request->id], ['email' => $applicant->email]);
+                if ($request->filled('reset')) {
+                    $logisticVerification->expired_at = date('Y-m-d H:i:s', strtotime('-1 days'));
+                }
                 $response = response()->format(200, 'success', $logisticVerification);
             } catch (\Exception $exception) {
                 $response = response()->format(422, 'Permohonan dengan Kode Permohonan ' . $request->id . ' tidak ditemukan.', ['message' => $exception->getMessage(), 'detail' => $exception]);
