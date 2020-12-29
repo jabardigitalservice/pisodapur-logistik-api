@@ -21,6 +21,7 @@ class LogisticReportController extends Controller
     public function verificationRegistration(Request $request)
     {
         $param['register_id'] = 'required|numeric';
+        $message = 'success';
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $request->id = $request->register_id;
@@ -28,9 +29,10 @@ class LogisticReportController extends Controller
                 $applicant = Applicant::where('agency_id', $request->id)->firstOrFail();
                 $logisticVerification = LogisticVerification::firstOrCreate(['agency_id' => $request->id], ['email' => $applicant->email]);
                 if ($request->filled('reset')) {
+                    $message = 'Kode Verifikasi yang baru telah dikirim ulang ke email Anda.';
                     $logisticVerification->expired_at = date('Y-m-d H:i:s', strtotime('-1 days'));
                 }
-                $response = response()->format(200, 'success', $logisticVerification);
+                $response = response()->format(200, $message, $logisticVerification);
             } catch (\Exception $exception) {
                 $response = response()->format(422, 'Permohonan dengan Kode Permohonan ' . $request->id . ' tidak ditemukan.', ['message' => $exception->getMessage(), 'detail' => $exception]);
             }
