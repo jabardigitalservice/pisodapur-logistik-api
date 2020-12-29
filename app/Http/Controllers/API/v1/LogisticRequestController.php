@@ -61,10 +61,12 @@ class LogisticRequestController extends Controller
 
     public function update(Request $request, $id)
     {
+        $param['agency_id'] = 'required';
+        $param['applicant_id'] = 'required';
         $param['update_type'] = 'required';
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            $response = LogisticRequest::saveData($request, $id);
+            $response = LogisticRequest::saveData($request);
         }
         return $response;
     }
@@ -121,35 +123,46 @@ class LogisticRequestController extends Controller
 
     public function changeStatus(Request $request)
     {
+        $param['agency_id'] = 'required|numeric';
         $param['applicant_id'] = 'required|numeric';
         $processType = 'verification';
         $changeStatusParam = $this->setChangeStatusParam($request, $param, $processType);
         $param = $changeStatusParam['param'];
         $processType = $changeStatusParam['processType'];
+        $dataUpdate = $changeStatusParam['dataUpdate'];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            $response = LogisticRequest::changeStatus($request, $processType);
+            $response = LogisticRequest::changeStatus($request, $processType, $dataUpdate);
         }
         return $response;
     }
 
     public function setChangeStatusParam(Request $request, $param, $processType)
     {
+        $dataUpdate = [];
         if ($request->route()->named('verification')) {
+            $processType = 'verification';
             $param['verification_status'] = 'required|string';
             $param['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? 'required' : '';
+            $dataUpdate['verification_status'] = $request->verification_status;
+            $dataUpdate['note'] = $request->verification_status === Applicant::STATUS_REJECTED ? $request->note : '';
         } else if ($request->route()->named('approval')) {
             $processType = 'approval';
             $param['approval_status'] = 'required|string';
             $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+            $dataUpdate['approval_status'] = $request->approval_status;
+            $dataUpdate['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? $request->approval_note : '';
         } else {
             $processType = 'final';
             $param['approval_status'] = 'required|string';
             $param['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? 'required' : '';
+            $dataUpdate['approval_status'] = $request->approval_status;
+            $dataUpdate['approval_note'] = $request->approval_status === Applicant::STATUS_REJECTED ? $request->approval_note : '';
         }
 
         $changeStatusParam['param'] = $param;
         $changeStatusParam['processType'] = $processType;
+        $changeStatusParam['dataUpdate'] = $dataUpdate;
 
         return $changeStatusParam;
     }
@@ -222,14 +235,13 @@ class LogisticRequestController extends Controller
 
     public function uploadLetter(Request $request, $id)
     {
-        $param = [
-            'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
-        ];
+        $param['letter_file'] = 'required|mimes:jpeg,jpg,png,pdf|max:10240';
+        $param['agency_id'] = 'required';
+        $param['applicant_id'] = 'required';
+        $param['update_type'] = 'required';
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            $applicant = Applicant::findOrFail($id);
-            $request->request->add(['agency_id' => $applicant->id]);
-            $request->request->add(['applicant_id' => $applicant->id]);
+            $applicant = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->firstOrFail();
             $response = FileUpload::storeLetterFile($request);
         }
         return $response;
@@ -252,12 +264,13 @@ class LogisticRequestController extends Controller
     public function urgencyChange(Request $request)
     {
         $param = [
-            'id' => 'required|numeric',
+            'agency_id' => 'required|numeric',
+            'applicant_id' => 'required|numeric',
             'is_urgency' => 'required|numeric',
         ];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            $model = Applicant::findOrFail($request->id);
+            $model = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->first();
             $model->is_urgency = $request->is_urgency;
             $model->save();
             $response = response()->format(200, 'success', $model);
@@ -268,14 +281,14 @@ class LogisticRequestController extends Controller
     public function undoStep(Request $request)
     {
         $param = [
-            'id' => 'required|numeric',
+            'agency_id' => 'required|numeric',
+            'applicant_id' => 'required|numeric',
             'step' => 'required',
             'url' => 'required'
         ];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $request = Applicant::undoStep($request);
-            $request['agency_id'] = $request->id;
             $whatsapp = LogisticRequest::sendEmailNotification($request, $request['status']);
             $response = response()->format(200, 'success', $request->all());
         }

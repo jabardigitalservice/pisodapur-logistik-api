@@ -72,16 +72,22 @@ class Tracking
     {
         $data = LogisticRealizationItems::select($select);
         $data = self::getJoin($data, false);
-        return $data->orderBy('needs.id')->where('needs.applicant_id', $id);
+        if ($request->filled('final_status')) {
+            $data = $data->whereIn('final_status', ['approved', 'replaced']);
+        } 
+        return $data->orderBy('needs.id')->where('needs.agency_id', $id);
     }
 
     static function getLogisticAdmin($select, $request, $id)
     {
         $data = LogisticRealizationItems::select($select);
         $data = self::getJoin($data, true);
+        if ($request->filled('final_status')) {
+            $data = $data->whereIn('final_status', ['approved', 'replaced']);
+        } 
         return $data->whereNotNull('logistic_realization_items.created_by')
             ->orderBy('logistic_realization_items.id')
-            ->where('logistic_realization_items.applicant_id', $id);
+            ->where('logistic_realization_items.agency_id', $id);
     }
 
     static function trackList(Request $request)
@@ -92,7 +98,7 @@ class Tracking
             }
         ])
         ->whereHas('applicant', function ($query) use ($request) { 
-            $query->where('id', '=', $request->input('search'));
+            $query->where('agency_id', '=', $request->input('search'));
             $query->orWhere('email', '=', $request->input('search'));
             $query->orWhere('primary_phone_number', '=', $request->input('search'));
             $query->orWhere('secondary_phone_number', '=', $request->input('search'));

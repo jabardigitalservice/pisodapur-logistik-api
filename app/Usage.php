@@ -206,7 +206,7 @@ class Usage
                 }
 
                 if ($materialName) {
-                    $query->where('material_name', 'LIKE', '%' . $materialName . '%');
+                    $query->where(DB::raw('CONCAT("(", material_id, ") ", material_name)'), 'LIKE', '%' . $materialName . '%');
                 }
             })->orderBy('material_name','asc')->orderBy('soh_location','asc')->orderBy('stock_ok','desc')->get();
         } catch (\Exception $exception) {
