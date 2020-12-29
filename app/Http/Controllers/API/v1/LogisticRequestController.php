@@ -66,7 +66,7 @@ class LogisticRequestController extends Controller
         $param['update_type'] = 'required';
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            $response = LogisticRequest::saveData($request, $id);
+            $response = LogisticRequest::saveData($request);
         }
         return $response;
     }
@@ -235,14 +235,13 @@ class LogisticRequestController extends Controller
 
     public function uploadLetter(Request $request, $id)
     {
-        $param = [
-            'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
-        ];
+        $param['letter_file'] = 'required|mimes:jpeg,jpg,png,pdf|max:10240';
+        $param['agency_id'] = 'required';
+        $param['applicant_id'] = 'required';
+        $param['update_type'] = 'required';
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            $applicant = Applicant::findOrFail($id);
-            $request->request->add(['agency_id' => $applicant->id]);
-            $request->request->add(['applicant_id' => $applicant->id]);
+            $applicant = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->firstOrFail();
             $response = FileUpload::storeLetterFile($request);
         }
         return $response;

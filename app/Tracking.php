@@ -98,7 +98,7 @@ class Tracking
             }
         ])
         ->whereHas('applicant', function ($query) use ($request) { 
-            $query->where('id', '=', $request->input('search'));
+            $query->where('agency_id', '=', $request->input('search'));
             $query->orWhere('email', '=', $request->input('search'));
             $query->orWhere('primary_phone_number', '=', $request->input('search'));
             $query->orWhere('secondary_phone_number', '=', $request->input('search'));

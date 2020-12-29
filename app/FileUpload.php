@@ -26,7 +26,7 @@ class FileUpload extends Model
         $fileupload = self::create(['name' => $path]);
         $fileuploadid = $fileupload->id;
         $request->request->add(['letter' => $fileuploadid]);
-        $deleteotherletter = Letter::where('agency_id', '=', $request->agency_id)->delete();
+        $deleteotherletter = Letter::where('agency_id', '=', $request->agency_id)->where('applicant_id', '=', $request->applicant_id)->delete();
         $letter = Letter::create($request->all());
         $letter->file_path = Storage::disk(self::DISK)->url($fileupload->name);
         return $letter;

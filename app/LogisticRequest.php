@@ -144,32 +144,31 @@ class LogisticRequest extends Model
         return $request;
     }
 
-    static function setRequestEditLetter(Request $request, $id)
+    static function setRequestEditLetter(Request $request)
     {
         if ($request->hasFile('letter_file')) { //20
-            $request['agency_id'] = $id;
             $response = FileUpload::storeLetterFile($request);
         }
         return $request;
     }
 
-    static function saveData(Request $request, $id)
+    static function saveData(Request $request)
     {
         switch ($request->update_type) {
             case 1:
-                $model = Agency::findOrFail($id);
+                $model = Agency::findOrFail($request->agency_id);
                 $request['agency_name'] = MasterFaskes::getFaskesName($request);
                 break;
             case 2:
-                $model = Applicant::findOrFail($id);
+                $model = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->firstOrFail();
                 $request = self::setRequestApplicant($request);
                 break;
             case 3:
-                $model = Applicant::findOrFail($id);
-                $request = self::setRequestEditLetter($request, $id);
+                $model = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->firstOrFail();
+                $request = self::setRequestEditLetter($request);
                 break;
             default:
-                $model = Agency::findOrFail($id);
+                $model = Agency::findOrFail($request->agency_id);
                 $request['agency_name'] = MasterFaskes::getFaskesName($request);
                 break;
         }
