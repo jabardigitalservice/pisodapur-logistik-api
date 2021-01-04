@@ -17,7 +17,11 @@ class Agency extends Model
         'location_district_code',
         'location_subdistrict_code',
         'location_village_code',
-        'location_address'
+        'location_address',
+        'total_covid_patients',
+        'total_isolation_room',
+        'total_bedroom',
+        'total_health_worker'
     ];
 
     static function getList($request, $defaultOnly)

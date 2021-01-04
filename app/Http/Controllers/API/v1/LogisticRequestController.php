@@ -51,10 +51,10 @@ class LogisticRequestController extends Controller
     {
         $request = $this->masterFaskesCheck($request);
         $responseData = LogisticRequest::responseDataStore();
-        $param = LogisticRequest::setParamStore();
+        $param = LogisticRequest::setParamStore($request);
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
-            $response = LogisticRequest::storeProcess($request);
+            $response = LogisticRequest::storeProcess($request, $responseData);
         }
         return $response;
     }
