@@ -31,9 +31,9 @@ class LogisticRequest extends Model
         ];
     }
 
-    static function setParamStore()
+    static function setParamStore(Request $request)
     {
-        return [
+        $param = [
             'master_faskes_id' => 'required|numeric',
             'agency_type' => 'required|numeric',
             'agency_name' => 'required|string',
@@ -46,9 +46,19 @@ class LogisticRequest extends Model
             'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
             'application_letter_number' => 'required|string'
         ];
+
+        $agencyTypeExcept = [1, 2, 3];
+        if (in_array($request->agency_type, $agencyTypeExcept)) {
+            $param['total_covid_patients'] = 'required|numeric';
+            $param['total_isolation_room'] = 'required|numeric';
+            $param['total_bedroom'] = 'required|numeric';
+            $param['total_health_worker'] = 'required|numeric';
+        }
+        
+        return $param;
     }
 
-    static function storeProcess(Request $request)
+    static function storeProcess(Request $request, $responseData)
     {
         $response = Validation::defaultError();
         DB::beginTransaction();
