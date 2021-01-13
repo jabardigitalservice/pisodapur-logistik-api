@@ -9,8 +9,8 @@ use App\Validation;
 use DB;
 use JWTAuth;
 use App\Applicant;
-use App\Needs;
 use App\PoslogProduct;
+use Log;
 
 class LogisticRealizationItemController extends Controller
 {
@@ -47,6 +47,7 @@ class LogisticRealizationItemController extends Controller
                 }
             }
         }
+        Log::channel('dblogging')->debug('post:v1/logistic-request/realization', $request->all());
         return $response;
     }
 
