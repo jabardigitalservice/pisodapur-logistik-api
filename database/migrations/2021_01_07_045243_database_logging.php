@@ -13,7 +13,7 @@ class DatabaseLogging extends Migration
      */
     public function up()
     {
-        Schema::create('log', function (Blueprint $table) {
+        Schema::create('access_logs', function (Blueprint $table) {
             $table->bigIncrements('id'); 
             $table->longText('message');
             $table->longText('context');
