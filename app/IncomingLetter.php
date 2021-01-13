@@ -49,9 +49,9 @@ class IncomingLetter extends Model
     static function getIncomingLetterSelectList()
     {
         return [
-            'applicants.id',
+            'applicants.id as applicant_id',
             'applicants.application_letter_number as letter_number',
-            'applicants.agency_id',
+            'applicants.agency_id as id',
             'applicants.applicant_name',
             'applicants.created_at as letter_date',
             'agency.agency_type',
