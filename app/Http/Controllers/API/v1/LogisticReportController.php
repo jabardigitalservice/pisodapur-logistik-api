@@ -23,6 +23,7 @@ class LogisticReportController extends Controller
         $param['register_id'] = 'required|numeric';
         $message = 'success';
         $response = Validation::validate($request, $param);
+        $logisticVerification = [];
         if ($response->getStatusCode() === 200) {
             $request->id = $request->register_id;
             try {
