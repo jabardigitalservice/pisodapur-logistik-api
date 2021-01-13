@@ -14,6 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
 use App\Validation;
 use App\Tracking;
+use Log;
 
 class LogisticRequestController extends Controller
 {
@@ -134,6 +135,8 @@ class LogisticRequestController extends Controller
         if ($response->getStatusCode() === 200) {
             $response = LogisticRequest::changeStatus($request, $processType, $dataUpdate);
         }
+        
+        Log::channel('dblogging')->debug('post:v1/logistic-request/' . $processType, $request->all());
         return $response;
     }
 
@@ -275,6 +278,7 @@ class LogisticRequestController extends Controller
             $model->save();
             $response = response()->format(200, 'success', $model);
         }
+        Log::channel('dblogging')->debug('post:v1/logistic-request/urgency', $request->all());
         return $response;
     }
 
@@ -292,6 +296,7 @@ class LogisticRequestController extends Controller
             $whatsapp = LogisticRequest::sendEmailNotification($request, $request['status']);
             $response = response()->format(200, 'success', $request->all());
         }
+        Log::channel('dblogging')->debug('post:v1/logistic-request/return', $request->all());
         return $response;
     }
 }
