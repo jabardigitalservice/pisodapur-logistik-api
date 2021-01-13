@@ -16,7 +16,7 @@ class MySQLLoggingHandler extends AbstractProcessingHandler
  */
     public function __construct($level = Logger::DEBUG, $bubble = true) 
     {
-        $this->table = 'log';
+        $this->table = 'access_logs';
         parent::__construct($level, $bubble);
     }
 

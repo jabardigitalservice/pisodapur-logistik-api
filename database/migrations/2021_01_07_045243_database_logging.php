@@ -36,6 +36,6 @@ class DatabaseLogging extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('log');
+        Schema::dropIfExists('access_logs');
     }
 }
