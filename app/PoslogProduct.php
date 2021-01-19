@@ -119,4 +119,18 @@ class PoslogProduct extends Model
     {
         return self::isDashboardAPI($baseApi) ? self::isGudangLabkes($material, $baseApi) : true;
     }
+
+    static function syncSohLocation()
+    {
+        $FinalMaterials = \App\LogisticRealizationItems::select('final_product_id')->whereNotNull('final_by')->groupBy('final_product_id')->get();
+        foreach($FinalMaterials as $material) {
+            $poslog = \App\PoslogProduct::where('material_id', $material->final_product_id)->first();
+            if ($poslog) {
+                $update = \App\LogisticRealizationItems::where('final_product_id', $material->final_product_id)->update([
+                    'final_soh_location' => $poslog->soh_location,
+                    'final_soh_location_name' => $poslog->soh_location_name
+                ]);
+            }
+        }
+    }
 }

@@ -30,6 +30,7 @@ class LogisticRequestController extends Controller
 
     public function finalList(Request $request)
     {
+        $syncSohLocation = \App\PoslogProduct::syncSohLocation();
         $logisticRequest = Agency::getList($request, false)
         ->join('applicants', 'agency.id', '=', 'applicants.agency_id')
         ->where('is_deleted', '!=' , 1)
