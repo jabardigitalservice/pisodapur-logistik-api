@@ -16,8 +16,8 @@ class AddSohLocationToRealizationTable extends Migration
         Schema::table('logistic_realization_items', function (Blueprint $table) {
             $table->string('recommendation_soh_location')->nullable();
             $table->string('recommendation_soh_location_name')->nullable();
-            $table->string('final_soh_location')->nullable();
-            $table->string('final_soh_location_name')->nullable();
+            $table->string('final_soh_location')->default('WHS_PAKUAN_A');
+            $table->string('final_soh_location_name')->default('GUDANG BIZPARK A');
         });
     }
 
