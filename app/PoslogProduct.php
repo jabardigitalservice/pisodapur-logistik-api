@@ -122,8 +122,8 @@ class PoslogProduct extends Model
 
     static function syncSohLocation()
     {
-        $FinalMaterials = \App\LogisticRealizationItems::select('final_product_id')->whereNotNull('final_by')->groupBy('final_product_id')->get();
-        foreach($FinalMaterials as $material) {
+        $finalMaterials = \App\LogisticRealizationItems::select('final_product_id')->whereNotNull('final_by')->groupBy('final_product_id')->get();
+        foreach($finalMaterials as $material) {
             $poslog = \App\PoslogProduct::where('material_id', $material->final_product_id)->first();
             if ($poslog) {
                 $update = \App\LogisticRealizationItems::where('final_product_id', $material->final_product_id)->update([
