@@ -116,8 +116,8 @@ class Agency extends Model
                 $query->where('stock_checking_status', $request->stock_checking_status);
             }
 
-            if ($request->date) {
-                $query->whereRaw('DATE(created_at) = ?', [$request->date]);
+            if ($request->start_date && $request->end_date) {
+                $query->whereBetween('created_at', [$request->start_date, $request->end_date]);
             }
         });
     }
