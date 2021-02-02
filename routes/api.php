@@ -13,11 +13,10 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::get('/v1/log-test', function(){
+Route::get('/v1/log-test', function() {
   Log::channel('dblogging')->debug('/v1/log-test', ['my-string' => 'log me', "run"]);
   return ["result" => true];
 });
-
 
 Route::get('v1/welcome', 'API\v1\WelcomeController@index');
 Route::post('v1/login', 'API\v1\UsersController@authenticate');
