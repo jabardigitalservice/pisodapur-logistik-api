@@ -35,6 +35,7 @@ class Agency extends Model
                 $data = self::withRecommendationItems($data);
                 $data = self::whereHasApplicantData($data, $request);
                 $data = self::whereHasApplicantFilterByStatusData($data, $request);
+                $data = self::whereHasFaskes($data, $request);
                 $data = self::whereData($data, $request);
             }
         } catch (\Exception $exception) {
@@ -135,6 +136,15 @@ class Agency extends Model
                 if ($request->approval_status) {
                     $query->where('approval_status', $request->approval_status);
                 }
+            }
+        });
+    }
+    
+    static function whereHasFaskes($data, $request)
+    {
+        return $data->whereHas('masterFaskes', function ($query) use ($request) {
+            if ($request->is_reference) {
+                $query->where('is_reference', $request->is_reference);
             }
         });
     }
