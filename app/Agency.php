@@ -143,8 +143,8 @@ class Agency extends Model
     static function whereHasFaskes($data, $request)
     {
         return $data->whereHas('masterFaskes', function ($query) use ($request) {
-            if ($request->is_reference) {
-                $query->where('is_reference', $request->is_reference);
+            if ($request->has('is_reference')) {
+                $query->where('is_reference', '=', $request->is_reference);
             }
         });
     }
