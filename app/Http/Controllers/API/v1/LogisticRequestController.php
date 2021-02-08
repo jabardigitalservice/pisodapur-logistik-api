@@ -23,7 +23,7 @@ class LogisticRequestController extends Controller
         $request->start_date = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
         $request->end_date = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
         
-        $limit = $request->filled('limit') ? $request->input('limit') : 10;
+        $limit = $request->input('limit', 10);
         $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
         $data = Agency::getList($request, false);
         $data = $data->orderByRaw(implode($sort))->paginate($limit);
