@@ -49,7 +49,7 @@ class Tracking
             'realization_unit as recommendation_unit_name',
             'logistic_realization_items.recommendation_at',
             'logistic_realization_items.status as recommendation_status',
-            
+
             'logistic_realization_items.final_product_id',
             'logistic_realization_items.final_product_name',
             'logistic_realization_items.final_quantity',
@@ -74,7 +74,7 @@ class Tracking
         $data = self::getJoin($data, false);
         if ($request->filled('final_status')) {
             $data = $data->whereIn('final_status', ['approved', 'replaced']);
-        } 
+        }
         return $data->orderBy('needs.id')->where('needs.agency_id', $id);
     }
 
@@ -84,27 +84,28 @@ class Tracking
         $data = self::getJoin($data, true);
         if ($request->filled('final_status')) {
             $data = $data->whereIn('final_status', ['approved', 'replaced']);
-        } 
+        }
         return $data->whereNotNull('logistic_realization_items.created_by')
             ->orderBy('logistic_realization_items.id')
             ->where('logistic_realization_items.agency_id', $id);
     }
 
     static function trackList(Request $request)
-    {        
+    {
         $list = Agency::with([
             'tracking' => function ($query) {
-                return $query->select(self::selectFieldsList())->where('is_deleted', '!=' , 1);
+                $query->select(self::selectFieldsList())->where('is_deleted', '!=' , 1);
             }
-        ])
-        ->whereHas('applicant', function ($query) use ($request) { 
-            $query->where('agency_id', '=', $request->input('search'));
-            $query->orWhere('email', '=', $request->input('search'));
-            $query->orWhere('primary_phone_number', '=', $request->input('search'));
-            $query->orWhere('secondary_phone_number', '=', $request->input('search'));
+        ])->whereHas('applicant', function ($query) use ($request) {
+            $query->when($request->input('search'), function ($query) use ($request)  {
+                $query->where('agency_id', '=', $request->input('search'));
+                $query->orWhere('email', '=', $request->input('search'));
+                $query->orWhere('primary_phone_number', '=', $request->input('search'));
+                $query->orWhere('secondary_phone_number', '=', $request->input('search'));
+            });
         });
         $list = Agency::getDefaultWith($list);
-        $list = Agency::whereHasApplicantData($list, $request);
+        $list = Agency::whereHasApplicant($list, $request);
         $list = $list->orderBy('agency.created_at', 'desc')->limit(5)->get();
 
         return $list;
