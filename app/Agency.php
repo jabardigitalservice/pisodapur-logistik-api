@@ -128,6 +128,13 @@ class Agency extends Model
                     $query->where('approval_status', $request->approval_status);
                 });
             });
+
+            $query->when($request->input('search'), function ($query) use ($request)  {
+                $query->where('agency_id', '=', $request->input('search'));
+                $query->orWhere('email', '=', $request->input('search'));
+                $query->orWhere('primary_phone_number', '=', $request->input('search'));
+                $query->orWhere('secondary_phone_number', '=', $request->input('search'));
+            });
         });
     }
 
