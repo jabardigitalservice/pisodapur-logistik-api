@@ -96,7 +96,14 @@ class Tracking
             'tracking' => function ($query) {
                 $query->select(self::selectFieldsList())->where('is_deleted', '!=' , 1);
             }
-        ]);
+        ])->whereHas('applicant', function ($query) use ($request) {
+            $query->when($request->input('search'), function ($query) use ($request)  {
+                $query->where('agency_id', '=', $request->input('search'));
+                $query->orWhere('email', '=', $request->input('search'));
+                $query->orWhere('primary_phone_number', '=', $request->input('search'));
+                $query->orWhere('secondary_phone_number', '=', $request->input('search'));
+            });
+        });
         $list = Agency::getDefaultWith($list);
         $list = Agency::whereHasApplicant($list, $request);
         $list = $list->orderBy('agency.created_at', 'desc')->limit(5)->get();
