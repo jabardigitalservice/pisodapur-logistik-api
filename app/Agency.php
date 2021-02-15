@@ -145,6 +145,14 @@ class Agency extends Model
             $query->when($request->has('is_urgency'), function ($query) use ($request) {
                 $query->where('is_urgency', $request->input('is_urgency'));
             });
+
+            $query->when($request->has('finalized_by'), function ($query) use ($request) {
+                $query->when($request->input('finalized_by') == 1, function ($query) {
+                    $query->whereNotNull('finalized_by');
+                }, function ($query) {
+                    $query->whereNull('finalized_by');
+                });
+            });
         });
 
         $data->whereHas('applicant', function ($query) use ($request) {
