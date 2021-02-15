@@ -127,40 +127,48 @@ class Agency extends Model
 
     static function whereHasApplicant($data, $request)
     {
-        return $data->whereHas('applicant', function ($query) use ($request) {
+        $data->whereHas('applicant', function ($query) use ($request) {
             $query->where('is_deleted', '!=' , 1);
 
-            $query->when($request->input('source_data'), function ($query) use ($request)  {
+            $query->when($request->input('source_data'), function ($query) use ($request) {
                 $query->where('source_data', $request->input('source_data'));
             });
 
-            $query->when($request->input('stock_checking_status'), function ($query) use ($request)  {
+            $query->when($request->input('stock_checking_status'), function ($query) use ($request) {
                 $query->where('stock_checking_status', $request->input('stock_checking_status'));
             });
 
-            $query->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request)  {
+            $query->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
                 $query->whereBetween('created_at', [$request->input('start_date'), $request->input('end_date')]);
             });
 
-            $query->when($request->input('is_rejected'), function ($query) use ($request)  {
+            $query->when($request->has('is_urgency'), function ($query) use ($request) {
+                $query->where('is_urgency', $request->input('is_urgency'));
+            });
+        });
+
+        $data->whereHas('applicant', function ($query) use ($request) {
+            $query->when($request->input('is_rejected'), function ($query) {
                 $query->where('verification_status', Applicant::STATUS_REJECTED)
                     ->orWhere('approval_status', Applicant::STATUS_REJECTED);
             }, function ($query) use ($request) {
-                $query->when($request->input('verification_status'), function ($query) use ($request)  {
-                    $query->where('verification_status', $request->verification_status);
+                $query->when($request->input('verification_status'), function ($query) use ($request) {
+                    $query->where('verification_status', $request->input('verification_status'));
                 });
 
-                $query->when($request->input('approval_status'), function ($query) use ($request)  {
-                    $query->where('approval_status', $request->approval_status);
+                $query->when($request->input('approval_status'), function ($query) use ($request) {
+                    $query->where('approval_status', $request->input('approval_status'));
                 });
             });
         });
+
+        return $data;
     }
 
     static function whereHasFaskes($data, $request)
     {
         return $data->whereHas('masterFaskes', function ($query) use ($request) {
-            $query->when($request->has('is_reference'), function ($query) use ($request)  {
+            $query->when($request->has('is_reference'), function ($query) use ($request) {
                 $query->where('is_reference', '=', $request->is_reference);
             });
         });
