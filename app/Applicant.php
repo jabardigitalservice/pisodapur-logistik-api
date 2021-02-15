@@ -40,6 +40,7 @@ class Applicant extends Model
         'verified_by',
         'verified_at',
         'note',
+        'is_urgency',
         'approval_status',
         'approval_note',
         'approved_by',
