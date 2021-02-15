@@ -120,7 +120,7 @@ class LogisticRequestController extends Controller
         $requestSummaryResult['totalVerified'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->count();
         $requestSummaryResult['totalVerificationRejected'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_REJECTED])->count();
         $requestSummaryResult['totalApprovalRejected'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_REJECTED, 'verification_status' => Applicant::STATUS_VERIFIED])->count();
-        
+
         $data = Applicant::requestSummaryResult($requestSummaryResult);
         return response()->format(200, 'success', $data);
     }
@@ -138,7 +138,7 @@ class LogisticRequestController extends Controller
         if ($response->getStatusCode() === 200) {
             $response = LogisticRequest::changeStatus($request, $processType, $dataUpdate);
         }
-        
+
         Log::channel('dblogging')->debug('post:v1/logistic-request/' . $processType, $request->all());
         return $response;
     }
@@ -261,7 +261,7 @@ class LogisticRequestController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $request->request->add(['applicant_id' => $id]);
-            $response = FileUpload::storeApplicantFile($request);        
+            $response = FileUpload::storeApplicantFile($request);
             $applicant = Applicant::where('id', '=', $request->applicant_id)->update(['file' => $response->id]);
         }
         return $response;
