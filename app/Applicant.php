@@ -110,16 +110,12 @@ class Applicant extends Model
 
     public function getFileAttribute($value)
     {
+        $fileUrl = '';
         $data = FileUpload::find($value);
         if (isset($data->name)) {
-            if (substr($data->name, 0, 12) === 'registration') {
-                return env('AWS_CLOUDFRONT_URL') . $data->name;
-            } else {
-                return $data->name;
-            }
-        } else {
-            return '';
+            $fileUrl = substr($data->name, 0, 12) === 'registration' ? env('AWS_CLOUDFRONT_URL') . $data->name : $data->name;
         }
+        return $fileUrl;
     }
 
     public function getApprovalStatusAttribute($value)
