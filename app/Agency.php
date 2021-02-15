@@ -31,7 +31,6 @@ class Agency extends Model
 
         if (!$defaultOnly) {
             $data = self::withLogisticRequestData($data);
-            $data = self::withRecommendationItems($data);
             $data = self::whereHasApplicant($data, $request);
             $data = self::whereStatusCondition($data, $request);
             $data = self::whereHasFaskes($data, $request);
@@ -70,35 +69,23 @@ class Agency extends Model
 
     static function withLogisticRequestData($data)
     {
-        return $data->with([
-            'logisticRequestItems' => function ($query) {
-                $query->select(['agency_id', 'product_id', 'brand', 'quantity', 'unit', 'usage', 'priority']);
-            },
-            'logisticRequestItems.product' => function ($query) {
-                $query->select(['id', 'name', 'material_group_status', 'material_group']);
-            },
-            'logisticRequestItems.masterUnit' => function ($query) {
-                $query->select(['id', 'unit as name']);
-            }
-        ]);
-    }
-
-    static function withRecommendationItems($data)
-    {
-        return $data->with([
-            'recommendationItems' => function ($query) {
-                $query->whereNotIn('status', [
-                    LogisticRealizationItems::STATUS_NOT_AVAILABLE,
-                    LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
-                ]);
-            },
-            'finalizationItems' => function ($query) {
-                $query->whereNotIn('final_status', [
-                    LogisticRealizationItems::STATUS_NOT_AVAILABLE,
-                    LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
-                ]);
-            }
-        ]);
+        return $data->with('logisticRequestItems:agency_id,product_id,brand,quantity,unit,usage,priority')
+            ->with('logisticRequestItems.product:id,name,material_group_status,material_group')
+            ->with('logisticRequestItems.masterUnit:id,unit as name')
+            ->with([
+                'recommendationItems' => function ($query) {
+                    $query->whereNotIn('status', [
+                        LogisticRealizationItems::STATUS_NOT_AVAILABLE,
+                        LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
+                    ]);
+                },
+                'finalizationItems' => function ($query) {
+                    $query->whereNotIn('final_status', [
+                        LogisticRealizationItems::STATUS_NOT_AVAILABLE,
+                        LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
+                    ]);
+                }
+            ]);
     }
 
     static function whereHasApplicant($data, $request)
