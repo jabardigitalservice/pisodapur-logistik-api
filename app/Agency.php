@@ -33,6 +33,7 @@ class Agency extends Model
             $data = self::withLogisticRequestData($data);
             $data = self::withRecommendationItems($data);
             $data = self::whereHasApplicant($data, $request);
+            $data = self::whereStatusCondition($data, $request);
             $data = self::whereHasFaskes($data, $request);
             $data = self::whereHasAgency($data, $request);
         }
