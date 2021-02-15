@@ -59,6 +59,7 @@ class LogisticRequestController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $response = LogisticRequest::storeProcess($request, $responseData);
+            Validation::setCompleteness($request);
         }
         return $response;
     }
@@ -71,6 +72,7 @@ class LogisticRequestController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $response = LogisticRequest::saveData($request);
+            Validation::setCompleteness($request);
         }
         return $response;
     }
@@ -137,6 +139,7 @@ class LogisticRequestController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $response = LogisticRequest::changeStatus($request, $processType, $dataUpdate);
+            Validation::setCompleteness($request);
         }
 
         Log::channel('dblogging')->debug('post:v1/logistic-request/' . $processType, $request->all());
@@ -249,6 +252,7 @@ class LogisticRequestController extends Controller
         if ($response->getStatusCode() === 200) {
             $applicant = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->firstOrFail();
             $response = FileUpload::storeLetterFile($request);
+            Validation::setCompleteness($request);
         }
         return $response;
     }
@@ -263,6 +267,7 @@ class LogisticRequestController extends Controller
             $request->request->add(['applicant_id' => $id]);
             $response = FileUpload::storeApplicantFile($request);
             $applicant = Applicant::where('id', '=', $request->applicant_id)->update(['file' => $response->id]);
+            Validation::setCompleteness($request);
         }
         return $response;
     }
@@ -280,6 +285,7 @@ class LogisticRequestController extends Controller
             $model->is_urgency = $request->is_urgency;
             $model->save();
             $response = response()->format(200, 'success', $model);
+            Validation::setCompleteness($request);
         }
         Log::channel('dblogging')->debug('post:v1/logistic-request/urgency', $request->all());
         return $response;
@@ -298,6 +304,7 @@ class LogisticRequestController extends Controller
             $request = Applicant::undoStep($request);
             $whatsapp = LogisticRequest::sendEmailNotification($request, $request['status']);
             $response = response()->format(200, 'success', $request->all());
+            Validation::setCompleteness($request);
         }
         Log::channel('dblogging')->debug('post:v1/logistic-request/return', $request->all());
         return $response;

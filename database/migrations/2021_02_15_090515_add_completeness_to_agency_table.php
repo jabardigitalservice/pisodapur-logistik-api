@@ -3,7 +3,8 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use DB;
+use App\Agency;
 
 class AddCompletenessToAgencyTable extends Migration
 {
@@ -39,6 +40,9 @@ class AddCompletenessToAgencyTable extends Migration
             ->where('id', $applicant->agency_id)
             ->update(['completeness' => 0]);
         }
+
+        $agencyNoLetter = Agency::doesnthave('letter')
+            ->update(['completeness' => 0]);
     }
 
     /**
@@ -50,6 +54,7 @@ class AddCompletenessToAgencyTable extends Migration
     {
         Schema::table('agency', function (Blueprint $table) {
             $table->dropColumn('completeness');
+            $table->dropColumn('is_reference');
         });
     }
 }
