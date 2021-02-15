@@ -3,7 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use DB;
 
 class Agency extends Model
 {
@@ -102,7 +102,7 @@ class Agency extends Model
 
     static function whereHasApplicant($data, $request)
     {
-        $data->whereHas('applicant', function ($query) use ($request) {
+        return $data->whereHas('applicant', function ($query) use ($request) {
             $query->where('is_deleted', '!=' , 1);
 
             $query->when($request->input('source_data'), function ($query) use ($request) {
@@ -129,8 +129,11 @@ class Agency extends Model
                 });
             });
         });
+    }
 
-        $data->whereHas('applicant', function ($query) use ($request) {
+    static function whereStatusCondition($data, $request)
+    {
+        return $data->whereHas('applicant', function ($query) use ($request) {
             $query->when($request->input('is_rejected'), function ($query) {
                 $query->where('verification_status', Applicant::STATUS_REJECTED)
                     ->orWhere('approval_status', Applicant::STATUS_REJECTED);
@@ -144,8 +147,6 @@ class Agency extends Model
                 });
             });
         });
-
-        return $data;
     }
 
     static function whereHasFaskes($data, $request)
