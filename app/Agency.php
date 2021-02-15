@@ -169,15 +169,15 @@ class Agency extends Model
     static function whereHasAgency($data, $request)
     {
         return $data->where(function ($query) use ($request) {
-            $query->when($request->input('agency_name'), function ($query) use ($request)  {
+            $query->when($request->input('agency_name'), function ($query) use ($request) {
                 $query->where('agency_name', 'LIKE', "%{$request->input('agency_name')}%");
             });
 
-            $query->when($request->input('city_code'), function ($query) use ($request)  {
+            $query->when($request->input('city_code'), function ($query) use ($request) {
                 $query->where('location_district_code', $request->input('city_code'));
             });
 
-            $query->when($request->input('faskes_type'), function ($query) use ($request)  {
+            $query->when($request->input('faskes_type'), function ($query) use ($request) {
                 $query->where('agency_type', $request->input('faskes_type'));
             });
         });
