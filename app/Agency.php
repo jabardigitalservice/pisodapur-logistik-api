@@ -24,32 +24,6 @@ class Agency extends Model
         'total_health_worker'
     ];
 
-    protected $appends = [ 'completeness', 'is_reference' ];
-
-    /**
-     * completeness appends value condition
-     *
-     * This function will check applicant_name, agency_name, location_address,
-     * primary_phone_number, letter, and file attributes is exists or not.
-     * if one of them is fail, then return false.
-     *
-     * @return boolean
-     */
-    public function getCompletenessAttribute()
-    {
-        return $this->agency_name
-            && $this->location_address
-            && $this->applicant->applicant_name
-            && $this->applicant->primary_phone_number
-            && $this->applicant->letter
-            && $this->applicant->file;
-    }
-
-    public function getIsReferenceAttribute()
-    {
-        return 0;
-    }
-
     static function getList($request, $defaultOnly)
     {
         $data = self::query();
@@ -62,6 +36,7 @@ class Agency extends Model
             $data = self::whereHasFaskes($data, $request);
             $data = self::whereHasAgency($data, $request);
         }
+
         return $data;
     }
 
@@ -184,7 +159,7 @@ class Agency extends Model
 
     static function whereHasAgency($data, $request)
     {
-        return $data->where(function ($query) use ($request) {
+        $data->where(function ($query) use ($request) {
             $query->when($request->input('agency_name'), function ($query) use ($request) {
                 $query->where('agency_name', 'LIKE', "%{$request->input('agency_name')}%");
             });
@@ -196,7 +171,13 @@ class Agency extends Model
             $query->when($request->input('faskes_type'), function ($query) use ($request) {
                 $query->where('agency_type', $request->input('faskes_type'));
             });
+
+            $query->when($request->has('completeness'), function ($query) use ($request) {
+                $query->where('completeness', $request->input('completeness'));
+            });
         });
+
+        return $data;
     }
 
     public function masterFaskesType()
