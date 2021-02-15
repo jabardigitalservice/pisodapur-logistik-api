@@ -11,11 +11,11 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
 use App\User;
 use App\Notifications\ChangeStatusNotification;
-use JWTAuth;
+use Tymon\JWTAuth\JWTAuth;
 use App\Applicant;
 use App\LogisticRealizationItems;
 use App\Validation;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\Http\Resources\LogisticRequestResource;
 
 class LogisticRequest extends Model
@@ -54,7 +54,7 @@ class LogisticRequest extends Model
             $param['total_bedroom'] = 'required|numeric';
             $param['total_health_worker'] = 'required|numeric';
         }
-        
+
         return $param;
     }
 
@@ -65,17 +65,17 @@ class LogisticRequest extends Model
         try {
             $responseData['agency'] = self::agencyStore($request);
             $request->request->add(['agency_id' => $responseData['agency']->id]);
-            
+
             $responseData['applicant'] = Applicant::applicantStore($request);
             $request->request->add(['applicant_id' => $responseData['applicant']->id]);
-            
+
             if ($request->hasFile('applicant_file')) {
                 $responseData['applicant_file'] = FileUpload::storeApplicantFile($request);
                 $responseData['applicant']->file = $responseData['applicant_file']->id;
                 $updateFile = Applicant::where('id', '=', $responseData['applicant']->id)->update(['file' => $responseData['applicant_file']->id]);
             }
             $responseData['need'] = self::needStore($request);
-            
+
             if ($request->hasFile('letter_file')) {
                 $responseData['letter'] = FileUpload::storeLetterFile($request);
             }
@@ -124,7 +124,7 @@ class LogisticRequest extends Model
                     'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
                 ])->where('is_deleted', '!=' , 1);
             }])->findOrFail($agencyId);
-            Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));    
+            Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -205,7 +205,7 @@ class LogisticRequest extends Model
     }
 
     static function verificationProcess(Request $request, $dataUpdate)
-    {        
+    {
         $response = Validation::defaultError();
         $dataUpdate['verified_by'] = JWTAuth::user()->id;
         $dataUpdate['verified_at'] = date('Y-m-d H:i:s');
@@ -227,7 +227,7 @@ class LogisticRequest extends Model
         if ($realizationSum != $needsSum && $request->approval_status === Applicant::STATUS_APPROVED) {
             $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . ($needsSum - $realizationSum) .' item';
             $response = response()->json([
-                'status' => 422, 
+                'status' => 422,
                 'error' => true,
                 'message' => $message,
                 'total_item_need_update' => ($needsSum - $realizationSum)
@@ -253,11 +253,11 @@ class LogisticRequest extends Model
         $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
         $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->count();
         $finalSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('final_by')->count();
-        
+
         if ($finalSum != ($needsSum + $realizationSum) && $request->approval_status === Applicant::STATUS_APPROVED) {
             $message = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . (($needsSum + $realizationSum) - $finalSum) .' item';
             $response = response()->json([
-                'status' => 422, 
+                'status' => 422,
                 'error' => true,
                 'message' => $message,
                 'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
@@ -275,6 +275,4 @@ class LogisticRequest extends Model
         }
         return $response;
     }
-
-    
 }
