@@ -24,9 +24,35 @@ class Agency extends Model
         'total_health_worker'
     ];
 
+    protected $appends = [ 'completeness', 'is_reference' ];
+
+    /**
+     * completeness appends value condition
+     *
+     * This function will check applicant_name, agency_name, location_address,
+     * primary_phone_number, letter, and file attributes is exists or not.
+     * if one of them is fail, then return false.
+     *
+     * @return boolean
+     */
+    public function getCompletenessAttribute()
+    {
+        return $this->agency_name
+            && $this->location_address
+            && $this->applicant->applicant_name
+            && $this->applicant->primary_phone_number
+            && $this->applicant->letter
+            && $this->applicant->file;
+    }
+
+    public function getIsReferenceAttribute()
+    {
+        return 0;
+    }
+
     static function getList($request, $defaultOnly)
     {
-        $data = self::selectRaw('*, 0 as completeness, 0 as is_reference');
+        $data = self::query();
         $data = self::getDefaultWith($data);
 
         if (!$defaultOnly) {
