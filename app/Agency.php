@@ -102,7 +102,7 @@ class Agency extends Model
             });
 
             $query->when($request->has('finalized_by'), function ($query) use ($request) {
-                $query->when($request->input('finalized_by') == 1, function ($query) {
+                $query->when($request->input('finalized_by'), function ($query) {
                     $query->whereNotNull('finalized_by');
                 }, function ($query) {
                     $query->whereNull('finalized_by');
