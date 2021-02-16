@@ -38,7 +38,7 @@ Route::post('v1/acceptance-report', 'API\v1\LogisticReportController@acceptanceS
 
 // Landing Page Registration
 Route::namespace('API\v1')->group(function () {
-  Route::prefix('v1/landing-page-registration')->group(function () {
+    Route::prefix('v1/landing-page-registration')->group(function () {
     //Landing Page Registration
     Route::post('/agency', 'AgencyController@store');
     Route::post('/applicant', 'ApplicantController@store');
@@ -55,13 +55,11 @@ Route::namespace('API\v1')->group(function () {
     //Tracking Application
     Route::get('/tracking', 'LogisticRequestController@track');
     Route::get('/tracking/{id}', 'LogisticRequestController@trackDetail');
-  });
-  
+    });
+
     Route::post('v1/logistic-request', 'LogisticRequestController@store');
     Route::apiResource('v1/master-faskes', 'MasterFaskesController');
     Route::apiResource('v1/master-faskes-type', 'MasterFaskesTypeController');
-    Route::post('v1/master-faskes', 'MasterFaskesController@store');
-    Route::get('v1/master-faskes/{id}', 'MasterFaskesController@show');
     Route::post('v1/verify-master-faskes/{id}', 'MasterFaskesController@verify');
 });
 
@@ -132,7 +130,7 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/logistic-admin-realization', 'LogisticRealizationItemController@add');
     Route::put('v1/logistic-admin-realization/{id}', 'LogisticRealizationItemController@update');
     Route::delete('v1/logistic-admin-realization/{id}', 'LogisticRealizationItemController@destroy');
-    
+
     // STOCK
     Route::get('v1/stock', 'StockController@index');
 
@@ -151,16 +149,16 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
     Route::post('v1/application-letter', 'RequestLetterController@store');
     Route::put('v1/application-letter/{id}', 'RequestLetterController@update');
     Route::delete('v1/application-letter/{id}', 'RequestLetterController@destroy');
-    
+
     //Logistic Realization Integrate with PosLog
     Route::get('v1/logistic-realization/products', 'StockController@index');
     Route::get('v1/logistic-realization/product-units/{id}', 'StockController@productUnitList');
     Route::get('v1/logistic-realization/sync', 'LogisticRealizationItemController@integrateMaterial');
-    
+
     //Incoming Letter Management
     Route::get('v1/incoming-letter', 'IncomingLetterController@index');
     Route::get('v1/incoming-letter/{id}', 'IncomingLetterController@show');
-    
+
     //Dashboard
     Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
     Route::get('v1/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
@@ -172,13 +170,13 @@ Route::namespace('API\v1')->middleware('auth:api')->group(function () {
 
 //Route for Another App that want integrate data
 Route::namespace('API\v1')->middleware('auth-key')->group(function () {
-  Route::get('v1/products-total-request', 'ProductsController@productRequest');
-  Route::get('v1/products-top-request', 'ProductsController@productTopRequest');
-  Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
-  Route::get('v1/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
-  Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
-  Route::get('v1/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
-  // Integrate with POSLOG
-  Route::get('v1/logistic-request-list', 'LogisticRequestController@finalList');
-  Route::get('v1/logistic-request/{id}', 'LogisticRequestController@show');
+    Route::get('v1/products-total-request', 'ProductsController@productRequest');
+    Route::get('v1/products-top-request', 'ProductsController@productTopRequest');
+    Route::get('v1/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
+    Route::get('v1/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
+    Route::get('v1/logistic-request-summary', 'LogisticRequestController@requestSummary');
+    Route::get('v1/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
+    // Integrate with POSLOG
+    Route::get('v1/logistic-request-list', 'LogisticRequestController@finalList');
+    Route::get('v1/logistic-request/{id}', 'LogisticRequestController@show');
 });

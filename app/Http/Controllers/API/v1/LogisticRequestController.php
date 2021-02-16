@@ -22,12 +22,11 @@ class LogisticRequestController extends Controller
     {
         $request->start_date = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
         $request->end_date = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
-        
+
         $limit = $request->input('limit', 10);
         $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
         $data = Agency::getList($request, false);
         $data = $data->orderByRaw(implode($sort))->paginate($limit);
-        Validation::completenessDetail($data);
         return response()->format(200, 'success', $data);
     }
 
@@ -60,6 +59,7 @@ class LogisticRequestController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $response = LogisticRequest::storeProcess($request, $responseData);
+            Validation::setCompleteness($request);
         }
         return $response;
     }
@@ -72,6 +72,7 @@ class LogisticRequestController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $response = LogisticRequest::saveData($request);
+            Validation::setCompleteness($request);
         }
         return $response;
     }
@@ -121,7 +122,7 @@ class LogisticRequestController extends Controller
         $requestSummaryResult['totalVerified'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->count();
         $requestSummaryResult['totalVerificationRejected'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_REJECTED])->count();
         $requestSummaryResult['totalApprovalRejected'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_REJECTED, 'verification_status' => Applicant::STATUS_VERIFIED])->count();
-        
+
         $data = Applicant::requestSummaryResult($requestSummaryResult);
         return response()->format(200, 'success', $data);
     }
@@ -138,8 +139,9 @@ class LogisticRequestController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $response = LogisticRequest::changeStatus($request, $processType, $dataUpdate);
+            Validation::setCompleteness($request);
         }
-        
+
         Log::channel('dblogging')->debug('post:v1/logistic-request/' . $processType, $request->all());
         return $response;
     }
@@ -250,6 +252,7 @@ class LogisticRequestController extends Controller
         if ($response->getStatusCode() === 200) {
             $applicant = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->firstOrFail();
             $response = FileUpload::storeLetterFile($request);
+            Validation::setCompleteness($request);
         }
         return $response;
     }
@@ -262,8 +265,9 @@ class LogisticRequestController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $request->request->add(['applicant_id' => $id]);
-            $response = FileUpload::storeApplicantFile($request);        
+            $response = FileUpload::storeApplicantFile($request);
             $applicant = Applicant::where('id', '=', $request->applicant_id)->update(['file' => $response->id]);
+            Validation::setCompleteness($request);
         }
         return $response;
     }
@@ -281,6 +285,7 @@ class LogisticRequestController extends Controller
             $model->is_urgency = $request->is_urgency;
             $model->save();
             $response = response()->format(200, 'success', $model);
+            Validation::setCompleteness($request);
         }
         Log::channel('dblogging')->debug('post:v1/logistic-request/urgency', $request->all());
         return $response;
@@ -299,6 +304,7 @@ class LogisticRequestController extends Controller
             $request = Applicant::undoStep($request);
             $whatsapp = LogisticRequest::sendEmailNotification($request, $request['status']);
             $response = response()->format(200, 'success', $request->all());
+            Validation::setCompleteness($request);
         }
         Log::channel('dblogging')->debug('post:v1/logistic-request/return', $request->all());
         return $response;

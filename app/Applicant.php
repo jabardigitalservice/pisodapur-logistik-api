@@ -14,8 +14,8 @@ class Applicant extends Model
     const STATUS_NOT_APPROVED = 'not_approved';
     const STATUS_VERIFIED = 'verified';
     const STATUS_APPROVED = 'approved';
-    const STATUS_REJECTED = 'rejected';    
-    
+    const STATUS_REJECTED = 'rejected';
+
     /**
     * All of the relationships to be touched.
     *
@@ -40,6 +40,7 @@ class Applicant extends Model
         'verified_by',
         'verified_at',
         'note',
+        'is_urgency',
         'approval_status',
         'approval_note',
         'approved_by',
@@ -51,9 +52,9 @@ class Applicant extends Model
     ];
 
     protected $casts = [
-        'request' => 'boolean', 
+        'request' => 'boolean',
         'delivering' => 'boolean',
-        'delivered' => 'boolean' 
+        'delivered' => 'boolean'
     ];
 
     public function masterFaskesType()
@@ -109,16 +110,12 @@ class Applicant extends Model
 
     public function getFileAttribute($value)
     {
+        $fileUrl = '';
         $data = FileUpload::find($value);
         if (isset($data->name)) {
-            if (substr($data->name, 0, 12) === 'registration') {
-                return env('AWS_CLOUDFRONT_URL') . $data->name;
-            } else {
-                return $data->name;
-            }
-        } else {
-            return '';
+            $fileUrl = substr($data->name, 0, 12) === 'registration' ? env('AWS_CLOUDFRONT_URL') . $data->name : $data->name;
         }
+        return $fileUrl;
     }
 
     public function getApprovalStatusAttribute($value)
@@ -130,7 +127,7 @@ class Applicant extends Model
     // Cast for Tracking Module
     public function getVerificationAttribute($value)
     {
-        $status = $value === self::STATUS_VERIFIED ? TRUE : ($value === self::STATUS_REJECTED ? TRUE : FALSE); 
+        $status = $value === self::STATUS_VERIFIED ? TRUE : ($value === self::STATUS_REJECTED ? TRUE : FALSE);
         $result = [
             'status' => $status,
             'is_reject' => $value === self::STATUS_REJECTED ? TRUE : FALSE,
@@ -218,14 +215,14 @@ class Applicant extends Model
         return $request;
     }
 
-    static function setNotYetFinalized($model) 
+    static function setNotYetFinalized($model)
     {
         $model['finalized_by'] = null;
         $model['finalized_at'] = null;
         return $model;
     }
 
-    static function setNotYetApproved($model) 
+    static function setNotYetApproved($model)
     {
         $model['approval_status'] = 'not_approved';
         $model['approved_by'] = null;
@@ -235,7 +232,7 @@ class Applicant extends Model
         return $model;
     }
 
-    static function setNotYetVerified($model) 
+    static function setNotYetVerified($model)
     {
         $model['verification_status'] = 'not_verified';
         $model['verified_by'] = null;
@@ -248,14 +245,14 @@ class Applicant extends Model
 
     static function getTotalBy($createdAt, $params)
     {
-        $total = self::Select('applicants.id', 'applicants.updated_at') 
+        $total = self::Select('applicants.id', 'applicants.updated_at')
         ->whereBetween('created_at', $createdAt)
         ->where('is_deleted', '!=' , 1);
 
         if ($params['source_data']) {
             $total = $total->where('source_data', $params['source_data']);
         }
-        
+
         if ($params['approval_status'] && $params['verification_status']) {
             $total = $total->where('approval_status', $params['approval_status'])
             ->where('verification_status', $params['verification_status']);
@@ -264,7 +261,7 @@ class Applicant extends Model
     }
 
     static function requestSummaryResult($params)
-    {        
+    {
         $params['totalRejected'] = $params['totalVerificationRejected'] + $params['totalApprovalRejected'];
         $params['total'] = $params['totalUnverified'] + $params['totalVerified'] + $params['totalApproved'] + $params['totalFinal'] + $params['totalRejected'];
 
