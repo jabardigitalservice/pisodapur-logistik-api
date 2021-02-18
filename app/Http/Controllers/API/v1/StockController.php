@@ -15,7 +15,7 @@ class StockController extends Controller
      *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
-     */    
+     */
     public function index(Request $request)
     {
         $result = $this->getParam($request);
@@ -23,7 +23,7 @@ class StockController extends Controller
         $data = Usage::getPoslogItem($result['field_poslog'], $result['value_poslog'], $result['material_name']);
         return response()->format(200, 'success', $data);
     }
-    
+
     /**
      * Display a listing of the resource.
      * if did not exists in our database, system will update material list
@@ -60,10 +60,6 @@ class StockController extends Controller
 
     public function syncDatabase($fieldPoslog, $valuePoslog)
     {
-        $baseApi = PoslogProduct::API_DASHBOARD;
-        if ($this->checkOutdated($fieldPoslog, $valuePoslog, $baseApi)) {
-            Usage::syncDashboard(); // Sync from DASHBOARD
-        }
         $baseApi = PoslogProduct::API_POSLOG;
         if ($this->checkOutdated($fieldPoslog, $valuePoslog, $baseApi)) {
             Usage::syncWmsJabar(); // Sync from WMS JABAR
