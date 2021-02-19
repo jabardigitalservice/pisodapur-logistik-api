@@ -43,7 +43,8 @@ def secretsProd = [
     [envVar: 'WMS_JABAR_BASE_URL', vaultKey: 'WMS_JABAR_BASE_URL'],
     [envVar: 'WMS_JABAR_API_KEY', vaultKey: 'WMS_JABAR_API_KEY'],
     [envVar: 'DASHBOARD_PIKOBAR_API_BASE_URL', vaultKey: 'DASHBOARD_PIKOBAR_API_BASE_URL'],
-    [envVar: 'DASHBOARD_PIKOBAR_API_KEY', vaultKey: 'DASHBOARD_PIKOBAR_API_KEY']]],
+    [envVar: 'DASHBOARD_PIKOBAR_API_KEY', vaultKey: 'DASHBOARD_PIKOBAR_API_KEY'],
+    [envVar: 'SENTRY_LARAVEL_DSN', vaultKey: 'SENTRY_LARAVEL_DSN']]],
 ]
 
 def configuration = [vaultUrl: 'https://vault.jacloud.digitalservice.id/',  vaultCredentialId: 'approle-logistik', engineVersion: 2]
@@ -163,8 +164,8 @@ pipeline {
                         sh 'sed -i "s/%PELAPORAN_AUTH_USER%/${PELAPORAN_AUTH_USER}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%PELAPORAN_AUTH_PASSWORD%/${PELAPORAN_AUTH_PASSWORD}/g" kubernetes/secret-logistik-api.yaml'
 
-                        sh 'sed -i "s/%AWS_ACCESS_KEY_ID%/${AWS_ACCESS_KEY_ID}/g" kubernetes/secret-logistik-api.yaml'
-                        sh 'sed -i "s/%AWS_SECRET_ACCESS_KEY%/${AWS_SECRET_ACCESS_KEY}/g" kubernetes/secret-logistik-api.yaml'
+                        sh 'sed -i "s/%AWS_ACCESS_KEY_ID%/${AWS_ACCESS_KEY_ID}/g" kubernetes/configmap-logistik-api.yaml'
+                        sh 'sed -i "s/%AWS_SECRET_ACCESS_KEY%/${AWS_SECRET_ACCESS_KEY}/g" kubernetes/configmap-logistik-api.yaml'
 
                         sh 'sed -i "s/%AWS_DEFAULT_REGION%/${AWS_DEFAULT_REGION}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%AWS_BUCKET%/${AWS_BUCKET}/g" kubernetes/configmap-logistik-api.yaml'
@@ -186,6 +187,9 @@ pipeline {
 
                         sh 'sed -i "s/%DASHBOARD_PIKOBAR_API_BASE_URL%/${DASHBOARD_PIKOBAR_API_BASE_URL}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%DASHBOARD_PIKOBAR_API_KEY%/${DASHBOARD_PIKOBAR_API_KEY}/g" kubernetes/secret-logistik-api.yaml'
+
+                        sh 'sed -i "s/%SENTRY_LARAVEL_DSN%/${SENTRY_LARAVEL_DSN}/g" kubernetes/configmap-logistik-api.yaml'
+
 
                         sh '''
                             set +x
