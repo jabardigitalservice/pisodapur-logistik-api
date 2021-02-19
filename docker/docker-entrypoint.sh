@@ -14,7 +14,7 @@ php composer.phar dump-autoload
 php artisan config:clear
 php artisan cache:clear
 php artisan route:clear
-php artisan migrate --no-interaction -vvv
+php artisan migrate --no-interaction -vvv --force
 
 echo "done!"
 
