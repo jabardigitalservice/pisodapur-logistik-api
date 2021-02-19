@@ -29,6 +29,11 @@ def secretsProd = [
     [envVar: 'AWS_ACCESS_KEY_ID', vaultKey: 'AWS_ACCESS_KEY_ID'],
     [envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'AWS_SECRET_ACCESS_KEY'],
     [envVar: 'AWS_DEFAULT_REGION', vaultKey: 'AWS_DEFAULT_REGION'],
+
+    [envVar: 'AWS_SNS_ACCESS_KEY_ID', vaultKey: 'AWS_SNS_ACCESS_KEY_ID'],
+    [envVar: 'AWS_SNS_SECRET_ACCESS_KEY', vaultKey: 'AWS_SNS_SECRET_ACCESS_KEY'],
+    [envVar: 'AWS_SNS_DEFAULT_REGION', vaultKey: 'AWS_SNS_DEFAULT_REGION'],
+
     [envVar: 'AWS_BUCKET', vaultKey: 'AWS_BUCKET'],
     [envVar: 'AWS_CLOUDFRONT_URL', vaultKey: 'AWS_CLOUDFRONT_URL'],
     [envVar: 'MAIL_TRANSPORT_FILE', vaultKey: 'MAIL_TRANSPORT_FILE'],
@@ -166,10 +171,13 @@ pipeline {
 
                         sh 'sed -i "s/%AWS_ACCESS_KEY_ID%/${AWS_ACCESS_KEY_ID}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%AWS_SECRET_ACCESS_KEY%/${AWS_SECRET_ACCESS_KEY}/g" kubernetes/configmap-logistik-api.yaml'
-
                         sh 'sed -i "s/%AWS_DEFAULT_REGION%/${AWS_DEFAULT_REGION}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%AWS_BUCKET%/${AWS_BUCKET}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%AWS_CLOUDFRONT_URL%/${AWS_CLOUDFRONT_URL}/g" kubernetes/configmap-logistik-api.yaml'
+
+                        sh 'sed -i "s/%AWS_SNS_ACCESS_KEY_ID%/${AWS_SNS_ACCESS_KEY_ID}/g" kubernetes/configmap-logistik-api.yaml'
+                        sh 'sed -i "s/%AWS_SNS_SECRET_ACCESS_KEY%/${AWS_SNS_SECRET_ACCESS_KEY}/g" kubernetes/configmap-logistik-api.yaml'
+                        sh 'sed -i "s/%AWS_SNS_DEFAULT_REGION%/${AWS_SNS_DEFAULT_REGION}/g" kubernetes/configmap-logistik-api.yaml'
 
                         sh 'sed -i "s/%MAIL_TRANSPORT_FILE%/${MAIL_TRANSPORT_FILE}/g" kubernetes/configmap-logistik-api.yaml'
                         sh 'sed -i "s/%MAIL_HOST%/${MAIL_HOST}/g" kubernetes/configmap-logistik-api.yaml'
