@@ -61,6 +61,7 @@ class LogisticRequestController extends Controller
             $response = LogisticRequest::storeProcess($request, $responseData);
             Validation::setCompleteness($request);
         }
+        Log::channel('dblogging')->debug('post:v1/logistic-request', $request->all());
         return $response;
     }
 
@@ -74,6 +75,7 @@ class LogisticRequestController extends Controller
             $response = LogisticRequest::saveData($request);
             Validation::setCompleteness($request);
         }
+        Log::channel('dblogging')->debug('put:v1/logistic-request', $request->all());
         return $response;
     }
 
@@ -105,6 +107,7 @@ class LogisticRequestController extends Controller
         if ($response->getStatusCode() === 200) {
             $response = LogisticImport::importProcess($request);
         }
+        Log::channel('dblogging')->debug('post:v1/logistic-request/import', $request->all());
         return $response;
     }
 
@@ -254,6 +257,7 @@ class LogisticRequestController extends Controller
             $response = FileUpload::storeLetterFile($request);
             Validation::setCompleteness($request);
         }
+        Log::channel('dblogging')->debug('post:v1/logistic-request/letter/' . $id, $request->all());
         return $response;
     }
 
@@ -269,6 +273,7 @@ class LogisticRequestController extends Controller
             $applicant = Applicant::where('id', '=', $request->applicant_id)->update(['file' => $response->id]);
             Validation::setCompleteness($request);
         }
+        Log::channel('dblogging')->debug('post:v1/logistic-request/identity/' . $id, $request->all());
         return $response;
     }
 
