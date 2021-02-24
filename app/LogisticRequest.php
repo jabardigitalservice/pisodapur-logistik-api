@@ -228,7 +228,7 @@ class LogisticRequest extends Model
         $param['failMessage'] = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . $param['notReadyItemsTotal'] .' item';
         $param['step'] = 'approved';
         $param['phase'] = 'realisasi';
-        return self::getResponseApproval($request, $params, $dataUpdate);
+        return self::getResponseApproval($request, $param, $dataUpdate);
     }
 
     static function finalProcess(Request $request)
@@ -243,7 +243,7 @@ class LogisticRequest extends Model
         $param['failMessage'] = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . $param['notReadyItemsTotal'] .' item';
         $param['step'] = 'finalized';
         $param['phase'] = 'final';
-        return self::getResponseApproval($request, $params);
+        return self::getResponseApproval($request, $param);
     }
 
     static function getResponseApproval(Request $request, $param, $dataUpdate = [])
