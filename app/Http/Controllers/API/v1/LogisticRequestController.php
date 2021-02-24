@@ -307,7 +307,7 @@ class LogisticRequestController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             $request = Applicant::undoStep($request);
-            $whatsapp = LogisticRequest::sendEmailNotification($request, $request['status']);
+            $email = LogisticRequest::sendEmailNotification($request, $request['status']);
             $response = response()->format(200, 'success', $request->all());
             Validation::setCompleteness($request);
         }
