@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
 use App\User;
 use App\Notifications\ChangeStatusNotification;
-use Tymon\JWTAuth\JWTAuth;
+use JWTAuth;
 use App\Applicant;
 use App\LogisticRealizationItems;
 use App\Validation;
