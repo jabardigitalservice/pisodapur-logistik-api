@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
 use App\User;
 use App\Notifications\ChangeStatusNotification;
-use Tymon\JWTAuth\JWTAuth;
+use JWTAuth;
 use App\Applicant;
 use App\LogisticRealizationItems;
 use App\Validation;
@@ -220,58 +220,50 @@ class LogisticRequest extends Model
 
     static function approvalProcess(Request $request, $dataUpdate)
     {
-        $response = Validation::defaultError();
-        // check the list of applications that have not been approved
-        $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
-        $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNull('created_by')->count();
-        if ($realizationSum != $needsSum && $request->approval_status === Applicant::STATUS_APPROVED) {
-            $message = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . ($needsSum - $realizationSum) .' item';
-            $response = response()->json([
-                'status' => 422,
-                'error' => true,
-                'message' => $message,
-                'total_item_need_update' => ($needsSum - $realizationSum)
-            ], 422);
-        } else {
-            $dataUpdate['approved_by'] = JWTAuth::user()->id;
-            $dataUpdate['approved_at'] = date('Y-m-d H:i:s');
-            $applicant = Applicant::updateApplicant($request, $dataUpdate);
-            $email = self::sendEmailNotification($applicant->agency_id, $request->approval_status);
-            if ($request->approval_status === Applicant::STATUS_APPROVED) {
-                $request['agency_id'] = $applicant->agency_id;
-                $whatsapp = self::sendEmailNotification($request, 'realisasi');
-            }
-            $response = response()->format(200, 'success', $applicant);
-        }
-        return $response;
+        $param['needsSum'] = Needs::where('applicant_id', $request->applicant_id)->count();
+        $param['applicantStatus'] = $request->approval_status;
+        $param['realizationSum'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNull('created_by')->count();
+        $param['checkAllItemsStatus'] = $param['realizationSum'] != $param['needsSum'] && $request->approval_status === Applicant::STATUS_APPROVED;
+        $param['notReadyItemsTotal'] = $param['needsSum'] - $param['realizationSum'];
+        $param['failMessage'] = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . $param['notReadyItemsTotal'] .' item';
+        $param['step'] = 'approved';
+        $param['phase'] = 'realisasi';
+        return self::getResponseApproval($request, $param, $dataUpdate);
     }
 
     static function finalProcess(Request $request)
     {
-        $response = Validation::defaultError();
-        //check the list of applications that have not been approved
-        $needsSum = Needs::where('applicant_id', $request->applicant_id)->count();
-        $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->count();
-        $finalSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('final_by')->count();
+        $param['needsSum'] = Needs::where('applicant_id', $request->applicant_id)->count();
+        $param['applicantStatus'] = Applicant::STATUS_FINALIZED;
+        $param['realizationSum'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->count();
+        $param['finalSum'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('final_by')->count();
+        $param['recommendationItemsTotal'] = $param['needsSum'] + $param['realizationSum'];
+        $param['checkAllItemsStatus'] = $param['finalSum'] != $param['recommendationItemsTotal'] && $request->approval_status === Applicant::STATUS_APPROVED;
+        $param['notReadyItemsTotal'] = $param['recommendationItemsTotal'] - $param['finalSum'];
+        $param['failMessage'] = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . $param['notReadyItemsTotal'] .' item';
+        $param['step'] = 'finalized';
+        $param['phase'] = 'final';
+        return self::getResponseApproval($request, $param);
+    }
 
-        if ($finalSum != ($needsSum + $realizationSum) && $request->approval_status === Applicant::STATUS_APPROVED) {
-            $message = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . (($needsSum + $realizationSum) - $finalSum) .' item';
-            $response = response()->json([
-                'status' => 422,
-                'error' => true,
-                'message' => $message,
-                'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
-            ], 422);
-        } else {
-            $dataUpdate['finalized_by'] = JWTAuth::user()->id;
-            $dataUpdate['finalized_at'] = date('Y-m-d H:i:s');
+    static function getResponseApproval(Request $request, $param, $dataUpdate = [])
+    {
+        $response = response()->json([
+            'status' => 422,
+            'error' => true,
+            'message' => $param['failMessage'],
+            'total_item_need_update' => $param['notReadyItemsTotal']
+        ], 422);
+        if (!$param['checkAllItemsStatus']) {
+            $dataUpdate[$param['step'] . '_by'] = JWTAuth::user()->id;
+            $dataUpdate[$param['step'] . '_at'] = date('Y-m-d H:i:s');
             $applicant = Applicant::updateApplicant($request, $dataUpdate);
-            $email = self::sendEmailNotification($applicant->agency_id, $request->approval_status);
-            $response = response()->format(200, 'success', [
-                '(needsSum_realization_sum' => ($needsSum + $realizationSum),
-                'finalSum' => $finalSum,
-                'total_item_need_update' => (($needsSum + $realizationSum) - $finalSum)
-            ]);
+            $email = self::sendEmailNotification($applicant->agency_id, $param['applicantStatus']);
+            if ($request->approval_status === Applicant::STATUS_APPROVED && $param['step'] == 'approved') {
+                $request['agency_id'] = $applicant->agency_id;
+                $whatsapp = self::sendWhatsappNotification($request, $param['phase']);
+            }
+            $response = response()->format(200, 'success', $applicant);
         }
         return $response;
     }

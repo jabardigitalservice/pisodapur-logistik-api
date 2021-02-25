@@ -14,6 +14,7 @@ class Applicant extends Model
     const STATUS_NOT_APPROVED = 'not_approved';
     const STATUS_VERIFIED = 'verified';
     const STATUS_APPROVED = 'approved';
+    const STATUS_FINALIZED = 'finalized';
     const STATUS_REJECTED = 'rejected';
 
     /**

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class for storing all method & data regarding item usage information, which 
+ * Class for storing all method & data regarding item usage information, which
  * are retrieved from Pelaporan API
  */
 
