@@ -29,20 +29,27 @@ class Validation
         return $response;
     }
 
-    static function completenessDetail($data)
+    public static function setCompleteness($request)
     {
-        $data->getCollection()->transform(function ($item, $key) {
-            $item->completeness = false;
-            if ($item->applicant->applicant_name 
-                && $item->agency_name 
-                && $item->location_address 
-                && $item->applicant->primary_phone_number 
-                && $item->applicant->letter 
-                && $item->applicant->file
-            ) {
-                $item->completeness = true;
-            }
-            return $item;
-        });
+        $updateCompleteness = Agency::where('agency_name', '')
+            ->orWhereNull('agency_name')
+            ->orWhere('location_address', '')
+            ->orWhereNull('location_address')
+            ->update(['completeness' => 0]);
+
+        $applicants = Applicant::select('agency_id')
+            ->where('applicant_name', '')
+            ->orWhereNull('applicant_name')
+            ->orWhere('primary_phone_number', '')
+            ->orWhereNull('primary_phone_number')
+            ->orWhere('file', '')
+            ->orWhereNull('file')
+            ->get();
+
+        $upcateCompleteness = Agency::whereIn('id', $applicants)
+            ->update(['completeness' => 0]);
+
+        $agencyNoLetter = Agency::doesnthave('letter')
+            ->update(['completeness' => 0]);
     }
 }

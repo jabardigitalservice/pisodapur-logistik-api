@@ -24,7 +24,7 @@ class LogisticEmailNotification extends Mailable
     public $subject;
     public $texts;
     public $notes;
-     
+
     public function __construct(Agency $agency, $status)
     {
         $this->agency = $agency;
@@ -51,27 +51,30 @@ class LogisticEmailNotification extends Mailable
             case Applicant::STATUS_VERIFIED:
                 $this->textVerified();
                 break;
-            default:
-                $this->textOther();
+            case Applicant::STATUS_APPROVED:
+                $this->textApproved();
+                break;
+            case Applicant::STATUS_FINALIZED:
+                $this->textFinalized();
                 break;
         }
         return $this->getContent();
     }
-    
+
     public function textNotVerified()
     {
         $this->subject = '[Pikobar] Permohonan Logistik Diterima';
-        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.'; 
+        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
         $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' sudah kami terima.';
         $this->notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan pengecekan terhadap permohonan tersebut.';
     }
-    
+
     public function textRejected()
     {
         $this->subject = '[Pikobar] Penolakan Permohonan Logistik';
-        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.'; 
+        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
         $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' tidak bisa kami penuhi.';
-        $this->texts[] = 'Dengan alasan penolakan sebagai berikut:'; 
+        $this->texts[] = 'Dengan alasan penolakan sebagai berikut:';
         $this->notes[] = $this->agency->applicant->note;
         $this->notes[] = 'Mohon maaf atas ketidaknyamanan ini.';
     }
@@ -84,7 +87,15 @@ class LogisticEmailNotification extends Mailable
         $this->notes[] = 'Silahkan hubungi nomor kontak hotline atau email di bawah ini atau gunakan Fitur Lacak Pengajuan Logistik pada https://logistik.pikobar.jabarprov.go.id/#/landing-page jika diperlukan pengecekan terhadap permohonan tersebut.';
     }
 
-    public function textOther()
+    public function textApproved()
+    {
+        $this->subject = '[Pikobar] Permohonan Logistik Sudah Rekomendasi';
+        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
+        $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . '  sudah dalam status rekomendasi dan sedang dalam tahap realisasi salur. Selanjutnya kami akan melakukan pengecekan ketersediaan barang pada gudang logistik untuk permohonan Anda.';
+        $this->notes[] = 'Silahkan hubungi nomor kontak hotline atau email di bawah ini atau gunakan Fitur Lacak Pengajuan Logistik pada https://logistik.pikobar.jabarprov.go.id/#/landing-page jika diperlukan pengecekan terhadap permohonan tersebut.';
+    }
+
+    public function textFinalized()
     {
         $this->subject = '[Pikobar] Permohonan Logistik Sudah Realisasi Salur';
         $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
@@ -107,7 +118,7 @@ class LogisticEmailNotification extends Mailable
         $this->texts[] = 'https://bit.ly/PanduanPelaporanLogistik';
         $this->notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan pengecekan dan konfirmasi terhadap permohonan tersebut.';
     }
-    
+
     public function getContent()
     {
         return $this->view('email.logisticemailnotification')
