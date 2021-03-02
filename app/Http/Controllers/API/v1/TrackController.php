@@ -9,9 +9,10 @@ use App\Tracking;
 class TrackController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Track Function
+     * Show application list based on ID, No. HP, or applicant email
+     * @param Request $request
+     * @return array of Applicant $data
      */
     public function index(Request $request)
     {
@@ -24,10 +25,11 @@ class TrackController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Track Detail function
+     * - return data is pagination so it can receive the parameter limit, page, sorting and filtering / searching
+     * @param Request $request
+     * @param integer $id
+     * @return array of Applicant $data
      */
     public function show(Request $request, $id)
     {
