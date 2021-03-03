@@ -53,9 +53,9 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/products', 'ProductsController@index');
         Route::get('/product-unit/{id}', 'ProductsController@productUnit');
 
-        //Tracking Application
-        Route::get('/tracking', 'LogisticRequestController@track');
-        Route::get('/tracking/{id}', 'LogisticRequestController@trackDetail');
+    //Tracking Application
+    Route::get('/tracking', 'TrackController@index');
+    Route::get('/tracking/{id}', 'TrackController@show');
     });
 
     //Insert New Logistic Request Public
