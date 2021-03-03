@@ -15,6 +15,8 @@ class MasterFaskes extends Model
         'nomor_izin_sarana',
         'nomor_registrasi',
         'nama_faskes',
+        'poslog_id',
+        'poslog_name',
         'id_tipe_faskes',
         'nama_atasan',
         'longitude',
@@ -37,9 +39,9 @@ class MasterFaskes extends Model
     }
 
     static function getFaskesName($request)
-    {   
+    {
         $name = $request->agency_name;
-        
+
         if ($request->agency_type <= 3) {
             $data = self::findOrFail($request->master_faskes_id);
             $name = $data->nama_faskes;
@@ -48,7 +50,7 @@ class MasterFaskes extends Model
     }
 
     static function getFaskesList($request)
-    {        
+    {
         $limit = $request->filled('limit') ? $request->input('limit') : 20;
         $sort = $request->filled('sort') ? $request->input('sort') : 'asc';
 
