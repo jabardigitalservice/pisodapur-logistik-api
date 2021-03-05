@@ -53,9 +53,9 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/products', 'ProductsController@index');
         Route::get('/product-unit/{id}', 'ProductsController@productUnit');
 
-    //Tracking Application
-    Route::get('/tracking', 'TrackController@index');
-    Route::get('/tracking/{id}', 'TrackController@show');
+        //Tracking Application
+        Route::get('/tracking', 'TrackController@index');
+        Route::get('/tracking/{id}', 'TrackController@show');
     });
 
     //Insert New Logistic Request Public
@@ -80,6 +80,8 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         // Integrate with POSLOG
         Route::get('/logistic-request-list', 'LogisticRequestController@finalList');
         Route::get('/logistic-request/{id}', 'LogisticRequestController@show');
+        Route::apiResource('/outbound', 'OutboundController');
+        Route::get('/outbound-notification', 'OutboundController@notification');
     });
 
     Route::middleware('auth:api')->group(function () {
