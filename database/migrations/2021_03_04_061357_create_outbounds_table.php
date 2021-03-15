@@ -15,22 +15,23 @@ class CreateOutboundsTable extends Migration
     {
         Schema::create('outbounds', function (Blueprint $table) {
             $table->increments('id');
+            $table->integer('req_id')->index();
             $table->integer('agency_id')->index();
             $table->integer('applicant_id')->index();
-            $table->string('lo_id', 20)->nullable()->index();
-            $table->date('lo_date')->nullable();
-            $table->string('lo_desc')->nullable();
-            $table->string('lo_cb')->nullable();
-            $table->string('lo_issued_by')->nullable();
-            $table->dateTime('lo_ct')->nullable();
-            $table->string('send_to_id', 20)->nullable();
-            $table->string('send_to_name')->nullable();
-            $table->text('send_to_address')->nullable();
-            $table->string('city_id', 5)->nullable();
-            $table->string('send_to_city')->nullable();
-            $table->string('lo_location', 25)->nullable();
-            $table->string('whs_name')->nullable();
-            $table->string('lo_proses_stt')->nullable();
+            $table->string('lo_id', 20)->index();
+            $table->date('lo_date');
+            $table->string('lo_desc');
+            $table->string('lo_cb');
+            $table->string('lo_issued_by');
+            $table->dateTime('lo_ct');
+            $table->string('send_to_id', 20);
+            $table->string('send_to_name');
+            $table->text('send_to_address');
+            $table->string('city_id', 5);
+            $table->string('send_to_city');
+            $table->string('lo_location', 25);
+            $table->string('whs_name');
+            $table->string('lo_proses_stt')->default('NEW');;
             $table->string('lo_approved_time')->nullable();
             $table->string('lo_app_cb')->nullable();
             $table->string('lo_approved_by')->nullable();
@@ -44,11 +45,6 @@ class CreateOutboundsTable extends Migration
             $table->string('delivery_issued_by')->nullable();
             $table->timestamps();
         });
-
-        DB::table('outbounds')->insert([
-            'agency_id' => 1541,
-            'applicant_id' => 1541,
-        ]);
     }
 
     /**
