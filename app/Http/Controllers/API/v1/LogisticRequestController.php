@@ -13,7 +13,6 @@ use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
 use App\Validation;
-use App\Tracking;
 use Log;
 
 class LogisticRequestController extends Controller
