@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateLoDetailTable extends Migration
+class CreateOutboundDetailsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,10 @@ class CreateLoDetailTable extends Migration
      */
     public function up()
     {
-        Schema::create('outbound_detail', function (Blueprint $table) {
+        Schema::create('outbound_details', function (Blueprint $table) {
             $table->increments('id');
             $table->string('lo_id');
-            $table->integer('req_id');
-            $table->integer('agency_id')->index();
-            $table->integer('applicant_id')->index();
+            $table->integer('req_id')->index();
             $table->string('material_id', 35);
             $table->string('material_name');
             $table->string('UoM', 30);
@@ -41,6 +39,6 @@ class CreateLoDetailTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('outbound_detail');
+        Schema::dropIfExists('outbound_details');
     }
 }

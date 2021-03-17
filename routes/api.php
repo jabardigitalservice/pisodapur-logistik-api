@@ -24,6 +24,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     Route::get('/welcome', 'WelcomeController@index');
     Route::post('/login', 'UsersController@authenticate');
     Route::post('/authenticate', 'UsersController@authenticate');
+    Route::get('/sendping', 'OutboundController@sendPing');
 
     Route::get('/ping', function() {
         $response = Response::make(gethostname(), 200);

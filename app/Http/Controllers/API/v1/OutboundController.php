@@ -8,6 +8,11 @@ use App\Agency;
 use App\Applicant;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\OutboundDetail;
+use Carbon\Carbon;
+use GuzzleHttp;
+use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Constraint\IsTrue;
 
 class OutboundController extends Controller
 {
@@ -59,5 +64,64 @@ class OutboundController extends Controller
     public function notification(Request $request)
     {
         return "success";
+    }
+
+    static $client = null;
+
+    static function getClient()
+    {
+        if (static::$client == null) {
+            static::$client = new GuzzleHttp\Client();
+        }
+
+        return static::$client;
+    }
+
+    public function sendPing()
+    {
+        // Send Notification to WMS Jabar Poslog
+        $apiLink = config('wmsjabar.url');
+        $apiKey = config('wmsjabar.key');
+        $apiFunction = '/api/pingme';
+        $url = $apiLink . $apiFunction;
+        $res = static::getClient()->get($url, [
+            'headers' => [
+                'accept' => 'application/json',
+                'Content-Type' => 'application/json',
+                'api-key' => $apiKey,
+            ]
+        ]);
+
+        $response = [ response()->format($res->getStatusCode(), 'Error: WMS Jabar API returning status code ' . $res->getStatusCode()), null ];
+        // Store Data Outbounds
+        if ($res->getStatusCode() == 200) {
+            $outboundPlans = json_decode($res->getBody(), true);
+            $response = $this->insertData($outboundPlans);
+        }
+
+        //Flagging to applicants by agency_id = req_id
+        // ...
+
+        return $response;
+    }
+
+    private function insertData($outboundPlans)
+    {
+        DB::beginTransaction();
+        try {
+            foreach ($outboundPlans['msg'] as $key => $outboundPlan) {
+                if (isset($outboundPlan['lo_detil'])) {
+                    Outbound::create($outboundPlan);
+                    OutboundDetail::massInsert($outboundPlan['lo_detil']);
+                }
+            }
+            DB::commit();
+            $response = response()->format(200, 'success', $outboundPlans);
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            $response = response()->format(400, $exception->getMessage());
+        }
+
+        return $response;
     }
 }
