@@ -99,22 +99,24 @@ class OutboundController extends Controller
             $response = $this->insertData($outboundPlans);
         }
 
-        //Flagging to applicants by agency_id = req_id
-        // ...
-
         return $response;
     }
 
     private function insertData($outboundPlans)
     {
         DB::beginTransaction();
+        $agency_ids = [];
         try {
             foreach ($outboundPlans['msg'] as $key => $outboundPlan) {
                 if (isset($outboundPlan['lo_detil'])) {
                     Outbound::create($outboundPlan);
                     OutboundDetail::massInsert($outboundPlan['lo_detil']);
+
+                    $agency_ids[] = $outboundPlan['req_id'];
                 }
             }
+            //Flagging to applicants by agency_id = req_id
+            $applicantFlagging = Applicant::whereIn('agency_id', $agency_ids)->update(['is_integrated' => 1]);
             DB::commit();
             $response = response()->format(200, 'success', $outboundPlans);
         } catch (\Exception $exception) {
