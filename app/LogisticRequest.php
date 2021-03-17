@@ -243,7 +243,11 @@ class LogisticRequest extends Model
         $param['failMessage'] = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . $param['notReadyItemsTotal'] .' item';
         $param['step'] = 'finalized';
         $param['phase'] = 'final';
-        return self::getResponseApproval($request, $param);
+        $response = self::getResponseApproval($request, $param);
+        if ($response->getStatusCode() === 200) {
+            $response = WmsJabar::sendPing();
+        }
+        return $response;
     }
 
     static function getResponseApproval(Request $request, $param, $dataUpdate = [])
