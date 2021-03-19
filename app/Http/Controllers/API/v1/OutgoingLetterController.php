@@ -111,8 +111,8 @@ class OutgoingLetterController extends Controller
     public function getImageBlog()
     {
         //Return Image to base64 format
-        $pathPemprov = env('AWS_CLOUDFRONT_URL') . 'logo/pemprov_jabar.png';
-        $pathDivLog = env('AWS_CLOUDFRONT_URL') . 'logo/divisi_managemen_logistik.png';
+        $pathPemprov = config('aws.url') . 'logo/pemprov_jabar.png';
+        $pathDivLog = config('aws.url') . 'logo/divisi_managemen_logistik.png';
         $dataPemprov = file_get_contents($pathPemprov);
         $dataDivlog = file_get_contents($pathDivLog);
         $pemprovLogo = 'data:image/png;base64,' . base64_encode($dataPemprov);

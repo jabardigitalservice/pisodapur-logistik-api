@@ -25,7 +25,7 @@ class Letter extends Model
         $data = FileUpload::find($value);
         if (isset($data->name)) {
             if (substr($data->name, 0, 12) === 'registration') {
-                return env('AWS_CLOUDFRONT_URL') . $data->name;
+                return config('aws.url') . $data->name;
             } else {
                 return $data->name;
             }
