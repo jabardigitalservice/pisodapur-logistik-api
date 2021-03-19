@@ -98,7 +98,7 @@ class RecipientController extends Controller
      */
     public function show($cityCode, Request $request)
     {
-        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-result-list-by-cities?city_code=' . $cityCode;
+        $url = config('pelaporan.url') . '/api/rdt/summary-result-list-by-cities?city_code=' . $cityCode;
         list($err, $res) = Usage::getPelaporanData($url);
         if ($err != null) { //error
             return $err;
@@ -216,7 +216,7 @@ class RecipientController extends Controller
     static function summary_rdt_result(Request $request)
     {
         $city_code = $request->query('city_code');
-        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-result-by-cities?city_code=' . $city_code;
+        $url = config('pelaporan.url') . '/api/rdt/summary-result-by-cities?city_code=' . $city_code;
         list($err, $result) = Usage::getPelaporanData($url);
         if ($err != null) { //error
             return $err;
