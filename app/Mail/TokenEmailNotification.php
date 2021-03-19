@@ -45,7 +45,7 @@ class TokenEmailNotification extends Mailable
                         'token' => $this->token,
                         'notes' => $this->notes,
                         'from' => env('MAIL_FROM_NAME'),
-                        'hotLine' => env('HOTLINE_PIKOBAR')
+                        'hotLine' => config('app.hotline')
                     ]);
     }
 }

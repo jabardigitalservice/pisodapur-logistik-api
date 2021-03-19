@@ -129,7 +129,7 @@ class LogisticEmailNotification extends Mailable
                         'agency' => $this->agency->agency_name,
                         'texts' => $this->texts,
                         'from' => env('MAIL_FROM_NAME'),
-                        'hotLine' => env('HOTLINE_PIKOBAR')
+                        'hotLine' => config('app.hotline')
                     ]);
     }
 }
