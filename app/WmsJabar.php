@@ -12,29 +12,51 @@ use DB;
 
 class WmsJabar extends Usage
 {
-    static function sendPing()
+    static function callAPI($config)
     {
-        // Send Notification to WMS Jabar Poslog
+        $param = $config['param'];
         $apiLink = config('wmsjabar.url');
         $apiKey = config('wmsjabar.key');
-        $apiFunction = '/api/pingme';
+        $apiFunction = $config['apiFunction'];
         $url = $apiLink . $apiFunction;
-        $res = static::getClient()->get($url, [
+        // $response = $url;
+        return static::getClient()->get($url, [
             'headers' => [
                 'accept' => 'application/json',
                 'Content-Type' => 'application/json',
                 'api-key' => $apiKey,
-            ]
+            ],
+            'body' => $param
         ]);
+    }
 
-        $response = [ response()->format($res->getStatusCode(), 'Error: WMS Jabar API returning status code ' . $res->getStatusCode()), null ];
-        // Store Data Outbounds
-        if ($res->getStatusCode() == 200) {
-            $outboundPlans = json_decode($res->getBody(), true);
-            $response = self::insertData($outboundPlans);
+    static function updateOutbound($request)
+    {
+        // Send Notification to WMS Jabar Poslog
+        $config['param'] = '{"lo_id":"' . $request->input('lo_id') . '"}';
+        $config['apiFunction'] = '/api/outbound_fid';
+        $res = self::callAPI($config);
+
+        if ($res->getStatusCode() != 200) {
+            return response()->format($res->getStatusCode(), 'Error: WMS Jabar API returning status code ' . $res->getStatusCode());
         }
 
-        return $response;
+        return json_decode($res->getBody(), true);
+    }
+
+    static function sendPing()
+    {
+        // Send Notification to WMS Jabar Poslog
+        $config['param'] = '';
+        $config['apiFunction'] = '/api/pingme';
+        $res = self::callAPI($config);
+
+        if ($res->getStatusCode() != 200) {
+            return response()->format($res->getStatusCode(), 'Error: WMS Jabar API returning status code ' . $res->getStatusCode());
+        } else {
+            $outboundPlans = json_decode($res->getBody(), true);
+            return self::insertData($outboundPlans);
+        }
     }
 
     static function insertData($outboundPlans)

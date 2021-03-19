@@ -25,6 +25,7 @@ class Usage
 
         return static::$client;
     }
+
     /**
      * Request authorization token from pelaporan API
      *

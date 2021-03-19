@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\v1;
 
 use App\Http\Controllers\Controller;
 use App\WmsJabar;
+use Illuminate\Http\Request;
 
 class OutboundController extends Controller
 {
@@ -16,5 +17,16 @@ class OutboundController extends Controller
     public function sendPing()
     {
         return WmsJabar::sendPing();
+    }
+
+    /**
+     * getNotification function for API {{base_url}}/api/v1/poslog-notify
+     * Get notification from POSLOG to read update logistic request data
+     *
+     * @return void
+     */
+    public function getNotification(Request $request)
+    {
+        return WmsJabar::updateOutbound($request);
     }
 }
