@@ -145,8 +145,8 @@ class Usage
      */
     static function getLogisticStock($param, $api, $baseApi)
     {
-        $apiKey = PoslogProduct::isDashboardAPI($baseApi) ? env('DASHBOARD_PIKOBAR_API_KEY') : env('WMS_JABAR_API_KEY');
-        $apiLink = PoslogProduct::isDashboardAPI($baseApi) ? env(PoslogProduct::API_DASHBOARD) : env(PoslogProduct::API_POSLOG);
+        $apiKey = PoslogProduct::isDashboardAPI($baseApi) ? config('dashboardexecutive.key') : config('wmsjabar.key');
+        $apiLink = PoslogProduct::isDashboardAPI($baseApi) ? config('dashboardexecutive.url') : config('wmsjabar.url');
         $apiFunction = $api ? $api : '/api/soh_fmaterialgroup';
         $url = $apiLink . $apiFunction;
         $res = static::getClient()->get($url, [
@@ -173,8 +173,8 @@ class Usage
     static function getLogisticStockByLocation($id)
     {
         $param = '{"soh_location":"' . $id . '"}';
-        $apiKey = env('WMS_JABAR_API_KEY');
-        $apiLink = env(PoslogProduct::API_POSLOG);
+        $apiKey = config('wmsjabar.key');
+        $apiLink = config('wmsjabar.url');
         $apiFunction = '/api/soh_flocation';
         $url = $apiLink . $apiFunction;
         $res = static::getClient()->get($url, [
