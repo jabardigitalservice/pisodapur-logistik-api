@@ -14,48 +14,51 @@ class WmsJabar extends Usage
 {
     static function callAPI($config)
     {
-        $param = $config['param'];
-        $apiLink = config('wmsjabar.url');
-        $apiKey = config('wmsjabar.key');
-        $apiFunction = $config['apiFunction'];
-        $url = $apiLink . $apiFunction;
-        // $response = $url;
-        return static::getClient()->get($url, [
-            'headers' => [
-                'accept' => 'application/json',
-                'Content-Type' => 'application/json',
-                'api-key' => $apiKey,
-            ],
-            'body' => $param
-        ]);
+        try {
+            $param = $config['param'];
+            $apiLink = config('wmsjabar.url');
+            $apiKey = config('wmsjabar.key');
+            $apiFunction = $config['apiFunction'];
+            $url = $apiLink . $apiFunction;
+            return static::getClient()->get($url, [
+                'headers' => [
+                    'accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                    'api-key' => $apiKey,
+                ],
+                'body' => $param
+            ]);
+        } catch (\Throwable $th) {
+            return $th;
+        }
     }
 
-    static function updateOutbound($request)
+    static function getOutboundById($request)
     {
-        // Send Notification to WMS Jabar Poslog
-        $config['param'] = '{"lo_id":"' . $request->input('lo_id') . '"}';
-        $config['apiFunction'] = '/api/outbound_fid';
-        $res = self::callAPI($config);
+        try {
+            // Send Notification to WMS Jabar Poslog
+            $config['param'] = $request->input('request_id') ? '{"request_id":"' . $request->input('request_id') . '"}' : '';
+            $config['apiFunction'] = '/api/outbound_fReqID';
+            $res = self::callAPI($config);
 
-        if ($res->getStatusCode() != 200) {
-            return response()->format($res->getStatusCode(), 'Error: WMS Jabar API returning status code ' . $res->getStatusCode());
+            return json_decode($res->getBody(), true);
+        } catch (\Throwable $th) {
+            return response()->format(422, 'Error Access: WMS Jabar API');
         }
-
-        return json_decode($res->getBody(), true);
     }
 
     static function sendPing()
     {
-        // Send Notification to WMS Jabar Poslog
-        $config['param'] = '';
-        $config['apiFunction'] = '/api/pingme';
-        $res = self::callAPI($config);
+        try {
+            // Send Notification to WMS Jabar Poslog
+            $config['param'] = '';
+            $config['apiFunction'] = '/api/pingme';
+            $res = self::callAPI($config);
 
-        if ($res->getStatusCode() != 200) {
-            return response()->format($res->getStatusCode(), 'Error: WMS Jabar API returning status code ' . $res->getStatusCode());
-        } else {
             $outboundPlans = json_decode($res->getBody(), true);
             return self::insertData($outboundPlans);
+        } catch (\Throwable $th) {
+            return response()->format(422, 'Error Access: WMS Jabar API');
         }
     }
 

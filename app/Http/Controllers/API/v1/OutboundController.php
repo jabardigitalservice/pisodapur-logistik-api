@@ -27,6 +27,6 @@ class OutboundController extends Controller
      */
     public function getNotification(Request $request)
     {
-        return WmsJabar::updateOutbound($request);
+        return WmsJabar::getOutboundById($request);
     }
 }
