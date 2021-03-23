@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\v1;
 use App\Http\Controllers\Controller;
 use App\WmsJabar;
 use Illuminate\Http\Request;
+use App\Validation;
 
 class OutboundController extends Controller
 {
@@ -27,6 +28,14 @@ class OutboundController extends Controller
      */
     public function getNotification(Request $request)
     {
-        return WmsJabar::getOutboundById($request);
+        $param = [
+            'request_id' => 'required'
+        ];
+        $response = Validation::validate($request, $param);
+        if ($response->getStatusCode() === 200) {
+            $getOutboundById = WmsJabar::getOutboundById($request);
+            $response = response()->format(200, 'notification accepted', $getOutboundById);
+        }
+        return $response;
     }
 }
