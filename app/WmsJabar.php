@@ -26,7 +26,7 @@ class WmsJabar extends Usage
                     'Content-Type' => 'application/json',
                     'api-key' => $apiKey,
                 ],
-                'body' => $param
+                'body' => json_encode($param)
             ]);
         } catch (\Throwable $th) {
             return $th;
@@ -37,7 +37,9 @@ class WmsJabar extends Usage
     {
         try {
             // Send Notification to WMS Jabar Poslog
-            $config['param'] = $request->input('request_id') ? '{"request_id":"' . $request->input('request_id') . '"}' : '';
+            $config['param'] = [
+                'request_id' => $request->input('request_id')
+            ];
             $config['apiFunction'] = '/api/outbound_fReqID';
             $res = self::callAPI($config);
 
