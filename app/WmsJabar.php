@@ -8,33 +8,61 @@
 namespace App;
 use App\Outbound;
 use App\OutboundDetail;
+use Illuminate\Http\Response;
 use DB;
 
 class WmsJabar extends Usage
 {
+    static function callAPI($config)
+    {
+        try {
+            $param = $config['param'];
+            $apiLink = config('wmsjabar.url');
+            $apiKey = config('wmsjabar.key');
+            $apiFunction = $config['apiFunction'];
+            $url = $apiLink . $apiFunction;
+            return static::getClient()->get($url, [
+                'headers' => [
+                    'accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                    'api-key' => $apiKey,
+                ],
+                'body' => json_encode($param)
+            ]);
+        } catch (\Throwable $th) {
+            return $th;
+        }
+    }
+
+    static function getOutboundById($request)
+    {
+        try {
+            // Send Notification to WMS Jabar Poslog
+            $config['param'] = [
+                'request_id' => $request->input('request_id')
+            ];
+            $config['apiFunction'] = '/api/outbound_fReqID';
+            $res = self::callAPI($config);
+
+            return json_decode($res->getBody(), true);
+        } catch (\Throwable $th) {
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Access: WMS Jabar API');
+        }
+    }
+
     static function sendPing()
     {
-        // Send Notification to WMS Jabar Poslog
-        $apiLink = config('wmsjabar.url');
-        $apiKey = config('wmsjabar.key');
-        $apiFunction = '/api/pingme';
-        $url = $apiLink . $apiFunction;
-        $res = static::getClient()->get($url, [
-            'headers' => [
-                'accept' => 'application/json',
-                'Content-Type' => 'application/json',
-                'api-key' => $apiKey,
-            ]
-        ]);
+        try {
+            // Send Notification to WMS Jabar Poslog
+            $config['param'] = '';
+            $config['apiFunction'] = '/api/pingme';
+            $res = self::callAPI($config);
 
-        $response = [ response()->format($res->getStatusCode(), 'Error: WMS Jabar API returning status code ' . $res->getStatusCode()), null ];
-        // Store Data Outbounds
-        if ($res->getStatusCode() == 200) {
             $outboundPlans = json_decode($res->getBody(), true);
-            $response = self::insertData($outboundPlans);
+            return self::insertData($outboundPlans);
+        } catch (\Throwable $th) {
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Access: WMS Jabar API');
         }
-
-        return $response;
     }
 
     static function insertData($outboundPlans)
@@ -53,10 +81,10 @@ class WmsJabar extends Usage
             //Flagging to applicants by agency_id = req_id
             $applicantFlagging = Applicant::whereIn('agency_id', $agency_ids)->update(['is_integrated' => 1]);
             DB::commit();
-            $response = response()->format(200, 'success', $outboundPlans);
+            $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(400, $exception->getMessage());
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
         }
 
         return $response;

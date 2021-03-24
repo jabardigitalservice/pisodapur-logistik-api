@@ -21,7 +21,7 @@ class TokenEmailNotification extends Mailable
     public $texts;
     public $notes;
     public $token;
-     
+
     public function __construct($token)
     {
         $this->subject = '[Pikobar] Kode Verifikasi Pelaporan Penerimaan Logistik';
@@ -44,8 +44,8 @@ class TokenEmailNotification extends Mailable
                         'texts' => $this->texts,
                         'token' => $this->token,
                         'notes' => $this->notes,
-                        'from' => env('MAIL_FROM_NAME'),
-                        'hotLine' => env('HOTLINE_PIKOBAR')
+                        'from' => config('mail.from.name'),
+                        'hotLine' => config('app.hotline')
                     ]);
     }
 }
