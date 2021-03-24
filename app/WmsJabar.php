@@ -8,6 +8,7 @@
 namespace App;
 use App\Outbound;
 use App\OutboundDetail;
+use Illuminate\Http\Response;
 use DB;
 
 class WmsJabar extends Usage
@@ -45,7 +46,7 @@ class WmsJabar extends Usage
 
             return json_decode($res->getBody(), true);
         } catch (\Throwable $th) {
-            return response()->format(422, 'Error Access: WMS Jabar API');
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Access: WMS Jabar API');
         }
     }
 
@@ -60,7 +61,7 @@ class WmsJabar extends Usage
             $outboundPlans = json_decode($res->getBody(), true);
             return self::insertData($outboundPlans);
         } catch (\Throwable $th) {
-            return response()->format(422, 'Error Access: WMS Jabar API');
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Access: WMS Jabar API');
         }
     }
 
@@ -80,10 +81,10 @@ class WmsJabar extends Usage
             //Flagging to applicants by agency_id = req_id
             $applicantFlagging = Applicant::whereIn('agency_id', $agency_ids)->update(['is_integrated' => 1]);
             DB::commit();
-            $response = response()->format(200, 'success', $outboundPlans);
+            $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(400, $exception->getMessage());
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
         }
 
         return $response;
