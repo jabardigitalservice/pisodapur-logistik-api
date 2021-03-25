@@ -49,7 +49,8 @@ class Applicant extends Model
         'stock_checking_status',
         'application_letter_number',
         'finalized_by',
-        'finalized_at'
+        'finalized_at',
+        'is_integrated'
     ];
 
     protected $casts = [
