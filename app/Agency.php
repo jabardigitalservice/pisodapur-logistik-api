@@ -49,7 +49,7 @@ class Agency extends Model
             'subDistrict',
             'village',
             'applicant' => function ($query) {
-                $query->select([ 'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', DB::raw('concat(approval_status, "-", verification_status) as status'), DB::raw('concat(approval_status, "-", verification_status) as statusDetail'), 'finalized_by', 'finalized_at', 'is_urgency' ]);
+                $query->select([ 'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', DB::raw('concat(approval_status, "-", verification_status) as status'), DB::raw('concat(approval_status, "-", verification_status) as statusDetail'), 'finalized_by', 'finalized_at', 'is_urgency', 'is_integrated' ]);
                 $query->where('is_deleted', '!=' , 1);
                 $query->with('letter');
                 $query->with('verifiedBy:id,name,agency_name,handphone');
@@ -99,6 +99,10 @@ class Agency extends Model
 
             $query->when($request->has('is_urgency'), function ($query) use ($request) {
                 $query->where('is_urgency', $request->input('is_urgency'));
+            });
+
+            $query->when($request->has('is_integrated'), function ($query) use ($request) {
+                $query->where('is_integrated', $request->input('is_integrated'));
             });
 
             $query->when($request->has('finalized_by'), function ($query) use ($request) {

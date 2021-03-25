@@ -32,16 +32,10 @@ class LogisticRequestController extends Controller
     public function finalList(Request $request)
     {
         $syncSohLocation = \App\PoslogProduct::syncSohLocation();
-        $logisticRequest = Agency::getList($request, false)
-        ->join('applicants', 'agency.id', '=', 'applicants.agency_id')
-        ->where('is_deleted', '!=' , 1)
-        ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
-        ->where('applicants.approval_status', Applicant::STATUS_APPROVED)
-        ->whereNotNull('applicants.finalized_by');
-        if ($request->filled('is_integrated')) {
-            $logisticRequest = $logisticRequest->where('is_integrated', '=', $request->input('is_integrated'));
-        }
-        $logisticRequest = $logisticRequest->get();
+        $request->request->add(['verification_status' => Applicant::STATUS_VERIFIED]);
+        $request->request->add(['approval_status' => Applicant::STATUS_APPROVED]);
+        $request->request->add(['finalized_by' => Applicant::STATUS_FINALIZED]);
+        $logisticRequest = Agency::getList($request, false)->get();
 
         $data = [
             'data' => $logisticRequest,
