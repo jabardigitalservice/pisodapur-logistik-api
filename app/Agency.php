@@ -101,7 +101,7 @@ class Agency extends Model
                 $query->where('is_urgency', $request->input('is_urgency'));
             });
 
-            $query->when($request->filled('is_integrated'), function ($query) use ($request) {
+            $query->when($request->has('is_integrated'), function ($query) use ($request) {
                 $query->where('is_integrated', $request->input('is_integrated'));
             });
 
