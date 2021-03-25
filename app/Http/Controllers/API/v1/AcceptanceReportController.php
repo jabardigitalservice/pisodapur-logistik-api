@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\v1;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Validation;
 use DB;
@@ -28,7 +29,7 @@ class AcceptanceReportController extends Controller
         $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
         $data = \App\Agency::getList($request, false);
         $data = $data->orderByRaw(implode($sort))->paginate($limit);
-        return response()->format(200, 'success', $data);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function store(Request $request)
@@ -44,10 +45,10 @@ class AcceptanceReportController extends Controller
             $bast_proof = $this->uploadAcceptanceFile($request, 'bast_proof');
             $item_proof = $this->uploadAcceptanceFile($request, 'item_proof');
             DB::commit();
-            $response = response()->format(200, 'success');
+            $response = response()->format(Response::HTTP_OK, 'success');
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(422, 'Terjadi Kesalahan', ['message' => $exception->getMessage(), 'exception' => $exception]);
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Acceptance Report', $exception->getTrace());
         }
         return $response;
     }
@@ -113,7 +114,7 @@ class AcceptanceReportController extends Controller
         ->where('agency_id', $id)
         ->whereIn('logistic_realization_items.final_status', [LogisticRealizationItems::STATUS_REPLACED, LogisticRealizationItems::STATUS_APPROVED])
         ->get();
-        $response = response()->format(200, 'success', $data);
+        $response = response()->format(Response::HTTP_OK, 'success', $data);
         return $response;
     }
 }
