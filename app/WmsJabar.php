@@ -68,7 +68,7 @@ class WmsJabar extends Usage
             $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Data Outbounf', $exception->getTrace());
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Outbound', $exception->getTrace());
         }
 
         return $response;
@@ -114,7 +114,7 @@ class WmsJabar extends Usage
             $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Update Data Outbounf', $exception->getTrace());
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Update Outbound', $exception->getTrace());
         }
         return $response;
     }
