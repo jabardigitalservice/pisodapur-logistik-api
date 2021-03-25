@@ -34,8 +34,7 @@ class OutboundController extends Controller
         ];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() == Response::HTTP_OK) {
-            $getOutboundById = WmsJabar::getOutboundById($request);
-            $response = response()->format(Response::HTTP_OK, 'notification accepted', $getOutboundById);
+            $response = WmsJabar::getOutboundById($request);
         }
         return $response;
     }
