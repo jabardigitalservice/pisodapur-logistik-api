@@ -34,34 +34,18 @@ class WmsJabar extends Usage
         }
     }
 
-    static function getOutboundById($request)
-    {
-        try {
-            // Send Notification to WMS Jabar Poslog
-            $config['param'] = [
-                'request_id' => $request->input('request_id')
-            ];
-            $config['apiFunction'] = '/api/outbound_fReqID';
-            $res = self::callAPI($config);
-
-            return json_decode($res->getBody(), true);
-        } catch (\Throwable $th) {
-            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Access: WMS Jabar API');
-        }
-    }
-
     static function sendPing()
     {
         try {
             // Send Notification to WMS Jabar Poslog
-            $config['param'] = '';
+            $config['param'] = [];
             $config['apiFunction'] = '/api/pingme';
             $res = self::callAPI($config);
 
             $outboundPlans = json_decode($res->getBody(), true);
             return self::insertData($outboundPlans);
-        } catch (\Throwable $th) {
-            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Access: WMS Jabar API');
+        } catch (\Exception $exception) {
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $exception->getTrace());
         }
     }
 
@@ -84,9 +68,54 @@ class WmsJabar extends Usage
             $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Outbound', $exception->getTrace());
         }
 
+        return $response;
+    }
+
+    static function getOutboundById($request)
+    {
+        try {
+            // Send Notification to WMS Jabar Poslog
+            $config['param'] = [
+                'request_id' => $request->input('request_id')
+            ];
+            $config['apiFunction'] = '/api/outbound_fReqID';
+            $res = self::callAPI($config);
+
+            $outboundPlans = json_decode($res->getBody(), true);
+            return self::updateOutbound($outboundPlans);
+        } catch (\Exception $exception) {
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $exception->getTrace());
+        }
+    }
+
+    static function updateOutbound($outboundPlans)
+    {
+        DB::beginTransaction();
+        try {
+            foreach ($outboundPlans['msg'] as $key => $outboundPlan) {
+                if (isset($outboundPlan['lo_detil'])) {
+                    $lo = $outboundPlan;
+                    $lo_detil = $lo['lo_detil'];
+                    unset($lo['lo_detil']);
+                    Outbound::where('lo_id', $lo['lo_id'])
+                            ->update($lo);
+
+                    foreach ($lo_detil as $detil) {
+                        OutboundDetail::where('lo_id', $detil['lo_id'])
+                                      ->where('material_id', $detil['material_id'])
+                                      ->update($detil);
+                    }
+                }
+            }
+            DB::commit();
+            $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Update Outbound', $exception->getTrace());
+        }
         return $response;
     }
 }
