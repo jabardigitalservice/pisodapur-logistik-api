@@ -29,7 +29,7 @@ class AcceptanceReportController extends Controller
         $sort = $request->has('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
         $data = \App\Agency::getList($request, false);
         $data = $data->orderByRaw(implode($sort))->paginate($limit);
-        return response()->format(Response::HTTP_OK, 'success', $data);
+        return response()->json($data);
     }
 
     public function store(Request $request)
