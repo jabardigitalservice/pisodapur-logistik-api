@@ -180,6 +180,11 @@ class Agency extends Model
         return $this->hasOne('App\Applicant', 'agency_id', 'id');
     }
 
+    public function AcceptanceReport()
+    {
+        return $this->hasOne('App\AcceptanceReport', 'agency_id', 'id');
+    }
+
     public function letter()
     {
         return $this->hasOne('App\Letter', 'agency_id', 'id');
