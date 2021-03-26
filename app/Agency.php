@@ -24,6 +24,24 @@ class Agency extends Model
         'total_health_worker'
     ];
 
+    protected $appends = ['total_qty', 'type_item_count'];
+
+    public function getTotalQtyAttribute()
+    {
+        return $this->logisticRealizationItems()->whereNotIn('final_status', [
+            LogisticRealizationItems::STATUS_NOT_AVAILABLE,
+            LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
+        ])->sum('final_quantity');
+    }
+
+    public function getTypeItemCountAttribute()
+    {
+        return $this->logisticRealizationItems()->whereNotIn('final_status', [
+            LogisticRealizationItems::STATUS_NOT_AVAILABLE,
+            LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
+        ])->count('material_group');
+    }
+
     static function getList($request, $defaultOnly)
     {
         $data = self::query();
