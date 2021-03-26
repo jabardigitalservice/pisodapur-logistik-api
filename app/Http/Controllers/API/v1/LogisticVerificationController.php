@@ -24,7 +24,7 @@ class LogisticVerificationController extends Controller
             try {
                 $applicant = Applicant::where('agency_id', $request->id)->firstOrFail();
                 $logisticVerification = LogisticVerification::firstOrCreate(['agency_id' => $request->id], ['email' => $applicant->email]);
-                if ($request->filled('reset')) {
+                if ($request->has('reset')) {
                     $message = 'Kode Verifikasi yang baru telah dikirim ulang ke email Anda.';
                     $logisticVerification->expired_at = date('Y-m-d H:i:s', strtotime('-1 days'));
                 }
