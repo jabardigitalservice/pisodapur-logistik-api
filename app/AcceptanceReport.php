@@ -24,4 +24,22 @@ class AcceptanceReport extends Model
         $param['item_proof_length'] = 'required';
         return $param;
     }
+
+    public function agency()
+    {
+        return $this->hasOne('App\Agency', 'id', 'agency_id');
+    }
+
+    public function applicant()
+    {
+        return $this->hasOne('App\Applicant', 'agency_id', 'agency_id');
+    }
+
+    /**
+     * Get the acceptance_report_detail for the blog post.
+     */
+    public function AcceptanceReportDetail()
+    {
+        return $this->hasMany('App\AcceptanceReportDetail');
+    }
 }
