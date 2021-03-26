@@ -65,7 +65,7 @@ class LogisticVerificationController extends Controller
         if ($response->getStatusCode() === Response::HTTP_OK) {
             // Confirm Token
             $token = $request->verification_code1 . $request->verification_code2 . $request->verification_code3 . $request->verification_code4 . $request->verification_code5;
-            $response = response()->format(422, 'kode verifikasi tidak sesuai');
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'kode verifikasi tidak sesuai');
             $logisticVerification = LogisticVerification::where('agency_id', $request->register_id)->firstOrfail();
             if ($token == $logisticVerification->token) {
                 $response = response()->format(Response::HTTP_OK, 'success', ['token' => $token]);
