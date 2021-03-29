@@ -34,6 +34,7 @@ class AcceptanceReportController extends Controller
             ->with(['applicant', 'AcceptanceReport']);
         $data = Agency::whereHasApplicant($data, $request)
             ->leftJoin('acceptance_reports', 'agency.id', '=', 'acceptance_reports.agency_id')
+            ->searchReport($request)
             ->orderBy('acceptance_reports.date', 'desc')
             ->orderBy('agency.id', 'asc')
             ->paginate($limit);
