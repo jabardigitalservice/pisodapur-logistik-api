@@ -29,11 +29,11 @@ class AcceptanceReportController extends Controller
         $request->request->add(['approval_status' => Applicant::STATUS_APPROVED]);
         $request->request->add(['finalized_by' => Applicant::STATUS_FINALIZED]);
 
-        $data = Agency::select('agency.id', 'agency.created_at', 'acceptance_reports.created_at as acceptance_report_at')
+        $data = Agency::select('agency.id', 'agency.created_at')
             ->with(['applicant', 'AcceptanceReport']);
         $data = Agency::whereHasApplicant($data, $request)
             ->leftJoin('acceptance_reports', 'agency.id', '=', 'acceptance_reports.agency_id')
-            ->orderBy('acceptance_reports.created_at', 'desc')
+            ->orderBy('acceptance_reports.date', 'desc')
             ->orderBy('agency.id', 'asc')
             ->paginate($limit);
         return response()->json($data);
