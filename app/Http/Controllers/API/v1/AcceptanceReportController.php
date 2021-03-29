@@ -13,6 +13,7 @@ use App\LogisticRealizationItems;
 use App\AcceptanceReport;
 use App\AcceptanceReportDetail;
 use App\FileUpload;
+use Carbon\Carbon;
 
 class AcceptanceReportController extends Controller
 {
@@ -43,19 +44,26 @@ class AcceptanceReportController extends Controller
     {
         $param = AcceptanceReport::setParamStore();
         $response = Validation::validate($request, $param);
-        DB::beginTransaction();
-        try {
-            $acceptanceReport = $this->storeAcceptanceReport($request);
-            $this->itemStore($request, $acceptanceReport);
-            // Upload Seluruh File
-            $proof_pic = $this->uploadAcceptanceFile($request, 'proof_pic');
-            $bast_proof = $this->uploadAcceptanceFile($request, 'bast_proof');
-            $item_proof = $this->uploadAcceptanceFile($request, 'item_proof');
-            DB::commit();
-            $response = response()->format(Response::HTTP_OK, 'success');
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Acceptance Report', $exception->getTrace());
+        if ($response->getStatusCode() == Response::HTTP_OK) {
+            $findReport = AcceptanceReport::where('agency_id', $request->agency_id)->first();
+            if ($findReport) {
+                $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Permohonan dengan kode ' . $findReport->agency_id . ' sudah dilaporkan pada tanggal ' . Carbon::parse($findReport->date)->format('d-m-Y') . ' oleh ' . $findReport->fullname . '. Terima kasih sudah melaporkan penerimaan barang', $findReport);
+            } else {
+                DB::beginTransaction();
+                try {
+                    $acceptanceReport = $this->storeAcceptanceReport($request);
+                    $this->itemStore($request, $acceptanceReport);
+                    // Upload Seluruh File
+                    $proof_pic = $this->uploadAcceptanceFile($request, 'proof_pic');
+                    $bast_proof = $this->uploadAcceptanceFile($request, 'bast_proof');
+                    $item_proof = $this->uploadAcceptanceFile($request, 'item_proof');
+                    DB::commit();
+                    $response = response()->format(Response::HTTP_OK, 'success');
+                } catch (\Exception $exception) {
+                    DB::rollBack();
+                    $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Acceptance Report', $exception->getTrace());
+                }
+            }
         }
         return $response;
     }
