@@ -43,10 +43,15 @@ class WmsJabar extends Usage
             $res = self::callAPI($config);
 
             $outboundPlans = json_decode($res->getBody(), true);
-            return self::insertData($outboundPlans);
+            $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
+            if ($outboundPlans['msg']) {
+                $response = self::insertData($outboundPlans);
+            }
         } catch (\Exception $exception) {
-            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $exception->getTrace());
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $exception->getTrace());
         }
+
+        return $response;
     }
 
     static function insertData($outboundPlans)
