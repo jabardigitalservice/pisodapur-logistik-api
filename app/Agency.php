@@ -145,10 +145,12 @@ class Agency extends Model
     public function scopeSearchReport($query, $request)
     {
         return $query->when($request->has('search'), function ($query) use ($request) {
-            $query->where('agency.id', 'LIKE', "%{$request->input('search')}%")
-                  ->orWhereHas('applicant', function ($query) use ($request) {
-                    $query->where('applicant_name', 'LIKE', "%{$request->input('search')}%");
-                  });
+            $query->where(function ($query) use ($request) {
+                $query->where('agency.id', 'LIKE', "%{$request->input('search')}%")
+                      ->orWhereHas('applicant', function ($query) use ($request) {
+                        $query->where('applicant_name', 'LIKE', "%{$request->input('search')}%");
+                });
+            });
         });
     }
 
