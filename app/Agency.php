@@ -133,6 +133,25 @@ class Agency extends Model
         });
     }
 
+    /**
+     * Search Report Scope function
+     *
+     * Data search can be done by entering "search" in the form of the agency ID or Applicant Name
+     *
+     * @param $query
+     * @param $request
+     * @return $query
+     */
+    public function scopeSearchReport($query, $request)
+    {
+        return $query->when($request->has('search'), function ($query) use ($request) {
+            $query->where('agency.id', 'LIKE', "%{$request->input('search')}%")
+                  ->orWhereHas('applicant', function ($query) use ($request) {
+                    $query->where('applicant_name', 'LIKE', "%{$request->input('search')}%");
+                  });
+        });
+    }
+
     static function whereStatusCondition($data, $request)
     {
         return $data->whereHas('applicant', function ($query) use ($request) {
