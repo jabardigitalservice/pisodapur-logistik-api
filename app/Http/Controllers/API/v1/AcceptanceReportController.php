@@ -25,13 +25,16 @@ class AcceptanceReportController extends Controller
     public function index(Request $request)
     {
         $limit = $request->input('limit', 10);
-        // $data = AcceptanceReport::with(['agency', 'applicant'])->paginate($limit);
         $request->request->add(['verification_status' => Applicant::STATUS_VERIFIED]);
         $request->request->add(['approval_status' => Applicant::STATUS_APPROVED]);
         $request->request->add(['finalized_by' => Applicant::STATUS_FINALIZED]);
 
-        $data = Agency::with(['applicant', 'AcceptanceReport']);
+        $data = Agency::select('agency.id', 'agency.created_at', 'acceptance_reports.created_at as acceptance_report_at')
+            ->with(['applicant', 'AcceptanceReport']);
         $data = Agency::whereHasApplicant($data, $request)
+            ->leftJoin('acceptance_reports', 'agency.id', '=', 'acceptance_reports.agency_id')
+            ->orderBy('acceptance_reports.created_at', 'desc')
+            ->orderBy('agency.id', 'asc')
             ->paginate($limit);
         return response()->json($data);
     }
