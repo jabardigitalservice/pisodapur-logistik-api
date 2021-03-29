@@ -32,11 +32,13 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     });
 
     // API Report of Logistics Acceptance
-    Route::post('/verification-registration', 'LogisticReportController@verificationRegistration');
-    Route::post('/verification-resend', 'LogisticReportController@verificationRegistration');
-    Route::post('/verification-confirmation', 'LogisticReportController@verificationConfirmation');
-    Route::get('/logistic-report/realization-item/{id}', 'LogisticReportController@realizationLogisticList');
-    Route::post('/acceptance-report', 'LogisticReportController@acceptanceStore');
+    Route::post('/acceptance-report', 'AcceptanceReportController@store');
+    Route::get('/logistic-report/realization-item/{id}', 'AcceptanceReportController@realizationLogisticList');
+
+    // API Logistic Verification
+    Route::post('/verification-registration', 'LogisticVerificationController@verificationRegistration');
+    Route::post('/verification-resend', 'LogisticVerificationController@verificationRegistration');
+    Route::post('/verification-confirmation', 'LogisticVerificationController@verificationConfirmation');
 
     //Landing Page Registration
     Route::prefix('landing-page-registration')->group(function () {
@@ -189,5 +191,8 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
         //Notification via Whatsapp
         Route::post('/notify', 'ChangeStatusNotifyController@sendNotification');
+
+        // API Acceptance Reports
+        Route::apiResource('/acceptance-report', 'AcceptanceReportController');
     });
 });
