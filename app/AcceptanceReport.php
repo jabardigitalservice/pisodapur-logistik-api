@@ -16,11 +16,8 @@ class AcceptanceReport extends Model
         $param['note'] = 'required';
         $param['agency_id'] = 'required';
         $param['items'] = 'required';
-        $param['proof_picproof_pic'] = 'required';
-        $param['proof_picproof_pic_length'] = 'required';
-        $param['bast_proof'] = 'required';
+        $param['proof_pic_length'] = 'required';
         $param['bast_proof_length'] = 'required';
-        $param['item_proof'] = 'required';
         $param['item_proof_length'] = 'required';
         return $param;
     }

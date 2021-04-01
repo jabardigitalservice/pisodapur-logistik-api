@@ -10,7 +10,7 @@ use JWTAuth;
 class LogisticRealizationItems extends Model
 {
     use SoftDeletes;
-    
+
     const STATUS = [
         'delivered',
         'not_delivered',
@@ -71,7 +71,7 @@ class LogisticRealizationItems extends Model
             'data' => $id
         ];
         DB::beginTransaction();
-        try {   
+        try {
             $deleteRealization = self::where('id', $id)->delete();
             DB::commit();
             $result = [
@@ -205,7 +205,7 @@ class LogisticRealizationItems extends Model
         $data = self::selectList();
         $data = self::withPICData($data);
         $data = $data->whereNotNull('created_by')
-            ->orderBy('logistic_realization_items.id') 
+            ->orderBy('logistic_realization_items.id')
             ->where('logistic_realization_items.agency_id', $request->agency_id)->paginate($limit);
         $logisticItemSummary = self::where('agency_id', $request->agency_id)->sum('realization_quantity');
         $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {

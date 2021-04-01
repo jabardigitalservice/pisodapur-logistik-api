@@ -193,6 +193,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::post('/notify', 'ChangeStatusNotifyController@sendNotification');
 
         // API Acceptance Reports
-        Route::apiResource('/acceptance-report', 'AcceptanceReportController');
+        Route::apiResource('/acceptance-report', 'AcceptanceReportController')->except('store');
     });
 });

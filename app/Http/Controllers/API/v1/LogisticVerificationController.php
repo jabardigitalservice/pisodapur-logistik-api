@@ -6,10 +6,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Validation;
+use App\AcceptanceReport;
 use App\LogisticVerification;
 use App\Applicant;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TokenEmailNotification;
+use Carbon\Carbon;
 
 class LogisticVerificationController extends Controller
 {
@@ -19,19 +21,20 @@ class LogisticVerificationController extends Controller
         $message = 'success';
         $response = Validation::validate($request, $param);
         $logisticVerification = [];
-        if ($response->getStatusCode() == Response::HTTP_OK) {
-            $request->id = $request->register_id;
-            try {
-                $applicant = Applicant::where('agency_id', $request->id)->firstOrFail();
-                $logisticVerification = LogisticVerification::firstOrCreate(['agency_id' => $request->id], ['email' => $applicant->email]);
-                if ($request->has('reset')) {
-                    $message = 'Kode Verifikasi yang baru telah dikirim ulang ke email Anda.';
-                    $logisticVerification->expired_at = date('Y-m-d H:i:s', strtotime('-1 days'));
-                }
-                $response = response()->format(Response::HTTP_OK, $message, $logisticVerification);
-            } catch (\Exception $exception) {
-                $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Permohonan dengan Kode Permohonan ' . $request->id . ' tidak ditemukan.');
+        abort_if($response->getStatusCode() != Response::HTTP_OK, $response);
+        $findReport = AcceptanceReport::where('agency_id', $request->register_id)->first();
+        abort_if($findReport, Response::HTTP_UNPROCESSABLE_ENTITY, 'Permohonan dengan kode ' . $findReport->agency_id . ' sudah dilaporkan pada tanggal ' . Carbon::parse($findReport->date)->format('d-m-Y') . ' oleh ' . $findReport->fullname . '. Terima kasih sudah melaporkan penerimaan barang');
+        $request->id = $request->register_id;
+        try {
+            $applicant = Applicant::where('agency_id', $request->id)->firstOrFail();
+            $logisticVerification = LogisticVerification::firstOrCreate(['agency_id' => $request->id], ['email' => $applicant->email]);
+            if ($request->has('reset')) {
+                $message = 'Kode Verifikasi yang baru telah dikirim ulang ke email Anda.';
+                $logisticVerification->expired_at = date('Y-m-d H:i:s', strtotime('-1 days'));
             }
+            $response = response()->format(Response::HTTP_OK, $message, $logisticVerification);
+        } catch (\Exception $exception) {
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Permohonan dengan Kode Permohonan ' . $request->id . ' tidak ditemukan.');
         }
         $logisticVerification = $this->sendEmailCondition($logisticVerification, $response);
         return $response;
