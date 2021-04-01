@@ -121,11 +121,6 @@ class LogisticRealizationItems extends Model
         return $value ? $value : 'PCS';
     }
 
-    public function getQtyAttribute($value)
-    {
-        return number_format($value, 0, ",", ".");
-    }
-
     static function storeData($store_type)
     {
         DB::beginTransaction();
