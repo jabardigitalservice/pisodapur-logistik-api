@@ -36,7 +36,7 @@ class LogisticRequestController extends Controller
         $request->request->add(['approval_status' => Applicant::STATUS_APPROVED]);
         $request->request->add(['finalized_by' => Applicant::STATUS_FINALIZED]);
         // Cut Off Logistic Data
-        $cutOffDateTimeState = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', '2021-04-01 00:00:00')->toDateTimeString();
+        $cutOffDateTimeState = \Carbon\Carbon::createFromFormat(config('wmsjabar.cut_off_format'), config('wmsjabar.cut_off_datetime'))->toDateTimeString();
         $cutOffDateTime = $request->input('cut_off_datetime', $cutOffDateTimeState);
         $today = \Carbon\Carbon::now()->toDateTimeString();
 
