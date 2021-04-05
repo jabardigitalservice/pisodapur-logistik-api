@@ -51,8 +51,8 @@ class AcceptanceReportController extends Controller
     // public function show(AcceptanceReport $acceptanceReport)
     public function show(Request $request, $agency_id)
     {
-        $acceptanceReport = AcceptanceReport::where('agency_id', $agency_id)
-                            ->with(['agency', 'applicant', 'AcceptanceReportDetail'])
+        $acceptanceReport = Agency::where('id', $agency_id)
+                            ->with('applicant', 'AcceptanceReport')
                             ->first();
         return response()->format(200, 'success', $acceptanceReport);
     }
