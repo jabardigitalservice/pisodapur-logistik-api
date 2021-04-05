@@ -35,6 +35,13 @@ class LogisticRequestController extends Controller
         $request->request->add(['verification_status' => Applicant::STATUS_VERIFIED]);
         $request->request->add(['approval_status' => Applicant::STATUS_APPROVED]);
         $request->request->add(['finalized_by' => Applicant::STATUS_FINALIZED]);
+        // Cut Off Logistic Data
+        $cutOffDateTimeState = \Carbon\Carbon::createFromFormat(config('wmsjabar.cut_off_format'), config('wmsjabar.cut_off_datetime'))->toDateTimeString();
+        $cutOffDateTime = $request->input('cut_off_datetime', $cutOffDateTimeState);
+        $today = \Carbon\Carbon::now()->toDateTimeString();
+
+        $request->request->add(['start_date' => $cutOffDateTime]);
+        $request->request->add(['end_date' => $today]);
         $logisticRequest = Agency::getList($request, false)->get();
 
         $data = [
