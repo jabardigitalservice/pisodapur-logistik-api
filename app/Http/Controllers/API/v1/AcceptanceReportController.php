@@ -42,6 +42,21 @@ class AcceptanceReportController extends Controller
         return response()->json($data);
     }
 
+    /**
+     * show function
+     *
+     * @param  Request $request
+     * @return AcceptanceReport
+     */
+    // public function show(AcceptanceReport $acceptanceReport)
+    public function show(Request $request, $agency_id)
+    {
+        $acceptanceReport = AcceptanceReport::where('agency_id', $agency_id)
+                            ->with(['agency', 'applicant', 'AcceptanceReportDetail'])
+                            ->first();
+        return response()->format(200, 'success', $acceptanceReport);
+    }
+
     public function store(Request $request)
     {
         $param = AcceptanceReport::setParamStore();
