@@ -23,7 +23,7 @@ class LogisticVerificationController extends Controller
         $logisticVerification = [];
         abort_if($response->getStatusCode() != Response::HTTP_OK, $response);
         $findReport = AcceptanceReport::where('agency_id', $request->register_id)->first();
-        abort_if($findReport, Response::HTTP_UNPROCESSABLE_ENTITY, 'Permohonan dengan kode ' . $findReport->agency_id . ' sudah dilaporkan pada tanggal ' . Carbon::parse($findReport->date)->format('d-m-Y') . ' oleh ' . $findReport->fullname . '. Terima kasih sudah melaporkan penerimaan barang');
+        abort_if($findReport, Response::HTTP_UNPROCESSABLE_ENTITY, 'Permohonan dengan kode ' . optional($findReport)->agency_id . ' sudah dilaporkan pada tanggal ' . Carbon::parse(optional($findReport)->date)->format('d-m-Y') . ' oleh ' . optional($findReport)->fullname . '. Terima kasih sudah melaporkan penerimaan barang');
         $request->id = $request->register_id;
         try {
             $applicant = Applicant::where('agency_id', $request->id)->firstOrFail();
