@@ -12,6 +12,7 @@ class AcceptanceReportDetailController extends Controller
     public function index(Request $request)
     {
         $limit = $request->input('limit', 3);
-        return AcceptanceReportDetail::where('acceptance_report_id', $request->input('acceptance_report_id'))->paginate($limit);
+        $acceptanceReport = AcceptanceReportDetail::where('acceptance_report_id', $request->input('acceptance_report_id'))->paginate($limit);
+        return response()->format(200, 'success', $acceptanceReport);
     }
 }
