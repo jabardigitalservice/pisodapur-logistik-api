@@ -66,6 +66,7 @@ class AcceptanceReportController extends Controller
         try {
             $acceptanceReport = $this->storeAcceptanceReport($request);
             $this->itemStore($request, $acceptanceReport);
+            $request->request->add(['acceptance_report_id' => $acceptanceReport->id]);
             // Upload Seluruh File
             $proof_pic = $this->uploadAcceptanceFile($request, 'proof_pic');
             $bast_proof = $this->uploadAcceptanceFile($request, 'bast_proof');
@@ -74,7 +75,7 @@ class AcceptanceReportController extends Controller
             $response = response()->format(Response::HTTP_OK, 'success');
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Acceptance Report', $exception->getTrace());
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Acceptance Report. Because ' . $exception->getMessage(), $exception->getTrace());
         }
         return $response;
     }
@@ -117,7 +118,7 @@ class AcceptanceReportController extends Controller
         $file = [];
         for ($i = 0; $i < $request->input($paramName . '_length'); $i++) {
             if ($request->hasFile($paramName . $i)) {
-                $file[] = FileUpload::uploadAcceptanceReportFile($request, $paramName . $i);
+                $file[] = FileUpload::uploadAcceptanceReportFile($request, $paramName, $i);
             }
         }
 

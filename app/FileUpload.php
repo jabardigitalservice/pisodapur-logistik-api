@@ -5,6 +5,7 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use App\Letter;
+use App\AcceptanceReportEvidence;
 
 class FileUpload extends Model
 {
@@ -40,10 +41,15 @@ class FileUpload extends Model
         return $fileUpload;
     }
 
-    static function uploadAcceptanceReportFile($request, $paramName)
+    static function uploadAcceptanceReportFile($request, $paramName, $index)
     {
-        $path = Storage::disk(self::DISK)->put(self::ACCEPTANCE_REPORT_PATH, $request->input($paramName));
+        $path = Storage::disk(self::DISK)->put(self::ACCEPTANCE_REPORT_PATH, $request->file($paramName . $index));
         $fileUpload = FileUpload::create(['name' => $path]);
+        $evidence = AcceptanceReportEvidence::create([
+            'acceptance_report_id' => $request->acceptance_report_id,
+            'path' => $path,
+            'type' => $paramName
+        ]);
         return $fileUpload;
     }
 }
