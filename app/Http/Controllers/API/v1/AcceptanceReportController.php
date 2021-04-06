@@ -36,7 +36,7 @@ class AcceptanceReportController extends Controller
             ->searchReport($request)
             ->orderBy('acceptance_reports.date', 'desc')
             ->orderBy('agency.id', 'asc')
-            ->groupBy('acceptance_reports.agency_id', 'agency.id', 'agency.created_at')
+            ->groupBy('acceptance_reports.agency_id', 'agency.id', 'agency.created_at', 'acceptance_reports.date')
             ->paginate($limit);
 
         return response()->json($data);
