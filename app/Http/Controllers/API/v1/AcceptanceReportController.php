@@ -13,6 +13,7 @@ use App\LogisticRealizationItems;
 use App\AcceptanceReport;
 use App\AcceptanceReportDetail;
 use App\FileUpload;
+use App\Http\Resources\AcceptanceReportResource;
 
 class AcceptanceReportController extends Controller
 {
@@ -48,12 +49,10 @@ class AcceptanceReportController extends Controller
      * @param  Request $request
      * @return AcceptanceReport
      */
-    public function show(Request $request, $agency_id)
+    public function show(Agency $acceptanceReport)
     {
-        $acceptanceReport = Agency::where('id', $agency_id)
-                            ->with('applicant', 'AcceptanceReport')
-                            ->first();
-        return response()->format(Response::HTTP_OK, 'success', $acceptanceReport);
+        $acceptanceReport->load('applicant', 'AcceptanceReport');
+        return new AcceptanceReportResource($acceptanceReport);
     }
 
     public function store(Request $request)
