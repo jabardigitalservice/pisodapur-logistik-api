@@ -48,7 +48,6 @@ class AcceptanceReportController extends Controller
      * @param  Request $request
      * @return AcceptanceReport
      */
-    // public function show(AcceptanceReport $acceptanceReport)
     public function show(Request $request, $agency_id)
     {
         $acceptanceReport = Agency::where('id', $agency_id)
