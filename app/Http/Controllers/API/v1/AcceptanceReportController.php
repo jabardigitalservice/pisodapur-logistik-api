@@ -54,7 +54,7 @@ class AcceptanceReportController extends Controller
         $acceptanceReport = Agency::where('id', $agency_id)
                             ->with('applicant', 'AcceptanceReport')
                             ->first();
-        return response()->format(200, 'success', $acceptanceReport);
+        return response()->format(Response::HTTP_OK, 'success', $acceptanceReport);
     }
 
     public function store(Request $request)
