@@ -115,9 +115,9 @@ class AcceptanceReportController extends Controller
     public function uploadAcceptanceFile($request, $paramName)
     {
         $file = [];
-        for ($i = 0; $i < $request->input($paramName . '_length'); $i++) {
-            if ($request->hasFile($paramName . $i)) {
-                $file[] = FileUpload::uploadAcceptanceReportFile($request, $paramName, $i);
+        for ($index = 0; $index < $request->input($paramName . '_length'); $index++) {
+            if ($request->hasFile($paramName . $index)) {
+                $file[] = FileUpload::uploadAcceptanceReportFile($request, $paramName, $index);
             }
         }
 
