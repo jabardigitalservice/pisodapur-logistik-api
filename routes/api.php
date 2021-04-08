@@ -194,5 +194,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
         // API Acceptance Reports
         Route::apiResource('/acceptance-report', 'AcceptanceReportController')->except('store');
+        Route::apiResource('/acceptance-report-detail', 'AcceptanceReportDetailController');
+        Route::apiResource('/acceptance-report-evidence', 'AcceptanceReportEvidenceController');
     });
 });

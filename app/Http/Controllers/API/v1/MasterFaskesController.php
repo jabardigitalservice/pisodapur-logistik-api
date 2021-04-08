@@ -9,7 +9,7 @@ use App\Validation;
 use Illuminate\Support\Facades\Storage;
 
 class MasterFaskesController extends Controller
-{    
+{
     public function index(Request $request)
     {
         $data = MasterFaskes::getFaskesList($request);
@@ -72,12 +72,12 @@ class MasterFaskesController extends Controller
         }
         return $response;
     }
-    
+
     public function permitLetterStore($request)
     {
         $path = null;
         if ($request->hasFile('permit_file')) {
-            $path = Storage::disk('s3')->put('registration/letter', $request->permit_file);
+            $path = Storage::disk(config('filesystem.cloud'))->put('registration/letter', $request->permit_file);
         }
         return $path;
     }

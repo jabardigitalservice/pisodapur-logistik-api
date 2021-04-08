@@ -22,14 +22,14 @@ class OutgoingLetterController extends Controller
      */
     public function index(Request $request)
     {
-        $data = []; 
+        $data = [];
         $limit = $request->input('limit', 10);
         $sortType = $request->input('sort', 'DESC');
         $data = OutgoingLetter::where(function ($query) use ($request) {
             if ($request->filled('letter_number')) {
                 $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
             }
-            
+
             if ($request->filled('letter_date')) {
                 $query->where('letter_date', $request->input('letter_date'));
             }
@@ -50,7 +50,7 @@ class OutgoingLetterController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    { 
+    {
         $response = [];
         $param = [
             'letter_name' => 'required',
@@ -75,7 +75,7 @@ class OutgoingLetterController extends Controller
         $data = [];
         $limit = $request->input('limit', 10);
         try {
-            $outgoingLetter = OutgoingLetter::find($id);  
+            $outgoingLetter = OutgoingLetter::find($id);
             $data = [ 'outgoing_letter' => $outgoingLetter ];
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
@@ -134,7 +134,7 @@ class OutgoingLetterController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === 200) {
             try {
-                $path = Storage::disk('s3')->put('registration/outgoing_letter', $request->file);
+                $path = Storage::disk(config('filesystem.cloud'))->put('registration/outgoing_letter', $request->file);
                 $fileUpload = FileUpload::create(['name' => $path]);
                 $fileUploadId = $fileUpload->id;
                 $update = OutgoingLetter::where('id', $request->id)->update([//Update file to Outgoing Letter by ID
@@ -164,7 +164,7 @@ class OutgoingLetterController extends Controller
         try {
             $request->request->add(['user_id' => JWTAuth::user()->id]);
             $request->request->add(['status' =>  OutgoingLetter::NOT_APPROVED]);
-            $outgoing_letter = OutgoingLetter::create($request->all());   
+            $outgoing_letter = OutgoingLetter::create($request->all());
             $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
             $request_letter = $this->requestLetterStore($request);
             $response = [
@@ -182,14 +182,14 @@ class OutgoingLetterController extends Controller
 
     /**
      * Store Request Letter
-     * 
+     *
      */
     public function requestLetterStore($request)
     {
         $response = [];
         foreach (json_decode($request->input('letter_request'), true) as $key => $value) {
             $request_letter = RequestLetter::firstOrCreate([
-                'outgoing_letter_id' => $request->input('outgoing_letter_id'), 
+                'outgoing_letter_id' => $request->input('outgoing_letter_id'),
                 'applicant_id' => $value['applicant_id']
             ]);
             $response[] = $request_letter;

@@ -13,6 +13,7 @@ use App\LogisticRealizationItems;
 use App\AcceptanceReport;
 use App\AcceptanceReportDetail;
 use App\FileUpload;
+use App\Http\Resources\AcceptanceReportResource;
 
 class AcceptanceReportController extends Controller
 {
@@ -36,10 +37,22 @@ class AcceptanceReportController extends Controller
             ->searchReport($request)
             ->orderBy('acceptance_reports.date', 'desc')
             ->orderBy('agency.id', 'asc')
-            ->groupBy('acceptance_reports.agency_id', 'agency.id', 'agency.created_at')
+            ->groupBy('acceptance_reports.agency_id', 'agency.id', 'agency.created_at', 'acceptance_reports.date')
             ->paginate($limit);
 
         return response()->json($data);
+    }
+
+    /**
+     * show function
+     *
+     * @param  Request $request
+     * @return AcceptanceReport
+     */
+    public function show(Agency $acceptanceReport)
+    {
+        $acceptanceReport->load('applicant', 'AcceptanceReport');
+        return new AcceptanceReportResource($acceptanceReport);
     }
 
     public function store(Request $request)
@@ -51,6 +64,7 @@ class AcceptanceReportController extends Controller
         try {
             $acceptanceReport = $this->storeAcceptanceReport($request);
             $this->itemStore($request, $acceptanceReport);
+            $request->request->add(['acceptance_report_id' => $acceptanceReport->id]);
             // Upload Seluruh File
             $proof_pic = $this->uploadAcceptanceFile($request, 'proof_pic');
             $bast_proof = $this->uploadAcceptanceFile($request, 'bast_proof');
@@ -59,7 +73,7 @@ class AcceptanceReportController extends Controller
             $response = response()->format(Response::HTTP_OK, 'success');
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Acceptance Report', $exception->getTrace());
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Acceptance Report. Because ' . $exception->getMessage(), $exception->getTrace());
         }
         return $response;
     }
@@ -100,9 +114,9 @@ class AcceptanceReportController extends Controller
     public function uploadAcceptanceFile($request, $paramName)
     {
         $file = [];
-        for ($i = 0; $i < $request->input($paramName . '_length'); $i++) {
-            if ($request->hasFile($paramName . $i)) {
-                $file[] = FileUpload::uploadAcceptanceReportFile($request, $paramName . $i);
+        for ($index = 0; $index < $request->input($paramName . '_length'); $index++) {
+            if ($request->hasFile($paramName . $index)) {
+                $file[] = FileUpload::uploadAcceptanceReportFile($request, $paramName, $index);
             }
         }
 
