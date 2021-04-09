@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\v1;
 use App\OutgoingLetter;
 use App\RequestLetter;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Validation;
 use JWTAuth;
@@ -39,7 +40,7 @@ class OutgoingLetterController extends Controller
             }
         });
         $data = $data->orderBy('letter_date', $sortType)->orderBy('created_at', $sortType)->paginate($limit);
-        $response = response()->format(200, 'success', $data);
+        $response = response()->format(Response::HTTP_OK, 'success', $data);
         return $response;
     }
 
@@ -58,7 +59,7 @@ class OutgoingLetterController extends Controller
             'letter_request' => 'required',
         ];
         $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === 200) {
+        if ($response->getStatusCode() === Response::HTTP_OK) {
             $response = $this->outgoingLetterStore($request);
         }
         return $response;
@@ -78,9 +79,9 @@ class OutgoingLetterController extends Controller
             $outgoingLetter = OutgoingLetter::find($id);
             $data = [ 'outgoing_letter' => $outgoingLetter ];
         } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
         }
-        return response()->format(200, 'success', $data);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     /**
@@ -103,9 +104,9 @@ class OutgoingLetterController extends Controller
                 'material' => $materials,
             ];
         } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
         }
-        return response()->format(200, 'success', $data);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function getImageBlog()
@@ -132,9 +133,9 @@ class OutgoingLetterController extends Controller
             'file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
         ];
         $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === 200) {
+        if ($response->getStatusCode() === Response::HTTP_OK) {
             try {
-                $path = Storage::disk(config('filesystem.cloud'))->put('registration/outgoing_letter', $request->file);
+                $path = Storage::disk('s3')->put('registration/outgoing_letter', $request->file);
                 $fileUpload = FileUpload::create(['name' => $path]);
                 $fileUploadId = $fileUpload->id;
                 $update = OutgoingLetter::where('id', $request->id)->update([//Update file to Outgoing Letter by ID
@@ -142,10 +143,10 @@ class OutgoingLetterController extends Controller
                     'letter_number' => $request->letter_number,
                     'status' => OutgoingLetter::APPROVED //Asumsi bahwa file yang diupload sudah bertandatangan basah
                 ]);
-                $response = response()->format(200, 'success', $data);
+                $response = response()->format(Response::HTTP_OK, 'success', $data);
             } catch (\Exception $exception) {
                 //Return Error Exception
-                $response = response()->format(400, $exception->getMessage());
+                $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
             }
         }
         return $response;
@@ -172,10 +173,10 @@ class OutgoingLetterController extends Controller
                 'request_letter' => $request_letter,
             ];
             DB::commit();
-            $response = response()->format(200, 'success', $response);
+            $response = response()->format(Response::HTTP_OK, 'success', $response);
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(400, $exception->getMessage());
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
         }
         return $response;
     }
