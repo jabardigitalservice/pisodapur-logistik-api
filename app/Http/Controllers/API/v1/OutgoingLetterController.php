@@ -79,7 +79,7 @@ class OutgoingLetterController extends Controller
             $outgoingLetter = OutgoingLetter::find($id);
             $data = [ 'outgoing_letter' => $outgoingLetter ];
         } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
         }
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
@@ -104,7 +104,7 @@ class OutgoingLetterController extends Controller
                 'material' => $materials,
             ];
         } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
         }
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
@@ -146,7 +146,7 @@ class OutgoingLetterController extends Controller
                 $response = response()->format(Response::HTTP_OK, 'success', $data);
             } catch (\Exception $exception) {
                 //Return Error Exception
-                $response = response()->format(400, $exception->getMessage());
+                $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
             }
         }
         return $response;
@@ -176,7 +176,7 @@ class OutgoingLetterController extends Controller
             $response = response()->format(Response::HTTP_OK, 'success', $response);
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(400, $exception->getMessage());
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
         }
         return $response;
     }
