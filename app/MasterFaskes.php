@@ -24,6 +24,9 @@ class MasterFaskes extends Model
         'is_imported',
         'point_latitude_longitude',
         'non_medical',
+        'kode_kab_kemendagri',
+        'nama_kab',
+        'alamat',
         'is_reference'
     ];
 

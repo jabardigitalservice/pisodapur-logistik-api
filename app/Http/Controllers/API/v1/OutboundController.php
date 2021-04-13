@@ -38,4 +38,9 @@ class OutboundController extends Controller
         }
         return $response;
     }
+
+    public function updateAll(Request $request)
+    {
+        return WmsJabar::updateAll($request);
+    }
 }
