@@ -86,6 +86,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/outbound-notification', 'OutboundController@notification');
         Route::get('/sendping', 'OutboundController@sendPing');
         Route::get('/poslog-notify', 'OutboundController@getNotification');
+        Route::get('/map-faskes-poslog', 'OutboundController@mapFaskesPoslog');
     });
 
     Route::middleware('auth:api')->group(function () {

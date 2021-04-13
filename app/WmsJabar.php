@@ -133,6 +133,22 @@ class WmsJabar extends Usage
         return $response;
     }
 
+    static function mapFaskesPoslog(Request $request)
+    {
+        try {
+            $map = Outbound::all()->reject(function ($user) {
+                return $user->send_to_extid === false;
+            })->map(function ($outbound) use ($request) {
+                $request->merge(['request_id' => $outbound->req_id]);
+                $update[] = self::getOutboundById($request);
+            });
+            $response = response()->format(Response::HTTP_OK, 'success');
+        } catch (\Exception $exception) {
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $exception->getTrace());
+        }
+        return $response;
+    }
+
     static function updateFaskes($outboundPlan)
     {
         return MasterFaskes::where('id', $outboundPlan['send_to_extid'])->update([
