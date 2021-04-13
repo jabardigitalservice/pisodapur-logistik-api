@@ -15,6 +15,7 @@ class Outbound extends Model
         'lo_issued_by',
         'lo_ct',
         'send_to_id',
+        'send_to_extid',
         'send_to_name',
         'send_to_address',
         'city_id',
