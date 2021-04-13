@@ -87,6 +87,7 @@ class AcceptanceReportController extends Controller
         $acceptanceReport->date = $request->date;
         $acceptanceReport->officer_fullname = $request->officer_fullname;
         $acceptanceReport->note = $request->note;
+        $acceptanceReport->feedback = $request->feedback;
         $acceptanceReport->agency_id = $request->agency_id;
         $acceptanceReport->save();
         return $acceptanceReport;

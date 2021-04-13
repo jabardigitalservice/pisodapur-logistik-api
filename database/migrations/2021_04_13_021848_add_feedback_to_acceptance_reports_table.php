@@ -15,7 +15,7 @@ class AddFeedbackToAcceptanceReportsTable extends Migration
     {
         Schema::table('acceptance_reports', function (Blueprint $table) {
             $table->text('note')->nullable()->change();
-            $table->text('feedback')->nullable();
+            $table->text('feedback')->after('note')->nullable();
         });
     }
 
