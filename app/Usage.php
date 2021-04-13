@@ -25,6 +25,7 @@ class Usage
 
         return static::$client;
     }
+
     /**
      * Request authorization token from pelaporan API
      *
@@ -33,11 +34,11 @@ class Usage
     static function getPelaporanAuthToken()
     {
         // login first
-        $login_url = env('PELAPORAN_API_BASE_URL') . '/api/login';
+        $login_url = config('pelaporan.url') . '/api/login';
         $res = static::getClient()->post($login_url, [
             'json'   => [
-                'username' => env('PELAPORAN_AUTH_USER'),
-                'password' => env('PELAPORAN_AUTH_PASSWORD'),
+                'username' => config('pelaporan.username'),
+                'password' => config('pelaporan.password'),
             ],
             'verify' => false,
         ]);
@@ -56,7 +57,7 @@ class Usage
     {
         // retrieving summary by cities endpont
         $token = static::getPelaporanAuthToken();
-        $url = env('PELAPORAN_API_BASE_URL') . '/api/rdt/summary-by-cities';
+        $url = config('pelaporan.url') . '/api/rdt/summary-by-cities';
         $res = static::getClient()->get($url, [
             'verify' => false,
             'headers' => [
@@ -107,7 +108,7 @@ class Usage
         // retrieving summary by cities endpont
         $token = static::getPelaporanAuthToken();
         $district_code = JWTAuth::user()->code_district_city;
-        $url  = env('PELAPORAN_API_BASE_URL') . '/api/rdt/faskes-summary-by-cities';
+        $url  = config('pelaporan.url') . '/api/rdt/faskes-summary-by-cities';
         $url .= "?district_code=$district_code";
 
         $res = static::getClient()->get($url, [
@@ -145,8 +146,8 @@ class Usage
      */
     static function getLogisticStock($param, $api, $baseApi)
     {
-        $apiKey = PoslogProduct::isDashboardAPI($baseApi) ? env('DASHBOARD_PIKOBAR_API_KEY') : env('WMS_JABAR_API_KEY');
-        $apiLink = PoslogProduct::isDashboardAPI($baseApi) ? env(PoslogProduct::API_DASHBOARD) : env(PoslogProduct::API_POSLOG);
+        $apiKey = PoslogProduct::isDashboardAPI($baseApi) ? config('dashboardexecutive.key') : config('wmsjabar.key');
+        $apiLink = PoslogProduct::isDashboardAPI($baseApi) ? config('dashboardexecutive.url') : config('wmsjabar.url');
         $apiFunction = $api ? $api : '/api/soh_fmaterialgroup';
         $url = $apiLink . $apiFunction;
         $res = static::getClient()->get($url, [
@@ -173,8 +174,8 @@ class Usage
     static function getLogisticStockByLocation($id)
     {
         $param = '{"soh_location":"' . $id . '"}';
-        $apiKey = env('WMS_JABAR_API_KEY');
-        $apiLink = env(PoslogProduct::API_POSLOG);
+        $apiKey = config('wmsjabar.key');
+        $apiLink = config('wmsjabar.url');
         $apiFunction = '/api/soh_flocation';
         $url = $apiLink . $apiFunction;
         $res = static::getClient()->get($url, [

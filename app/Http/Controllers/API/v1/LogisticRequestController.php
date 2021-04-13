@@ -13,7 +13,6 @@ use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
 use App\Validation;
-use App\Tracking;
 use Log;
 
 class LogisticRequestController extends Controller
@@ -33,16 +32,17 @@ class LogisticRequestController extends Controller
     public function finalList(Request $request)
     {
         $syncSohLocation = \App\PoslogProduct::syncSohLocation();
-        $logisticRequest = Agency::getList($request, false)
-        ->join('applicants', 'agency.id', '=', 'applicants.agency_id')
-        ->where('is_deleted', '!=' , 1)
-        ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
-        ->where('applicants.approval_status', Applicant::STATUS_APPROVED)
-        ->whereNotNull('applicants.finalized_by');
-        if ($request->filled('is_integrated')) {
-            $logisticRequest = $logisticRequest->where('is_integrated', '=', $request->input('is_integrated'));
-        }
-        $logisticRequest = $logisticRequest->get();
+        $request->request->add(['verification_status' => Applicant::STATUS_VERIFIED]);
+        $request->request->add(['approval_status' => Applicant::STATUS_APPROVED]);
+        $request->request->add(['finalized_by' => Applicant::STATUS_FINALIZED]);
+        // Cut Off Logistic Data
+        $cutOffDateTimeState = \Carbon\Carbon::createFromFormat(config('wmsjabar.cut_off_format'), config('wmsjabar.cut_off_datetime'))->toDateTimeString();
+        $cutOffDateTime = $request->input('cut_off_datetime', $cutOffDateTimeState);
+        $today = \Carbon\Carbon::now()->toDateTimeString();
+
+        $request->request->add(['start_date' => $cutOffDateTime]);
+        $request->request->add(['end_date' => $today]);
+        $logisticRequest = Agency::getList($request, false)->get();
 
         $data = [
             'data' => $logisticRequest,
@@ -187,39 +187,6 @@ class LogisticRequestController extends Controller
         ];
         $applicant = (Validation::validate($request, $param)) ? $this->updateApplicant($request) : null;
         return response()->format(200, 'success', $applicant);
-    }
-
-    /**
-     * Track Function
-     * Show application list based on ID, No. HP, or applicant email
-     * @param Request $request
-     * @return array of Applicant $data
-     */
-    public function track(Request $request)
-    {
-        $list = Tracking::trackList($request);
-        $data = [
-            'total' => count($list),
-            'application' => $list
-        ];
-        return response()->format(200, 'success', $data);
-    }
-
-    /**
-     * Track Detail function
-     * - return data is pagination so it can receive the parameter limit, page, sorting and filtering / searching
-     * @param Request $request
-     * @param integer $id
-     * @return array of Applicant $data
-     */
-    public function trackDetail(Request $request, $id)
-    {
-        $limit = $request->input('limit', 3);
-        $select = Tracking::selectFieldsDetail();
-        $logisticRealizationItems = Tracking::getLogisticAdmin($select, $request, $id); //List of item(s) added from admin
-        $data = Tracking::getLogisticRequest($select, $request, $id); //List of updated item(s)
-        $data = $data->union($logisticRealizationItems)->paginate($limit);
-        return response()->format(200, 'success', $data);
     }
 
     public function masterFaskesCheck($request)

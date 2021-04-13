@@ -49,7 +49,7 @@ class OutgoingLetter extends Model
         if (!$data) {
             return null;
         } elseif (strpos($data->name, 'registration/outgoing_letter') !== false) {
-            return env('AWS_CLOUDFRONT_URL') . $data->name;
+            return config('aws.url') . $data->name;
         } else {
             return $data->name;
         }

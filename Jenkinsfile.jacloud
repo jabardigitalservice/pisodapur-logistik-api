@@ -52,7 +52,7 @@ def secretsProd = [
     [envVar: 'SENTRY_LARAVEL_DSN', vaultKey: 'SENTRY_LARAVEL_DSN']]],
 ]
 
-def configuration = [vaultUrl: 'https://vault.jacloud.digitalservice.id/',  vaultCredentialId: 'approle-logistik', engineVersion: 2]
+def configuration = [vaultUrl: "${VAULT_JABAR_CLOUD}",  vaultCredentialId: 'approle-logistik', engineVersion: 2]
 
 pipeline {
 
@@ -63,6 +63,7 @@ pipeline {
         PROJECT_REGISTRY ='logistik-pikobar'
         VERSION = "${BUILD_TAG}"
         URL_REGISTRY = "${URL_REGISTRY_JACLOUD}"
+        VAULT_JABAR_CLOUD = "${VAULT_JABAR_CLOUD}"
 
         KUBECONFIG_LOGISTIK_STAGING = "${KUBECONFIG_LOGISTIK_STAGING}"
         CLIENT_KEY_LOGISTIK_STAGING = "${CLIENT_KEY_LOGISTIK_STAGING}"

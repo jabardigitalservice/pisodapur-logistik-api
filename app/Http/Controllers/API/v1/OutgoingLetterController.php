@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\v1;
 use App\OutgoingLetter;
 use App\RequestLetter;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Validation;
 use JWTAuth;
@@ -22,14 +23,14 @@ class OutgoingLetterController extends Controller
      */
     public function index(Request $request)
     {
-        $data = []; 
+        $data = [];
         $limit = $request->input('limit', 10);
         $sortType = $request->input('sort', 'DESC');
         $data = OutgoingLetter::where(function ($query) use ($request) {
             if ($request->filled('letter_number')) {
                 $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
             }
-            
+
             if ($request->filled('letter_date')) {
                 $query->where('letter_date', $request->input('letter_date'));
             }
@@ -39,7 +40,7 @@ class OutgoingLetterController extends Controller
             }
         });
         $data = $data->orderBy('letter_date', $sortType)->orderBy('created_at', $sortType)->paginate($limit);
-        $response = response()->format(200, 'success', $data);
+        $response = response()->format(Response::HTTP_OK, 'success', $data);
         return $response;
     }
 
@@ -50,7 +51,7 @@ class OutgoingLetterController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    { 
+    {
         $response = [];
         $param = [
             'letter_name' => 'required',
@@ -58,7 +59,7 @@ class OutgoingLetterController extends Controller
             'letter_request' => 'required',
         ];
         $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === 200) {
+        if ($response->getStatusCode() === Response::HTTP_OK) {
             $response = $this->outgoingLetterStore($request);
         }
         return $response;
@@ -75,12 +76,12 @@ class OutgoingLetterController extends Controller
         $data = [];
         $limit = $request->input('limit', 10);
         try {
-            $outgoingLetter = OutgoingLetter::find($id);  
+            $outgoingLetter = OutgoingLetter::find($id);
             $data = [ 'outgoing_letter' => $outgoingLetter ];
         } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
         }
-        return response()->format(200, 'success', $data);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     /**
@@ -103,16 +104,16 @@ class OutgoingLetterController extends Controller
                 'material' => $materials,
             ];
         } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
         }
-        return response()->format(200, 'success', $data);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function getImageBlog()
     {
         //Return Image to base64 format
-        $pathPemprov = env('AWS_CLOUDFRONT_URL') . 'logo/pemprov_jabar.png';
-        $pathDivLog = env('AWS_CLOUDFRONT_URL') . 'logo/divisi_managemen_logistik.png';
+        $pathPemprov = config('aws.url') . 'logo/pemprov_jabar.png';
+        $pathDivLog = config('aws.url') . 'logo/divisi_managemen_logistik.png';
         $dataPemprov = file_get_contents($pathPemprov);
         $dataDivlog = file_get_contents($pathDivLog);
         $pemprovLogo = 'data:image/png;base64,' . base64_encode($dataPemprov);
@@ -132,7 +133,7 @@ class OutgoingLetterController extends Controller
             'file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
         ];
         $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === 200) {
+        if ($response->getStatusCode() === Response::HTTP_OK) {
             try {
                 $path = Storage::disk('s3')->put('registration/outgoing_letter', $request->file);
                 $fileUpload = FileUpload::create(['name' => $path]);
@@ -142,10 +143,10 @@ class OutgoingLetterController extends Controller
                     'letter_number' => $request->letter_number,
                     'status' => OutgoingLetter::APPROVED //Asumsi bahwa file yang diupload sudah bertandatangan basah
                 ]);
-                $response = response()->format(200, 'success', $data);
+                $response = response()->format(Response::HTTP_OK, 'success', $data);
             } catch (\Exception $exception) {
                 //Return Error Exception
-                $response = response()->format(400, $exception->getMessage());
+                $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
             }
         }
         return $response;
@@ -164,7 +165,7 @@ class OutgoingLetterController extends Controller
         try {
             $request->request->add(['user_id' => JWTAuth::user()->id]);
             $request->request->add(['status' =>  OutgoingLetter::NOT_APPROVED]);
-            $outgoing_letter = OutgoingLetter::create($request->all());   
+            $outgoing_letter = OutgoingLetter::create($request->all());
             $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
             $request_letter = $this->requestLetterStore($request);
             $response = [
@@ -172,24 +173,24 @@ class OutgoingLetterController extends Controller
                 'request_letter' => $request_letter,
             ];
             DB::commit();
-            $response = response()->format(200, 'success', $response);
+            $response = response()->format(Response::HTTP_OK, 'success', $response);
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(400, $exception->getMessage());
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
         }
         return $response;
     }
 
     /**
      * Store Request Letter
-     * 
+     *
      */
     public function requestLetterStore($request)
     {
         $response = [];
         foreach (json_decode($request->input('letter_request'), true) as $key => $value) {
             $request_letter = RequestLetter::firstOrCreate([
-                'outgoing_letter_id' => $request->input('outgoing_letter_id'), 
+                'outgoing_letter_id' => $request->input('outgoing_letter_id'),
                 'applicant_id' => $value['applicant_id']
             ]);
             $response[] = $request_letter;

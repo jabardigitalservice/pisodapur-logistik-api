@@ -9,7 +9,7 @@ use App\Validation;
 use Illuminate\Support\Facades\Storage;
 
 class MasterFaskesController extends Controller
-{    
+{
     public function index(Request $request)
     {
         $data = MasterFaskes::getFaskesList($request);
@@ -72,7 +72,7 @@ class MasterFaskesController extends Controller
         }
         return $response;
     }
-    
+
     public function permitLetterStore($request)
     {
         $path = null;

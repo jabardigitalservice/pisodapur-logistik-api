@@ -24,6 +24,24 @@ class Agency extends Model
         'total_health_worker'
     ];
 
+    protected $appends = ['total_qty', 'type_item_count'];
+
+    public function getTotalQtyAttribute()
+    {
+        return $this->logisticRealizationItems()->whereNotIn('final_status', [
+            LogisticRealizationItems::STATUS_NOT_AVAILABLE,
+            LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
+        ])->sum('final_quantity');
+    }
+
+    public function getTypeItemCountAttribute()
+    {
+        return $this->logisticRealizationItems()->whereNotIn('final_status', [
+            LogisticRealizationItems::STATUS_NOT_AVAILABLE,
+            LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
+        ])->count('material_group');
+    }
+
     static function getList($request, $defaultOnly)
     {
         $data = self::query();
@@ -49,7 +67,7 @@ class Agency extends Model
             'subDistrict',
             'village',
             'applicant' => function ($query) {
-                $query->select([ 'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', DB::raw('concat(approval_status, "-", verification_status) as status'), DB::raw('concat(approval_status, "-", verification_status) as statusDetail'), 'finalized_by', 'finalized_at', 'is_urgency' ]);
+                $query->select([ 'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', DB::raw('concat(approval_status, "-", verification_status) as status'), DB::raw('concat(approval_status, "-", verification_status) as statusDetail'), 'finalized_by', 'finalized_at', 'is_urgency', 'is_integrated' ]);
                 $query->where('is_deleted', '!=' , 1);
                 $query->with('letter');
                 $query->with('verifiedBy:id,name,agency_name,handphone');
@@ -101,11 +119,36 @@ class Agency extends Model
                 $query->where('is_urgency', $request->input('is_urgency'));
             });
 
+            $query->when($request->has('is_integrated'), function ($query) use ($request) {
+                $query->where('is_integrated', $request->input('is_integrated'));
+            });
+
             $query->when($request->has('finalized_by'), function ($query) use ($request) {
                 $query->when($request->input('finalized_by'), function ($query) {
                     $query->whereNotNull('finalized_by');
                 }, function ($query) {
                     $query->whereNull('finalized_by');
+                });
+            });
+        });
+    }
+
+    /**
+     * Search Report Scope function
+     *
+     * Data search can be done by entering "search" in the form of the agency ID or Applicant Name
+     *
+     * @param $query
+     * @param $request
+     * @return $query
+     */
+    public function scopeSearchReport($query, $request)
+    {
+        return $query->when($request->has('search'), function ($query) use ($request) {
+            $query->where(function ($query) use ($request) {
+                $query->where('agency.id', 'LIKE', "%{$request->input('search')}%")
+                      ->orWhereHas('applicant', function ($query) use ($request) {
+                        $query->where('applicant_name', 'LIKE', "%{$request->input('search')}%");
                 });
             });
         });
@@ -174,6 +217,11 @@ class Agency extends Model
     public function applicant()
     {
         return $this->hasOne('App\Applicant', 'agency_id', 'id');
+    }
+
+    public function AcceptanceReport()
+    {
+        return $this->hasOne('App\AcceptanceReport', 'agency_id', 'id');
     }
 
     public function letter()
