@@ -133,7 +133,7 @@ class WmsJabar extends Usage
         return $response;
     }
 
-    static function mapFaskesPoslog(Request $request)
+    static function updateAll(Request $request)
     {
         try {
             $map = Outbound::all()->reject(function ($user) {

@@ -39,8 +39,8 @@ class OutboundController extends Controller
         return $response;
     }
 
-    public function mapFaskesPoslog(Request $request)
+    public function updateAll(Request $request)
     {
-        return WmsJabar::mapFaskesPoslog($request);
+        return WmsJabar::updateAll($request);
     }
 }
