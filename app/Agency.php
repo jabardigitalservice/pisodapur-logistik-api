@@ -133,6 +133,13 @@ class Agency extends Model
         });
     }
 
+    public function scopeFinal($query)
+    {
+        return $query->whereHas('applicant', function ($query) {
+            $query->whereNotNull('finalized_by')->where('is_deleted', '!=' , 1);
+        });
+    }
+
     /**
      * Search Report Scope function
      *

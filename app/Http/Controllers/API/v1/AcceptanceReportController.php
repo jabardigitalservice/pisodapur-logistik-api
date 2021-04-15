@@ -143,4 +143,15 @@ class AcceptanceReportController extends Controller
         $response = response()->format(Response::HTTP_OK, 'success', $data);
         return $response;
     }
+
+    public function statistic(Request $request)
+    {
+        $alreadyReportedTotal = Agency::final()->has('acceptanceReport')->count();
+        $notYetReportedTotal = Agency::final()->doesntHave('acceptanceReport')->count();
+        $statistic = [
+            'already_reported_total' => $alreadyReportedTotal,
+            'not_yet_reported_total' => $notYetReportedTotal
+        ];
+        return response()->format(Response::HTTP_OK, 'success', $statistic);
+    }
 }
