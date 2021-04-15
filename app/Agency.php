@@ -164,6 +164,14 @@ class Agency extends Model
             $query->whereBetween('acceptance_reports.date', [$request->input('start_date'), $request->input('end_date')]);
         });
 
+        $query->when($request->has('status'), function ($query) use ($request) {
+            $query->when($request->input('status') == 1, function ($query) use ($request) {
+                $query->has('acceptanceReport');
+            }, function ($query) {
+                $query->doesntHave('acceptanceReport');
+            });
+        });
+
         return $query;
     }
 
