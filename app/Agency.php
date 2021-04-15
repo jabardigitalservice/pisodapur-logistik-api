@@ -151,7 +151,7 @@ class Agency extends Model
      */
     public function scopeSearchReport($query, $request)
     {
-        return $query->when($request->has('search'), function ($query) use ($request) {
+        $query->when($request->has('search'), function ($query) use ($request) {
             $query->where(function ($query) use ($request) {
                 $query->where('agency.id', 'LIKE', "%{$request->input('search')}%")
                       ->orWhereHas('applicant', function ($query) use ($request) {
@@ -159,6 +159,12 @@ class Agency extends Model
                 });
             });
         });
+
+        $query->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
+            $query->whereBetween('acceptance_reports.date', [$request->input('start_date'), $request->input('end_date')]);
+        });
+
+        return $query;
     }
 
     static function whereStatusCondition($data, $request)
