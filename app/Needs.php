@@ -53,7 +53,7 @@ class Needs extends Model
             'needs.priority',
             'needs.created_at',
             'needs.updated_at',
-            
+
             'logistic_realization_items.need_id',
             'logistic_realization_items.material_group',
             'logistic_realization_items.status',
