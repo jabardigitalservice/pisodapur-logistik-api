@@ -4,7 +4,6 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\FileUpload;
-use League\Flysystem\File;
 
 class Applicant extends Model
 {
@@ -17,11 +16,6 @@ class Applicant extends Model
     const STATUS_FINALIZED = 'finalized';
     const STATUS_REJECTED = 'rejected';
 
-    /**
-    * All of the relationships to be touched.
-    *
-    * @var array
-    */
     protected $touches = ['agency'];
 
     protected $fillable = [
@@ -59,11 +53,6 @@ class Applicant extends Model
         'delivered' => 'boolean'
     ];
 
-    public function masterFaskesType()
-    {
-        return $this->hasOne('App\MasterFaskesType', 'id', 'agency_type');
-    }
-
     public function agency()
     {
         return $this->belongsTo('App\Agency', 'agency_id', 'id');
@@ -72,16 +61,6 @@ class Applicant extends Model
     public function letter()
     {
         return $this->hasOne('App\Letter', 'applicant_id', 'id');
-    }
-
-    public function village()
-    {
-        return $this->belongsTo('App\Village', 'location_village_code', 'kemendagri_desa_kode');
-    }
-
-    public function subDistrict()
-    {
-        return $this->belongsTo('App\Subdistrict', 'location_subdistrict_code', 'kemendagri_kecamatan_kode');
     }
 
     public function verifiedBy()
@@ -177,13 +156,9 @@ class Applicant extends Model
 
     static function updateApplicant($request, $dataUpdate)
     {
-        try {
-            $applicant = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->where('is_deleted', '!=' , 1)->firstOrFail();
-            $applicant->fill($dataUpdate);
-            $applicant->save();
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
-        }
+        $applicant = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->active()->firstOrFail();
+        $applicant->fill($dataUpdate);
+        $applicant->save();
         return $applicant;
     }
 
