@@ -69,11 +69,6 @@ class Applicant extends Model
         return $this->belongsTo('App\Agency', 'agency_id', 'id');
     }
 
-    public function city()
-    {
-        return $this->belongsTo('App\City', 'location_district_code', 'kemendagri_kabupaten_kode');
-    }
-
     public function letter()
     {
         return $this->hasOne('App\Letter', 'applicant_id', 'id');
@@ -281,5 +276,12 @@ class Applicant extends Model
             'last_update' => $params['lastUpdate'] ? date('Y-m-d H:i:s', strtotime($params['lastUpdate']->updated_at)) : '2020-01-01 00:00:00'
         ];
         return $data;
+    }
+
+    public function scopeFilterByCity($query, $cityCode)
+    {
+        return $query->whereHas('agency', function($query) use ($cityCode) {
+            $query->where('location_district_code', $cityCode);
+        });
     }
 }
