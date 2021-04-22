@@ -114,18 +114,15 @@ class LogisticRequestController extends Controller
 
     public function requestSummary(Request $request)
     {
-        $startDate = $request->has('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
-        $endDate = $request->has('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
-
-        $requestSummaryResult['lastUpdate'] = Applicant::active()->createdBetween([$startDate, $endDate])->filter($request)->first();
-        $requestSummaryResult['totalPikobar'] = Applicant::active()->createdBetween([$startDate, $endDate])->sourceData('pikobar')->filter($request)->count();
-        $requestSummaryResult['totalDinkesprov'] = Applicant::active()->createdBetween([$startDate, $endDate])->sourceData(false)->filter($request)->count();
-        $requestSummaryResult['totalUnverified'] = Applicant::active()->createdBetween([$startDate, $endDate])->unverified()->filter($request)->count();
-        $requestSummaryResult['totalApproved'] = Applicant::active()->createdBetween([$startDate, $endDate])->approved()->filter($request)->count();
-        $requestSummaryResult['totalFinal'] = Applicant::active()->createdBetween([$startDate, $endDate])->final()->filter($request)->count();
-        $requestSummaryResult['totalVerified'] = Applicant::active()->createdBetween([$startDate, $endDate])->verified()->filter($request)->count();
-        $requestSummaryResult['totalVerificationRejected'] = Applicant::active()->createdBetween([$startDate, $endDate])->verificationRejected()->filter($request)->count();
-        $requestSummaryResult['totalApprovalRejected'] = Applicant::active()->createdBetween([$startDate, $endDate])->approvalRejected()->filter($request)->count();
+        $requestSummaryResult['lastUpdate'] = Applicant::active()->createdBetween($request)->filter($request)->first();
+        $requestSummaryResult['totalPikobar'] = Applicant::active()->createdBetween($request)->sourceData('pikobar')->filter($request)->count();
+        $requestSummaryResult['totalDinkesprov'] = Applicant::active()->createdBetween($request)->sourceData(false)->filter($request)->count();
+        $requestSummaryResult['totalUnverified'] = Applicant::active()->createdBetween($request)->unverified()->filter($request)->count();
+        $requestSummaryResult['totalApproved'] = Applicant::active()->createdBetween($request)->approved()->filter($request)->count();
+        $requestSummaryResult['totalFinal'] = Applicant::active()->createdBetween($request)->final()->filter($request)->count();
+        $requestSummaryResult['totalVerified'] = Applicant::active()->createdBetween($request)->verified()->filter($request)->count();
+        $requestSummaryResult['totalVerificationRejected'] = Applicant::active()->createdBetween($request)->verificationRejected()->filter($request)->count();
+        $requestSummaryResult['totalApprovalRejected'] = Applicant::active()->createdBetween($request)->approvalRejected()->filter($request)->count();
 
         $data = Applicant::requestSummaryResult($requestSummaryResult);
         return response()->format(Response::HTTP_OK, 'success', $data);

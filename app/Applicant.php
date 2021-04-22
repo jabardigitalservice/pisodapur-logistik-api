@@ -218,9 +218,12 @@ class Applicant extends Model
         return $query->where('is_deleted', '!=' , 1);
     }
 
-    public function scopecreatedBetween($query, $createdAt)
+    public function scopecreatedBetween($query, $request)
     {
-        return $query->whereBetween('created_at', $createdAt);
+        $startDate = $request->has('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
+        $endDate = $request->has('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
+
+        return $query->whereBetween('created_at', [$startDate, $endDate]);
     }
 
     public function scopeSourceData($query, $value)

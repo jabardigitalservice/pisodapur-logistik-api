@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class Needs extends Model
 {
     use SoftDeletes;
-    
+
     const STATUS = [
         'Rendah',
         'Menengah',
@@ -97,7 +97,7 @@ class Needs extends Model
 
         return $data;
     }
-    
+
     static function getListNeed($data, $request)
     {
         return $data->with([
@@ -136,7 +136,7 @@ class Needs extends Model
     {
         return $this->hasOne('App\MasterUnit', 'id', 'unit');
     }
-    
+
     public function masterUnit()
     {
         return $this->hasOne('App\MasterUnit', 'id', 'unit');
@@ -177,18 +177,15 @@ class Needs extends Model
             $item->logistic_item_summary = (int)$logisticItemSummary;
             return $item;
         });
-        $response = response()->format(200, 'success', $data);
+        $response = response()->format(Response::HTTP_OK, 'success', $data);
         return $response;
     }
-    
+
     public function scopeFilterByApplicant($query, $request)
     {
-        $startDate = $request->has('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
-        $endDate = $request->has('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
-
-        return $query->whereHas('applicant', function($query) use ($request, $startDate, $endDate) {
+        return $query->whereHas('applicant', function($query) use ($request) {
             $query->active()
-                ->createdBetween([$startDate, $endDate])
+                ->createdBetween($request)
                 ->where('verification_status', Applicant::STATUS_VERIFIED)
                 ->filter($request);
         });
