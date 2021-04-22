@@ -240,21 +240,49 @@ class Applicant extends Model
         return $model;
     }
 
-    static function getTotalBy($createdAt, $params)
+    public function scopeActive($query)
     {
-        $total = self::Select('applicants.id', 'applicants.updated_at')
-        ->whereBetween('created_at', $createdAt)
-        ->where('is_deleted', '!=' , 1);
+        return $query->where('is_deleted', '!=' , 1);
+    }
 
-        if ($params['source_data']) {
-            $total = $total->where('source_data', $params['source_data']);
-        }
+    public function scopecreatedBetween($query, $createdAt)
+    {
+        return $query->whereBetween('created_at', $createdAt);
+    }
 
-        if ($params['approval_status'] && $params['verification_status']) {
-            $total = $total->where('approval_status', $params['approval_status'])
-            ->where('verification_status', $params['verification_status']);
-        }
-        return $total;
+    public function scopeSourceData($query, $value)
+    {
+        return $query->where('source_data', $value);
+    }
+
+    public function scopeUnverified($query)
+    {
+        return $query->where('approval_status', Applicant::STATUS_NOT_APPROVED)->where('verification_status', Applicant::STATUS_NOT_VERIFIED);
+    }
+
+    public function scopeVerified($query)
+    {
+        return $query->where('approval_status', Applicant::STATUS_NOT_APPROVED)->where('verification_status', Applicant::STATUS_VERIFIED);
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('approval_status', Applicant::STATUS_APPROVED)->where('verification_status', Applicant::STATUS_VERIFIED)->whereNull('finalized_by');
+    }
+
+    public function scopeFinal($query)
+    {
+        return $query->whereNotNull('finalized_by');
+    }
+
+    public function scopeVerificationRejected($query)
+    {
+        return $query->where('approval_status', Applicant::STATUS_NOT_APPROVED)->where('verification_status', Applicant::STATUS_REJECTED);
+    }
+
+    public function scopeApprovalRejected($query)
+    {
+        return $query->where('approval_status', Applicant::STATUS_REJECTED)->where('verification_status', Applicant::STATUS_VERIFIED);
     }
 
     static function requestSummaryResult($params)
@@ -278,10 +306,12 @@ class Applicant extends Model
         return $data;
     }
 
-    public function scopeFilterByCity($query, $cityCode)
+    public function scopeFilter($query, $request)
     {
-        return $query->whereHas('agency', function($query) use ($cityCode) {
-            $query->where('location_district_code', $cityCode);
+        return $query->whereHas('agency', function($query) use ($request) {
+            if ($request->has('city_code')) {
+                $query->where('location_district_code', $request->input('city_code'));
+            }
         });
     }
 }

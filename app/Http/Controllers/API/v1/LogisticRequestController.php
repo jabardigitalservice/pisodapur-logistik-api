@@ -116,37 +116,15 @@ class LogisticRequestController extends Controller
         $startDate = $request->has('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
         $endDate = $request->has('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
 
-        $lastUpdate = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => false, 'verification_status' => false])->orderBy('updated_at', 'desc');
-        $totalPikobar = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => 'pikobar', 'approval_status' => false, 'verification_status' => false]);
-        $totalDinkesprov = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => 'dinkes_provinsi', 'approval_status' => false, 'verification_status' => false]);
-        $totalUnverified = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_NOT_VERIFIED]);
-        $totalApproved = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->whereNull('finalized_by');
-        $totalFinal = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->whereNotNull('finalized_by');
-        $totalVerified = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED]);
-        $totalVerificationRejected = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_REJECTED]);
-        $totalApprovalRejected = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_REJECTED, 'verification_status' => Applicant::STATUS_VERIFIED]);
-
-        if ($request->has('city_code')) {
-            $lastUpdate->filterByCity($request->input('city_code'));
-            $totalPikobar->filterByCity($request->input('city_code'));
-            $totalDinkesprov->filterByCity($request->input('city_code'));
-            $totalUnverified->filterByCity($request->input('city_code'));
-            $totalApproved->filterByCity($request->input('city_code'));
-            $totalFinal->filterByCity($request->input('city_code'));
-            $totalVerified->filterByCity($request->input('city_code'));
-            $totalVerificationRejected->filterByCity($request->input('city_code'));
-            $totalApprovalRejected->filterByCity($request->input('city_code'));
-        }
-
-        $requestSummaryResult['lastUpdate'] = $lastUpdate->first();
-        $requestSummaryResult['totalPikobar'] = $totalPikobar->count();
-        $requestSummaryResult['totalDinkesprov'] = $totalDinkesprov->count();
-        $requestSummaryResult['totalUnverified'] = $totalUnverified->count();
-        $requestSummaryResult['totalApproved'] = $totalApproved->count();
-        $requestSummaryResult['totalFinal'] = $totalFinal->count();
-        $requestSummaryResult['totalVerified'] = $totalVerified->count();
-        $requestSummaryResult['totalVerificationRejected'] = $totalVerificationRejected->count();
-        $requestSummaryResult['totalApprovalRejected'] = $totalApprovalRejected->count();
+        $requestSummaryResult['lastUpdate'] = Applicant::active()->createdBetween([$startDate, $endDate])->filter($request)->first();
+        $requestSummaryResult['totalPikobar'] = Applicant::active()->createdBetween([$startDate, $endDate])->sourceData('pikobar')->filter($request)->count();
+        $requestSummaryResult['totalDinkesprov'] = Applicant::active()->createdBetween([$startDate, $endDate])->sourceData(false)->filter($request)->count();
+        $requestSummaryResult['totalUnverified'] = Applicant::active()->createdBetween([$startDate, $endDate])->unverified()->filter($request)->count();
+        $requestSummaryResult['totalApproved'] = Applicant::active()->createdBetween([$startDate, $endDate])->approved()->filter($request)->count();
+        $requestSummaryResult['totalFinal'] = Applicant::active()->createdBetween([$startDate, $endDate])->final()->filter($request)->count();
+        $requestSummaryResult['totalVerified'] = Applicant::active()->createdBetween([$startDate, $endDate])->verified()->filter($request)->count();
+        $requestSummaryResult['totalVerificationRejected'] = Applicant::active()->createdBetween([$startDate, $endDate])->verificationRejected()->filter($request)->count();
+        $requestSummaryResult['totalApprovalRejected'] = Applicant::active()->createdBetween([$startDate, $endDate])->approvalRejected()->filter($request)->count();
 
         $data = Applicant::requestSummaryResult($requestSummaryResult);
         return response()->format(200, 'success', $data);
