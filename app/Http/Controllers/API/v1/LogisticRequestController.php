@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\v1;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Needs;
 use App\Agency;
@@ -127,7 +128,7 @@ class LogisticRequestController extends Controller
         $requestSummaryResult['totalApprovalRejected'] = Applicant::active()->createdBetween([$startDate, $endDate])->approvalRejected()->filter($request)->count();
 
         $data = Applicant::requestSummaryResult($requestSummaryResult);
-        return response()->format(200, 'success', $data);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function changeStatus(Request $request)

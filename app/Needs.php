@@ -157,6 +157,11 @@ class Needs extends Model
         return $this->hasOne('App\User', 'id', 'realization_by');
     }
 
+    public function applicant()
+    {
+        return $this->belongsTo('App\Applicant');
+    }
+
     static function listNeed(Request $request)
     {        
         $limit = $request->input('limit', 3);
@@ -176,4 +181,16 @@ class Needs extends Model
         return $response;
     }
     
+    public function scopeFilterByApplicant($query, $request)
+    {
+        $startDate = $request->has('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
+        $endDate = $request->has('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
+
+        return $query->whereHas('applicant', function($query) use ($request, $startDate, $endDate) {
+            $query->active()
+                ->createdBetween([$startDate, $endDate])
+                ->where('verification_status', Applicant::STATUS_VERIFIED)
+                ->filter($request);
+        });
+    }
 }
