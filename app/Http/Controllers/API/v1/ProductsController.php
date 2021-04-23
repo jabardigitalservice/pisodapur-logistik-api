@@ -27,11 +27,11 @@ class ProductsController extends Controller
                 if ($request->filled('limit')) {
                     $query->paginate($request->input('limit'));
                 }
-    
+
                 if ($request->filled('name')) {
                     $query->where('products.name', 'LIKE', "%{$request->input('name')}%");
                 }
-    
+
                 if ($request->filled('user_filter')) {
                     $query->where('products.user_filter', '=', $request->input('user_filter'));
                 }
@@ -58,8 +58,8 @@ class ProductsController extends Controller
     public function productUnit($id)
     {
         $data = Product::select(
-                'products.id', 
-                'products.name',  
+                'products.id',
+                'products.name',
                 DB::raw('IFNULL(product_unit.unit_id, 1) as unit_id'),
                 DB::raw('IFNULL(master_unit.unit, "PCS") as unit')
             )
@@ -68,9 +68,9 @@ class ProductsController extends Controller
                 $join->on('product_unit.unit_id', '=', 'master_unit.id')
                     ->where('master_unit.is_imported', false);
             })
-            ->where('products.id', $id) 
+            ->where('products.id', $id)
             ->get();
-            
+
         return $data;
     }
 

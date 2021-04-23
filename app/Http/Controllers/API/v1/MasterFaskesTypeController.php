@@ -33,32 +33,25 @@ class MasterFaskesTypeController extends Controller
 
     public function masterFaskesTypeRequest(Request $request)
     {
-        try {
-            $startDate = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
-            $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
+        $data = MasterFaskesType::withCount([
+                    'agency as total_request' => function ($query) use ($request) {
+                        $query->whereHas('applicant', function($query) use ($request) {
+                            $query->active()
+                            ->createdBetween($request)
+                            ->filter($request)
+                            ->where('verification_status', Applicant::STATUS_VERIFIED);
+                        });
+                    }
+                ])
+                ->orderBy('total_request', $request->input('sort', 'desc'))
+                ->get();
 
-            $query = MasterFaskesType::withCount([
-                'agency as total_request' => function ($query) use ($startDate, $endDate) {
-                    return $query->join('applicants', 'applicants.agency_id', 'agency.id')
-                        ->where('applicants.verification_status', Applicant::STATUS_VERIFIED)
-                        ->where('applicants.is_deleted', '!=', 1)
-                        ->whereBetween('applicants.created_at', [$startDate, $endDate]); 
-                }
-            ]);
-            if ($request->filled('sort')) {
-                $query->orderBy('total_request', $request->input('sort'));
-            }
-            $data = $query->get();
-        } catch (\Exception $exception) {
-            return response()->format(400, $exception->getMessage());
-        }
-
-        return response()->format(200, 'success', $data);
-    } 
+        return response()->format(Response::HTTP_OK, 'success', $data);
+    }
 
     /**
      * masterFaskesTypeTopRequest function
-     * 
+     *
      * to get top faskes type requested by applicants
      *
      * @param Request $request
