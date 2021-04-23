@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use DB;
 use App\Product;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class Needs extends Model
 {
