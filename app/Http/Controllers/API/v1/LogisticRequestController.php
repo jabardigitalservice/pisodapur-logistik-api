@@ -260,23 +260,4 @@ class LogisticRequestController extends Controller
         Log::channel('dblogging')->debug('post:v1/logistic-request/urgency', $request->all());
         return $response;
     }
-
-    public function undoStep(Request $request)
-    {
-        $param = [
-            'agency_id' => 'required|numeric',
-            'applicant_id' => 'required|numeric',
-            'step' => 'required',
-            'url' => 'required'
-        ];
-        $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === 200) {
-            $request = Applicant::undoStep($request);
-            $email = LogisticRequest::sendEmailNotification($request, $request['status']);
-            $response = response()->format(200, 'success', $request->all());
-            Validation::setCompleteness($request);
-        }
-        Log::channel('dblogging')->debug('post:v1/logistic-request/return', $request->all());
-        return $response;
-    }
 }

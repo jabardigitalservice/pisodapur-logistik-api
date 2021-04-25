@@ -160,31 +160,6 @@ class Applicant extends Model
         return $applicant;
     }
 
-    static function undoStep($request)
-    {
-        $dataUpdate = [];
-        switch ($request->step) {
-            case 'final':
-                $dataUpdate = self::setNotYetFinalized($dataUpdate);
-                $request['status'] = 'realisasi';
-                break;
-            case 'realisasi':
-                $dataUpdate = self::setNotYetApproved($dataUpdate);
-                $request['status'] = 'rekomendasi';
-                break;
-            case 'ditolak rekomendasi':
-                $dataUpdate = self::setNotYetApproved($dataUpdate);
-                $request['status'] = 'rekomendasi';
-                break;
-            default:
-                $dataUpdate = self::setNotYetVerified($dataUpdate);
-                $request['status'] = 'surat';
-                break;
-        }
-        $update = self::updateApplicant($request, $dataUpdate);
-        return $request;
-    }
-
     static function setNotYetFinalized($model)
     {
         $model['finalized_by'] = null;
