@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use App\Validation;
 use App\LogisticRequest;
 use App\Applicant;
+use Log;
 
 class LogisticRequestStatusController extends Controller
 {
