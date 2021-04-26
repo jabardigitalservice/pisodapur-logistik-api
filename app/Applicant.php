@@ -190,7 +190,7 @@ class Applicant extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('is_deleted', '!=' , 1);
+        return $query->where('is_deleted', '!=', 1);
     }
 
     public function scopecreatedBetween($query, $request)
