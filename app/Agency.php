@@ -48,10 +48,10 @@ class Agency extends Model
 
         if (!$defaultOnly) {
             $data->withLogisticRequestData()
-            ->whereHasApplicant($request)
-            ->whereStatusCondition($request)
-            ->whereHasFaskes($request)
-            ->whereHasAgency($request);
+                 ->whereHasApplicant($request)
+                 ->whereStatusCondition($request)
+                 ->whereHasFaskes($request)
+                 ->whereHasAgency($request);
         }
 
         return $data;
