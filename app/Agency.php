@@ -44,23 +44,22 @@ class Agency extends Model
 
     static function getList($request, $defaultOnly)
     {
-        $data = self::query();
-        $data = self::getDefaultWith($data);
+        $data = self::query()->getDefaultWith();
 
         if (!$defaultOnly) {
-            $data = self::withLogisticRequestData($data);
-            $data = self::whereHasApplicant($data, $request);
-            $data = self::whereStatusCondition($data, $request);
-            $data = self::whereHasFaskes($data, $request);
-            $data = self::whereHasAgency($data, $request);
+            $data->withLogisticRequestData()
+                 ->whereHasApplicant($request)
+                 ->whereStatusCondition($request)
+                 ->whereHasFaskes($request)
+                 ->whereHasAgency($request);
         }
 
         return $data;
     }
 
-    static function getDefaultWith($data)
+    public function scopeGetDefaultWith($query)
     {
-        return $data->with([
+        return $query->with([
             'masterFaskes',
             'masterFaskesType',
             'city',
@@ -77,9 +76,9 @@ class Agency extends Model
         ]);
     }
 
-    static function withLogisticRequestData($data)
+    public function scopeWithLogisticRequestData($query)
     {
-        return $data->with('logisticRequestItems:agency_id,product_id,brand,quantity,unit,usage,priority')
+        return $query->with('logisticRequestItems:agency_id,product_id,brand,quantity,unit,usage,priority')
             ->with('logisticRequestItems.product:id,name,material_group_status,material_group')
             ->with('logisticRequestItems.masterUnit:id,unit as name')
             ->with([
@@ -98,9 +97,9 @@ class Agency extends Model
             ]);
     }
 
-    static function whereHasApplicant($data, $request)
+    public function scopeWhereHasApplicant($query, $request)
     {
-        return $data->whereHas('applicant', function ($query) use ($request) {
+        return $query->whereHas('applicant', function ($query) use ($request) {
             $query->where('is_deleted', '!=' , 1);
 
             $query->when($request->input('source_data'), function ($query) use ($request) {
@@ -175,9 +174,9 @@ class Agency extends Model
         return $query;
     }
 
-    static function whereStatusCondition($data, $request)
+    public function scopeWhereStatusCondition($query, $request)
     {
-        return $data->whereHas('applicant', function ($query) use ($request) {
+        return $query->whereHas('applicant', function ($query) use ($request) {
             $query->when($request->input('is_rejected'), function ($query) {
                 $query->where('verification_status', Applicant::STATUS_REJECTED)
                     ->orWhere('approval_status', Applicant::STATUS_REJECTED);
@@ -193,18 +192,18 @@ class Agency extends Model
         });
     }
 
-    static function whereHasFaskes($data, $request)
+    public function scopeWhereHasFaskes($query, $request)
     {
-        return $data->whereHas('masterFaskes', function ($query) use ($request) {
+        return $query->whereHas('masterFaskes', function ($query) use ($request) {
             $query->when($request->has('is_reference'), function ($query) use ($request) {
                 $query->where('is_reference', '=', $request->is_reference);
             });
         });
     }
 
-    static function whereHasAgency($data, $request)
+    public function scopeWhereHasAgency($query, $request)
     {
-        $data->where(function ($query) use ($request) {
+        return $query->where(function ($query) use ($request) {
             $query->when($request->input('agency_name'), function ($query) use ($request) {
                 $query->where('agency_name', 'LIKE', "%{$request->input('agency_name')}%");
             });
@@ -221,8 +220,6 @@ class Agency extends Model
                 $query->where('completeness', $request->input('completeness'));
             });
         });
-
-        return $data;
     }
 
     public function masterFaskesType()

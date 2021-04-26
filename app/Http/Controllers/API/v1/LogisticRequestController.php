@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\v1;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Needs;
 use App\Agency;
@@ -113,21 +114,18 @@ class LogisticRequestController extends Controller
 
     public function requestSummary(Request $request)
     {
-        $startDate = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
-        $endDate = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
-
-        $requestSummaryResult['lastUpdate'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => false, 'verification_status' => false])->orderBy('updated_at', 'desc')->first();
-        $requestSummaryResult['totalPikobar'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => 'pikobar', 'approval_status' => false, 'verification_status' => false])->count();
-        $requestSummaryResult['totalDinkesprov'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => 'dinkes_provinsi', 'approval_status' => false, 'verification_status' => false])->count();
-        $requestSummaryResult['totalUnverified'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_NOT_VERIFIED])->count();
-        $requestSummaryResult['totalApproved'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->whereNull('finalized_by')->count();
-        $requestSummaryResult['totalFinal'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->whereNotNull('finalized_by')->count();
-        $requestSummaryResult['totalVerified'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_VERIFIED])->count();
-        $requestSummaryResult['totalVerificationRejected'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_NOT_APPROVED, 'verification_status' => Applicant::STATUS_REJECTED])->count();
-        $requestSummaryResult['totalApprovalRejected'] = Applicant::getTotalBy([$startDate, $endDate], ['source_data' => false, 'approval_status' => Applicant::STATUS_REJECTED, 'verification_status' => Applicant::STATUS_VERIFIED])->count();
+        $requestSummaryResult['lastUpdate'] = Applicant::active()->createdBetween($request)->filter($request)->first();
+        $requestSummaryResult['totalPikobar'] = Applicant::active()->createdBetween($request)->sourceData('pikobar')->filter($request)->count();
+        $requestSummaryResult['totalDinkesprov'] = Applicant::active()->createdBetween($request)->sourceData(false)->filter($request)->count();
+        $requestSummaryResult['totalUnverified'] = Applicant::active()->createdBetween($request)->unverified()->filter($request)->count();
+        $requestSummaryResult['totalApproved'] = Applicant::active()->createdBetween($request)->approved()->filter($request)->count();
+        $requestSummaryResult['totalFinal'] = Applicant::active()->createdBetween($request)->final()->filter($request)->count();
+        $requestSummaryResult['totalVerified'] = Applicant::active()->createdBetween($request)->verified()->filter($request)->count();
+        $requestSummaryResult['totalVerificationRejected'] = Applicant::active()->createdBetween($request)->verificationRejected()->filter($request)->count();
+        $requestSummaryResult['totalApprovalRejected'] = Applicant::active()->createdBetween($request)->approvalRejected()->filter($request)->count();
 
         $data = Applicant::requestSummaryResult($requestSummaryResult);
-        return response()->format(200, 'success', $data);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function changeStatus(Request $request)
@@ -260,25 +258,6 @@ class LogisticRequestController extends Controller
             Validation::setCompleteness($request);
         }
         Log::channel('dblogging')->debug('post:v1/logistic-request/urgency', $request->all());
-        return $response;
-    }
-
-    public function undoStep(Request $request)
-    {
-        $param = [
-            'agency_id' => 'required|numeric',
-            'applicant_id' => 'required|numeric',
-            'step' => 'required',
-            'url' => 'required'
-        ];
-        $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === 200) {
-            $request = Applicant::undoStep($request);
-            $email = LogisticRequest::sendEmailNotification($request, $request['status']);
-            $response = response()->format(200, 'success', $request->all());
-            Validation::setCompleteness($request);
-        }
-        Log::channel('dblogging')->debug('post:v1/logistic-request/return', $request->all());
         return $response;
     }
 }
