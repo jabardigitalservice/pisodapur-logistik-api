@@ -31,7 +31,6 @@ class Agency extends Model
         return $this->logisticRealizationItems()
                     ->acceptedStatusOnly('final_status')
                     ->sum('final_quantity');
-        ])->sum('final_quantity');
     }
 
     public function getTypeItemCountAttribute()
@@ -39,12 +38,14 @@ class Agency extends Model
         return $this->logisticRealizationItems()
                     ->acceptedStatusOnly('final_status')
                     ->count('material_group');
-        ])->count('material_group');
     }
 
     static function getList($request, $defaultOnly)
     {
-        $data = self::query()->getDefaultWith();
+        $data = self::select('agency.id', 'master_faskes_id', 'agency_type', 'agency_name', 'phone_number', 'location_district_code', 'location_subdistrict_code', 'location_village_code', 'location_address', 'location_district_code', 'completeness', 'master_faskes.is_reference', 'agency.created_at', 'agency.updated_at', 'total_covid_patients', 'total_isolation_room', 'total_bedroom', 'total_health_worker')
+                    ->getDefaultWith()
+                    ->leftJoin('applicants', 'agency.id', '=', 'applicants.agency_id')
+                    ->leftJoin('master_faskes', 'agency.master_faskes_id', '=', 'master_faskes.id');
 
         if (!$defaultOnly) {
             $data->withLogisticRequestData()
@@ -54,7 +55,23 @@ class Agency extends Model
                  ->whereHasAgency($request);
         }
 
-        return $data;
+        return $data->setOrder($request);
+    }
+
+    public function scopeSetOrder($query, $request)
+    {
+        $isRecommendationPhase = $request->input('verification_status') == Applicant::STATUS_VERIFIED && $request->input('approval_status') == Applicant::STATUS_NOT_APPROVED;
+        $isRealizationPhase = $request->input('verification_status') == Applicant::STATUS_VERIFIED && $request->input('approval_status') == Applicant::STATUS_APPROVED;
+        return $query->orderBy('applicants.is_urgency', 'desc')
+                     ->orderBy('master_faskes.is_reference', 'desc')
+                     ->when($isRealizationPhase, function ($query) {
+                        $query->orderBy('applicants.approved_at', 'asc');
+                     })
+                     ->when($isRecommendationPhase, function ($query) {
+                        $query->orderBy('applicants.verified_at', 'asc');
+                     }, function ($query) {
+                        $query->orderBy('agency.created_at', 'asc');
+                     });
     }
 
     public function scopeGetDefaultWith($query)
@@ -66,12 +83,12 @@ class Agency extends Model
             'subDistrict',
             'village',
             'applicant' => function ($query) {
-                $query->select([ 'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', DB::raw('concat(approval_status, "-", verification_status) as status'), DB::raw('concat(approval_status, "-", verification_status) as statusDetail'), 'finalized_by', 'finalized_at', 'is_urgency', 'is_integrated' ]);
-                $query->where('is_deleted', '!=' , 1);
-                $query->with('letter');
-                $query->with('verifiedBy:id,name,agency_name,handphone');
-                $query->with('approvedBy:id,name,agency_name,handphone');
-                $query->with('finalizedBy:id,name,agency_name,handphone');
+                $query->select([ 'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', DB::raw('concat(approval_status, "-", verification_status) as status'), DB::raw('concat(approval_status, "-", verification_status) as statusDetail'), 'finalized_by', 'finalized_at', 'is_urgency', 'is_integrated' ])
+                      ->active()
+                      ->with('letter')
+                      ->with('verifiedBy:id,name,agency_name,handphone')
+                      ->with('approvedBy:id,name,agency_name,handphone')
+                      ->with('finalizedBy:id,name,agency_name,handphone');
             }
         ]);
     }
@@ -79,28 +96,22 @@ class Agency extends Model
     public function scopeWithLogisticRequestData($query)
     {
         return $query->with('logisticRequestItems:agency_id,product_id,brand,quantity,unit,usage,priority')
-            ->with('logisticRequestItems.product:id,name,material_group_status,material_group')
-            ->with('logisticRequestItems.masterUnit:id,unit as name')
-            ->with([
-                'recommendationItems' => function ($query) {
-                    $query->whereNotIn('status', [
-                        LogisticRealizationItems::STATUS_NOT_AVAILABLE,
-                        LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
-                    ]);
-                },
-                'finalizationItems' => function ($query) {
-                    $query->whereNotIn('final_status', [
-                        LogisticRealizationItems::STATUS_NOT_AVAILABLE,
-                        LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
-                    ]);
-                }
-            ]);
+                      ->with('logisticRequestItems.product:id,name,material_group_status,material_group')
+                      ->with('logisticRequestItems.masterUnit:id,unit as name')
+                      ->with([
+                            'recommendationItems' => function ($query) {
+                                $query->acceptedStatusOnly('status');
+                            },
+                            'finalizationItems' => function ($query) {
+                                $query->acceptedStatusOnly('final_status');
+                            }
+                      ]);
     }
 
     public function scopeWhereHasApplicant($query, $request)
     {
         return $query->whereHas('applicant', function ($query) use ($request) {
-            $query->where('is_deleted', '!=' , 1);
+            $query->active();
 
             $query->when($request->input('source_data'), function ($query) use ($request) {
                 $query->where('source_data', $request->input('source_data'));
@@ -124,10 +135,10 @@ class Agency extends Model
 
             $query->when($request->has('finalized_by'), function ($query) use ($request) {
                 $query->when($request->input('finalized_by'), function ($query) {
-                    $query->whereNotNull('finalized_by');
-                }, function ($query) {
-                    $query->whereNull('finalized_by');
-                });
+                            $query->final();
+                      }, function ($query) {
+                            $query->whereNull('finalized_by');
+                      });
             });
         });
     }
@@ -135,7 +146,7 @@ class Agency extends Model
     public function scopeFinal($query)
     {
         return $query->whereHas('applicant', function ($query) {
-            $query->whereNotNull('finalized_by')->where('is_deleted', '!=' , 1);
+            $query->final()->active();
         });
     }
 
@@ -150,26 +161,25 @@ class Agency extends Model
      */
     public function scopeSearchReport($query, $request)
     {
-        $query->when($request->has('search'), function ($query) use ($request) {
-            $query->where(function ($query) use ($request) {
-                $query->where('agency.id', 'LIKE', "%{$request->input('search')}%")
-                      ->orWhereHas('applicant', function ($query) use ($request) {
-                        $query->where('applicant_name', 'LIKE', "%{$request->input('search')}%");
-                });
-            });
-        });
+        $startDate = $request->has('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
+        $endDate = $request->has('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
 
-        $query->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
-            $query->whereBetween('acceptance_reports.date', [$request->input('start_date'), $request->input('end_date')]);
-        });
-
-        $query->when($request->has('status'), function ($query) use ($request) {
-            $query->when($request->input('status') == 1, function ($query) use ($request) {
-                $query->has('acceptanceReport');
-            }, function ($query) {
-                $query->doesntHave('acceptanceReport');
-            });
-        });
+        $query->whereBetween('acceptance_reports.date', [$startDate, $endDate])
+              ->when($request->has('search'), function ($query) use ($request) {
+                    $query->where(function ($query) use ($request) {
+                        $query->where('agency.id', 'LIKE', "%{$request->input('search')}%")
+                              ->orWhereHas('applicant', function ($query) use ($request) {
+                                    $query->where('applicant_name', 'LIKE', "%{$request->input('search')}%");
+                              });
+                    });
+              })
+              ->when($request->has('status'), function ($query) use ($request) {
+                    $query->when($request->input('status') == 1, function ($query) use ($request) {
+                        $query->has('acceptanceReport');
+                    }, function ($query) {
+                        $query->doesntHave('acceptanceReport');
+                    });
+              });
 
         return $query;
     }
@@ -182,12 +192,11 @@ class Agency extends Model
                     ->orWhere('approval_status', Applicant::STATUS_REJECTED);
             }, function ($query) use ($request) {
                 $query->when($request->input('verification_status'), function ($query) use ($request) {
-                    $query->where('verification_status', $request->input('verification_status'));
-                });
-
-                $query->when($request->input('approval_status'), function ($query) use ($request) {
-                    $query->where('approval_status', $request->input('approval_status'));
-                });
+                            $query->where('verification_status', $request->input('verification_status'));
+                      })
+                      ->when($request->input('approval_status'), function ($query) use ($request) {
+                            $query->where('approval_status', $request->input('approval_status'));
+                      });
             });
         });
     }
@@ -205,20 +214,17 @@ class Agency extends Model
     {
         return $query->where(function ($query) use ($request) {
             $query->when($request->input('agency_name'), function ($query) use ($request) {
-                $query->where('agency_name', 'LIKE', "%{$request->input('agency_name')}%");
-            });
-
-            $query->when($request->input('city_code'), function ($query) use ($request) {
-                $query->where('location_district_code', $request->input('city_code'));
-            });
-
-            $query->when($request->input('faskes_type'), function ($query) use ($request) {
-                $query->where('agency_type', $request->input('faskes_type'));
-            });
-
-            $query->when($request->has('completeness'), function ($query) use ($request) {
-                $query->where('completeness', $request->input('completeness'));
-            });
+                        $query->where('agency_name', 'LIKE', "%{$request->input('agency_name')}%");
+                  })
+                  ->when($request->input('city_code'), function ($query) use ($request) {
+                        $query->where('location_district_code', $request->input('city_code'));
+                  })
+                  ->when($request->input('faskes_type'), function ($query) use ($request) {
+                        $query->where('agency_type', $request->input('faskes_type'));
+                  })
+                  ->when($request->has('completeness'), function ($query) use ($request) {
+                        $query->where('completeness', $request->input('completeness'));
+                  });
         });
     }
 
