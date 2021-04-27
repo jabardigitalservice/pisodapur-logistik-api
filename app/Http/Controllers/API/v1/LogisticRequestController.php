@@ -44,7 +44,7 @@ class LogisticRequestController extends Controller
             'data' => $logisticRequest,
             'total' => count($logisticRequest)
         ];
-        return response()->format(200, 'success', $data);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function store(Request $request)
@@ -81,7 +81,7 @@ class LogisticRequestController extends Controller
         $data = $data->with([
             'letter' => function ($query) {
                 return $query->select(['id', 'agency_id', 'letter']);
-            }
+        return response()->format(Response::HTTP_OK, 'success', $data);
         ])->where('id', '=', $id)->firstOrFail();
         return response()->format(200, 'success', $data);
     }
@@ -179,7 +179,7 @@ class LogisticRequestController extends Controller
             'stock_checking_status' => 'required|string'
         ];
         $applicant = (Validation::validate($request, $param)) ? $this->updateApplicant($request) : null;
-        return response()->format(200, 'success', $applicant);
+        return response()->format(Response::HTTP_OK, 'success', $applicant);
     }
 
     public function masterFaskesCheck($request)
@@ -249,7 +249,7 @@ class LogisticRequestController extends Controller
             $model = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->first();
             $model->is_urgency = $request->is_urgency;
             $model->save();
-            $response = response()->format(200, 'success', $model);
+            $response = response()->format(Response::HTTP_OK, 'success', $model);
             Validation::setCompleteness($request);
         }
         Log::channel('dblogging')->debug('post:v1/logistic-request/urgency', $request->all());
