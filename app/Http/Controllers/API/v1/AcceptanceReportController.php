@@ -142,8 +142,16 @@ class AcceptanceReportController extends Controller
 
     public function statistic(Request $request)
     {
-        $alreadyReportedTotal = Agency::final()->has('acceptanceReport')->count();
-        $notYetReportedTotal = Agency::final()->doesntHave('acceptanceReport')->count();
+        $alreadyReportedTotal = Agency::final()->has('acceptanceReport')
+                                        ->when($request->has('city_code'), function ($query) use ($request) {
+                                            $query->where('location_district_code', $request->input('city_code'));
+                                        })
+                                        ->count();
+        $notYetReportedTotal = Agency::final()->doesntHave('acceptanceReport')
+                                        ->when($request->has('city_code'), function ($query) use ($request) {
+                                            $query->where('location_district_code', $request->input('city_code'));
+                                        })
+                                        ->count();
         $statistic = [
             'already_reported_total' => $alreadyReportedTotal,
             'not_yet_reported_total' => $notYetReportedTotal
