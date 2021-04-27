@@ -77,13 +77,11 @@ class LogisticRequestController extends Controller
 
     public function show(Request $request, $id)
     {
-        $data = Agency::getList($request, true);
-        $data = $data->with([
-            'letter' => function ($query) {
-                return $query->select(['id', 'agency_id', 'letter']);
+        $data = Agency::getList($request, false)
+                        ->with('letter:id,agency_id,letter')
+                        ->where('agency.id', $id)
+                        ->firstOrFail();
         return response()->format(Response::HTTP_OK, 'success', $data);
-        ])->where('id', '=', $id)->firstOrFail();
-        return response()->format(200, 'success', $data);
     }
 
     public function listNeed(Request $request)
