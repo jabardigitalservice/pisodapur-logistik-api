@@ -28,17 +28,17 @@ class Agency extends Model
 
     public function getTotalQtyAttribute()
     {
-        return $this->logisticRealizationItems()->whereNotIn('final_status', [
-            LogisticRealizationItems::STATUS_NOT_AVAILABLE,
-            LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
+        return $this->logisticRealizationItems()
+                    ->acceptedStatusOnly('final_status')
+                    ->sum('final_quantity');
         ])->sum('final_quantity');
     }
 
     public function getTypeItemCountAttribute()
     {
-        return $this->logisticRealizationItems()->whereNotIn('final_status', [
-            LogisticRealizationItems::STATUS_NOT_AVAILABLE,
-            LogisticRealizationItems::STATUS_NOT_YET_FULFILLED
+        return $this->logisticRealizationItems()
+                    ->acceptedStatusOnly('final_status')
+                    ->count('material_group');
         ])->count('material_group');
     }
 
