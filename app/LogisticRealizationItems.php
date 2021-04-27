@@ -270,4 +270,12 @@ class LogisticRealizationItems extends Model
         $fields[] = 'final_by';
         return $fields;
     }
+
+    public function scopeAcceptedStatusOnly($query, $field)
+    {
+        return $query->whereNotIn($field, [
+            self::STATUS_NOT_AVAILABLE,
+            self::STATUS_NOT_YET_FULFILLED
+        ]);
+    }
 }
