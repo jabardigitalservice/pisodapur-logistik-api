@@ -13,21 +13,18 @@ use App\FileUpload;
 use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
+use App\User;
 use App\Validation;
 use Log;
+use JWTAuth;
 
 class LogisticRequestController extends Controller
 {
     public function index(Request $request)
     {
-        $request->start_date = $request->filled('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
-        $request->end_date = $request->filled('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
-
         $limit = $request->input('limit', 10);
-        $sort = $request->filled('sort') ? ['agency_name ' . $request->input('sort') . ', ', 'updated_at DESC'] : ['updated_at DESC, ', 'agency_name ASC'];
-        $data = Agency::getList($request, false);
-        $data = $data->orderByRaw(implode($sort))->paginate($limit);
-        return response()->format(200, 'success', $data);
+        $data = Agency::getList($request, false)->paginate($limit);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function finalList(Request $request)
@@ -49,7 +46,7 @@ class LogisticRequestController extends Controller
             'data' => $logisticRequest,
             'total' => count($logisticRequest)
         ];
-        return response()->format(200, 'success', $data);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function store(Request $request)
@@ -82,13 +79,19 @@ class LogisticRequestController extends Controller
 
     public function show(Request $request, $id)
     {
-        $data = Agency::getList($request, true);
-        $data = $data->with([
-            'letter' => function ($query) {
-                return $query->select(['id', 'agency_id', 'letter']);
-            }
-        ])->where('id', '=', $id)->firstOrFail();
-        return response()->format(200, 'success', $data);
+        $data = Agency::getList($request, false)
+                        ->with('letter:id,agency_id,letter')
+                        ->where('agency.id', $id)
+                        ->firstOrFail();
+
+        $response = response()->format(Response::HTTP_OK, 'success', $data);
+
+        $isNotAdmin = !in_array(JWTAuth::user()->roles, User::ADMIN_ROLE);
+        $isDifferentDistrict = $data->location_district_code != JWTAuth::user()->roles;
+        if ($isNotAdmin && $isDifferentDistrict) {
+            $response = response()->format(Response::HTTP_UNAUTHORIZED, 'Permohonan anda salah, Anda tidak dapat membuka alamat URL tersebut');
+        }
+        return $response;
     }
 
     public function listNeed(Request $request)
@@ -184,7 +187,7 @@ class LogisticRequestController extends Controller
             'stock_checking_status' => 'required|string'
         ];
         $applicant = (Validation::validate($request, $param)) ? $this->updateApplicant($request) : null;
-        return response()->format(200, 'success', $applicant);
+        return response()->format(Response::HTTP_OK, 'success', $applicant);
     }
 
     public function masterFaskesCheck($request)
@@ -254,7 +257,7 @@ class LogisticRequestController extends Controller
             $model = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->first();
             $model->is_urgency = $request->is_urgency;
             $model->save();
-            $response = response()->format(200, 'success', $model);
+            $response = response()->format(Response::HTTP_OK, 'success', $model);
             Validation::setCompleteness($request);
         }
         Log::channel('dblogging')->debug('post:v1/logistic-request/urgency', $request->all());
