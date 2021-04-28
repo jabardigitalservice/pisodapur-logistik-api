@@ -161,25 +161,30 @@ class Agency extends Model
      */
     public function scopeSearchReport($query, $request)
     {
-        $startDate = $request->has('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
-        $endDate = $request->has('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
+        $isHasDateRangeFilter = $request->has('start_date') && $request->has('end_date');
+        if ($isHasDateRangeFilter) {
+            $startDate = $request->has('start_date') ? $request->input('start_date') . ' 00:00:00' : '2020-01-01 00:00:00';
+            $endDate = $request->has('end_date') ? $request->input('end_date') . ' 23:59:59' : date('Y-m-d H:i:s');
 
-        $query->whereBetween('acceptance_reports.date', [$startDate, $endDate])
-              ->when($request->has('search'), function ($query) use ($request) {
-                    $query->where(function ($query) use ($request) {
-                        $query->where('agency.id', 'LIKE', "%{$request->input('search')}%")
-                              ->orWhereHas('applicant', function ($query) use ($request) {
-                                    $query->where('applicant_name', 'LIKE', "%{$request->input('search')}%");
-                              });
-                    });
-              })
-              ->when($request->has('status'), function ($query) use ($request) {
-                    $query->when($request->input('status') == 1, function ($query) use ($request) {
-                        $query->has('acceptanceReport');
-                    }, function ($query) {
-                        $query->doesntHave('acceptanceReport');
-                    });
-              });
+            $query->whereBetween('acceptance_reports.date', [$startDate, $endDate]);
+        }
+
+        if ($request->has('search')) {
+            $query->where(function ($query) use ($request) {
+                $query->where('agency.id', 'LIKE', '%' . $request->input('search') . '%')
+                      ->orWhereHas('applicant', function ($query) use ($request) {
+                            $query->where('applicant_name', 'LIKE', '%' . $request->input('search') . '%');
+                      });
+            });
+        }
+
+        if ($request->has('status')) {
+            if ($request->input('status') == AcceptanceReport::STATUS_REPORTED) {
+                $query->has('acceptanceReport');
+            } else {
+                $query->doesntHave('acceptanceReport');
+            }
+        }
 
         return $query;
     }
