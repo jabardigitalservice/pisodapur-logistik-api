@@ -13,8 +13,10 @@ use App\FileUpload;
 use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
+use App\User;
 use App\Validation;
 use Log;
+use JWTAuth;
 
 class LogisticRequestController extends Controller
 {
@@ -81,7 +83,15 @@ class LogisticRequestController extends Controller
                         ->with('letter:id,agency_id,letter')
                         ->where('agency.id', $id)
                         ->firstOrFail();
-        return response()->format(Response::HTTP_OK, 'success', $data);
+
+        $response = response()->format(Response::HTTP_OK, 'success', $data);
+
+        $isNotAdmin = !in_array(JWTAuth::user()->roles, User::ADMIN_ROLE);
+        $isDifferentDistrict = $data->location_district_code != JWTAuth::user()->roles;
+        if ($isNotAdmin && $isDifferentDistrict) {
+            $response = response()->format(Response::HTTP_UNAUTHORIZED, 'Permohonan anda salah, Anda tidak dapat membuka alamat URL tersebut');
+        }
+        return $response;
     }
 
     public function listNeed(Request $request)
