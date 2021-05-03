@@ -297,9 +297,4 @@ class Agency extends Model
     {
         return $this->logisticRealizationItems();
     }
-
-    public function tracking()
-    {
-        return $this->hasOne('App\Applicant', 'agency_id', 'id');
-    }
 }

@@ -91,9 +91,9 @@ class Tracking extends Agency
 
     static function trackList(Request $request)
     {
-        $list = Agency::with([
+        $list = Tracking::with([
             'tracking' => function ($query) {
-                $query->select(self::selectFieldsList())->where('is_deleted', '!=' , 1);
+                $query->select(Tracking::selectFieldsList())->active();
             }
         ])->whereHas('applicant', function ($query) use ($request) {
             $query->when($request->input('search'), function ($query) use ($request)  {
@@ -108,5 +108,10 @@ class Tracking extends Agency
         ->orderBy('agency.created_at', 'desc')->limit(5)->get();
 
         return $list;
+    }
+
+    public function tracking()
+    {
+        return $this->hasOne('App\Applicant', 'agency_id', 'id');
     }
 }
