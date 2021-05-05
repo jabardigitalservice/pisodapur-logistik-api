@@ -10,6 +10,9 @@ ENV APACHE_PID_FILE /var/run/apache2.pid
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 ENV MAX_UPLOAD_SIZE 10M
 
+RUN apt-get update && apt-get install mysql-client -y
+
+RUN php composer.phar install
 RUN chown -R www-data:www-data \
         /var/www/html/storage \
         /var/www/html/bootstrap \
@@ -22,3 +25,5 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
     && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
   
 EXPOSE 80
+
+ENTRYPOINT [ "sh","docker/docker-entrypoint.sh" ]
