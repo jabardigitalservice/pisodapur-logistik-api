@@ -2501,7 +2501,7 @@
                 "shasum": ""
             },
             "require": {
-                "myclabs/php-enum": "^1.5",
+                "myclabs/php-enum": "1.7.7",
                 "php": ">= 7.1",
                 "psr/http-message": "^1.0",
                 "symfony/polyfill-mbstring": "^1.0"
@@ -2879,7 +2879,7 @@
         },
         {
             "name": "myclabs/php-enum",
-            "version": "1.8.0",
+            "version": "1.7.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/myclabs/php-enum.git",
