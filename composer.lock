@@ -2893,7 +2893,7 @@
             },
             "require": {
                 "ext-json": "*",
-                "php": "^7.3 || ^8.0"
+                "php": ">=7.1"
             },
             "require-dev": {
                 "phpunit/phpunit": "^9.5",
