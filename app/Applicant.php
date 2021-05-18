@@ -83,7 +83,20 @@ class Applicant extends Model
 
     public function getVerificationStatusAttribute($value)
     {
-        $status = $value == ApplicantStatusEnum::not_verified() ? LogisticRequestEnum::not_verified() : ($value == ApplicantStatusEnum::verified() ? LogisticRequestEnum::verified() : ($value == ApplicantStatusEnum::rejected() ? LogisticRequestEnum::request_rejected() : ''));
+        switch($value) {
+            case ApplicantStatusEnum::not_verified():
+                $status = LogisticRequestEnum::not_verified();
+                break;
+            case ApplicantStatusEnum::verified():
+                $status = LogisticRequestEnum::verified();
+                break;
+            case ApplicantStatusEnum::rejected():
+                $status = LogisticRequestEnum::request_rejected();
+                break;
+            default:
+                $value = '';
+                break;
+        }
         return $status;
     }
 
