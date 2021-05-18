@@ -69,19 +69,7 @@ class TrackController extends Controller
     public function recommendation(Request $request, $id)
     {
         $limit = $request->input('limit', 3);
-
-        $select = [
-            DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
-            'needs.id as need_id',
-            'logistic_realization_items.id as realization_id',
-            'products.category',
-            'logistic_realization_items.product_id as product_id',
-            'logistic_realization_items.product_name as product_name',
-            'logistic_realization_items.realization_quantity as quantity',
-            'realization_unit as unit_name',
-            'logistic_realization_items.created_at',
-            'logistic_realization_items.status as status'
-        ];
+        $select = $this->setSelect('recommendation');
 
         $logisticAdmin = Tracking::getLogisticAdmin($select, $request, $id) //List of item(s) added from admin
                                     ->whereIn('logistic_realization_items.status', ['approved', 'replaced'])
@@ -96,19 +84,7 @@ class TrackController extends Controller
     public function finalization(Request $request, $id)
     {
         $limit = $request->input('limit', 3);
-
-        $select = [
-            DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
-            'needs.id as need_id',
-            'logistic_realization_items.id as realization_id',
-            'products.category',
-            'logistic_realization_items.final_product_id as product_id',
-            'logistic_realization_items.final_product_name as product_name',
-            'logistic_realization_items.final_quantity as quantity',
-            'logistic_realization_items.final_unit as unit_name',
-            'logistic_realization_items.final_date as created_at',
-            'logistic_realization_items.final_status as status'
-        ];
+        $select = $this->setSelect('finalization');
 
         $logisticAdmin = Tracking::getLogisticAdmin($select, $request, $id) //List of item(s) added from admin
                                     ->whereIn('final_status', ['approved', 'replaced'])
@@ -136,5 +112,38 @@ class TrackController extends Controller
             'outbound_detail' => $outboundDetail,
         ];
         return $data;
+    }
+
+    public function setSelect($phase)
+    {
+        $select = [
+            DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
+            'needs.id as need_id',
+            'logistic_realization_items.id as realization_id',
+            'products.category',
+            'logistic_realization_items.final_product_id as product_id',
+            'logistic_realization_items.final_product_name as product_name',
+            'logistic_realization_items.final_quantity as quantity',
+            'logistic_realization_items.final_unit as unit_name',
+            'logistic_realization_items.final_date as created_at',
+            'logistic_realization_items.final_status as status'
+        ];
+
+        if ($phase == 'recommendation') {
+            $select = [
+                DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
+                'needs.id as need_id',
+                'logistic_realization_items.id as realization_id',
+                'products.category',
+                'logistic_realization_items.product_id as product_id',
+                'logistic_realization_items.product_name as product_name',
+                'logistic_realization_items.realization_quantity as quantity',
+                'realization_unit as unit_name',
+                'logistic_realization_items.created_at',
+                'logistic_realization_items.status as status'
+            ];
+        }
+
+        return $select;
     }
 }
