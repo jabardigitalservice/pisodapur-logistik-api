@@ -65,5 +65,32 @@ class TrackController extends Controller
                 ->orderBy('needs.id')
                 ->paginate($limit);
     }
+
+    public function recommendation(Request $request, $id)
+    {
+        $limit = $request->input('limit', 3);
+
+        $select = [
+            DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
+            'needs.id as need_id',
+            'logistic_realization_items.id as realization_id',
+            'products.category',
+            'logistic_realization_items.product_id as product_id',
+            'logistic_realization_items.product_name as product_name',
+            'logistic_realization_items.realization_quantity as quantity',
+            'realization_unit as unit_name',
+            'logistic_realization_items.created_at',
+            'logistic_realization_items.status as status'
+        ];
+
+        $logisticAdmin = Tracking::getLogisticAdmin($select, $request, $id) //List of item(s) added from admin
+                                    ->whereIn('logistic_realization_items.status', ['approved', 'replaced'])
+                                    ->whereNotNull('logistic_realization_items.recommendation_at');
+        $data = Tracking::getLogisticRequest($select, $request, $id) //List of updated item(s)
+                ->whereIn('logistic_realization_items.status', ['approved', 'replaced'])
+                ->whereNotNull('logistic_realization_items.recommendation_at')
+                ->union($logisticAdmin)->paginate($limit);
+        return $data;
+    }
     }
 }
