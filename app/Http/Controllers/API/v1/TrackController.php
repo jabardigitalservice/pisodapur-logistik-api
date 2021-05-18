@@ -3,8 +3,13 @@
 namespace App\Http\Controllers\API\v1;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Tracking;
+use App\Needs;
+use App\Outbound;
+use App\OutboundDetail;
+use DB;
 
 class TrackController extends Controller
 {
@@ -21,7 +26,7 @@ class TrackController extends Controller
             'total' => count($list),
             'application' => $list
         ];
-        return response()->format(200, 'success', $data);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     /**
@@ -38,6 +43,7 @@ class TrackController extends Controller
         $logisticRealizationItems = Tracking::getLogisticAdmin($select, $request, $id); //List of item(s) added from admin
         $data = Tracking::getLogisticRequest($select, $request, $id); //List of updated item(s)
         $data = $data->union($logisticRealizationItems)->paginate($limit);
-        return response()->format(200, 'success', $data);
+        return response()->format(Response::HTTP_OK, 'success', $data);
+    }
     }
 }
