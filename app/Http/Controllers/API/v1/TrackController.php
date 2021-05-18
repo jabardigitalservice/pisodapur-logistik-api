@@ -119,5 +119,22 @@ class TrackController extends Controller
                 ->union($logisticAdmin)->paginate($limit);
         return $data;
     }
+
+    public function outbound(Request $request, $id)
+    {
+        $limit = $request->input('limit', 3);
+        $outbound = Outbound::select('lo_id', 'whs_name', 'pic_name', 'pic_handphone', 'map_url')
+                    ->join('soh_locations', 'soh_locations.location_id', '=', 'outbounds.lo_location')
+                    ->where('req_id', $id)
+                    ->get();
+        $outboundDetail = OutboundDetail::query()
+                        ->where('req_id', $id)
+                        ->where('lo_id', $request->input('lo_id'))
+                        ->paginate($limit);
+        $data = [
+            'outbound' => $outbound,
+            'outbound_detail' => $outboundDetail,
+        ];
+        return $data;
     }
 }
