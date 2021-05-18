@@ -144,24 +144,25 @@ class Applicant extends Model
     public function getTrackingStatusAttribute()
     {
         $phase = TrackingStatusEnum::not_verified();
-        if ($this->approval_status == LogisticRequestEnum::approval_rejected()) {
-            $phase = TrackingStatusEnum::approval_rejected();
-        }
 
-        if ($this->verification_status == LogisticRequestEnum::request_rejected()) {
-            $phase = TrackingStatusEnum::verification_rejected();
-        }
-
-        if ($this->finalized_by) {
-            $phase = TrackingStatusEnum::finalized();
+        if ($this->verification_status == LogisticRequestEnum::verified()) {
+            $phase = TrackingStatusEnum::verified();
         }
 
         if ($this->approval_status == LogisticRequestEnum::approved()) {
             $phase = TrackingStatusEnum::approved();
         }
 
-        if ($this->verification_status == LogisticRequestEnum::verified()) {
-            $phase = TrackingStatusEnum::verified();
+        if ($this->finalized_by) {
+            $phase = TrackingStatusEnum::finalized();
+        }
+
+        if ($this->verification_status == LogisticRequestEnum::request_rejected()) {
+            $phase = TrackingStatusEnum::verification_rejected();
+        }
+
+        if ($this->approval_status == LogisticRequestEnum::approval_rejected()) {
+            $phase = TrackingStatusEnum::approval_rejected();
         }
         return $phase;
     }
