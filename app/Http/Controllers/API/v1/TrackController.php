@@ -45,5 +45,25 @@ class TrackController extends Controller
         $data = $data->union($logisticRealizationItems)->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
+
+    public function request(Request $request, $id)
+    {
+        $limit = $request->input('limit', 3);
+        return $data = Needs::select(
+                    'needs.id',
+                    'needs.product_id',
+                    'needs.brand as description',
+                    'needs.quantity',
+                    'needs.usage',
+                    'master_unit.unit as unit_name',
+                    'products.material_group',
+                    'products.name as product_name'
+                )
+                ->join('master_unit', 'master_unit.id', '=', 'needs.unit')
+                ->join('products', 'products.id', '=', 'needs.product_id')
+                ->where('needs.agency_id', $id)
+                ->orderBy('needs.id')
+                ->paginate($limit);
+    }
     }
 }
