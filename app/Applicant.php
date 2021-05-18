@@ -144,15 +144,23 @@ class Applicant extends Model
     public function getTrackingStatusAttribute()
     {
         $phase = TrackingStatusEnum::not_verified();
-        if ($this->approval_status == 'Permohonan Ditolak') {
+        if ($this->approval_status == LogisticRequestEnum::approval_rejected()) {
             $phase = TrackingStatusEnum::approval_rejected();
-        } else if ($this->verification_status == 'Pengajuan Ditolak') {
+        }
+
+        if ($this->verification_status == LogisticRequestEnum::request_rejected()) {
             $phase = TrackingStatusEnum::verification_rejected();
-        } else if ($this->finalized_by) {
+        }
+
+        if ($this->finalized_by) {
             $phase = TrackingStatusEnum::finalized();
-        } else if ($this->approval_status == 'Telah Disetujui') {
+        }
+
+        if ($this->approval_status == LogisticRequestEnum::approved()) {
             $phase = TrackingStatusEnum::approved();
-        } else if ($this->verification_status == 'Terverifikasi') {
+        }
+
+        if ($this->verification_status == LogisticRequestEnum::verified()) {
             $phase = TrackingStatusEnum::verified();
         }
         return $phase;
