@@ -66,33 +66,28 @@ class TrackController extends Controller
                 ->paginate($limit);
     }
 
-    public function recommendation(Request $request, $id)
+    public function getItems(Request $request, $id)
     {
         $limit = $request->input('limit', 3);
-        $select = $this->setSelect('recommendation');
+        $select = $this->setSelect($request);
 
-        $logisticAdmin = Tracking::getLogisticAdmin($select, $request, $id) //List of item(s) added from admin
-                                    ->whereIn('logistic_realization_items.status', ['approved', 'replaced'])
-                                    ->whereNotNull('logistic_realization_items.recommendation_at');
-        $data = Tracking::getLogisticRequest($select, $request, $id) //List of updated item(s)
-                ->whereIn('logistic_realization_items.status', ['approved', 'replaced'])
-                ->whereNotNull('logistic_realization_items.recommendation_at')
-                ->union($logisticAdmin)->paginate($limit);
-        return $data;
-    }
+        $logisticAdmin = Tracking::getLogisticAdmin($select, $request, $id); //List of item(s) added from admin
+        $data = Tracking::getLogisticRequest($select, $request, $id); //List of updated item(s)
 
-    public function finalization(Request $request, $id)
-    {
-        $limit = $request->input('limit', 3);
-        $select = $this->setSelect('finalization');
+        if ($request->route()->named('finalization')) {
+            $logisticAdmin = $logisticAdmin->whereIn('final_status', ['approved', 'replaced'])
+                        ->whereNotNull('logistic_realization_items.final_date');
 
-        $logisticAdmin = Tracking::getLogisticAdmin($select, $request, $id) //List of item(s) added from admin
-                                    ->whereIn('final_status', ['approved', 'replaced'])
-                                    ->whereNotNull('logistic_realization_items.final_date');
-        $data = Tracking::getLogisticRequest($select, $request, $id) //List of updated item(s)
-                ->whereIn('final_status', ['approved', 'replaced'])
-                ->whereNotNull('logistic_realization_items.final_date')
-                ->union($logisticAdmin)->paginate($limit);
+            $data = $data->whereIn('final_status', ['approved', 'replaced'])
+                ->whereNotNull('logistic_realization_items.final_date');
+        } else {
+            $logisticAdmin = $logisticAdmin->whereIn('logistic_realization_items.status', ['approved', 'replaced'])
+                        ->whereNotNull('logistic_realization_items.recommendation_at');
+
+            $data = $data->whereIn('logistic_realization_items.status', ['approved', 'replaced'])
+                ->whereNotNull('logistic_realization_items.recommendation_at');
+        }
+        $data = $data->union($logisticAdmin)->paginate($limit);
         return $data;
     }
 
@@ -114,16 +109,17 @@ class TrackController extends Controller
         return $data;
     }
 
-    public function setSelect($phase)
+    public function setSelect($request)
     {
         $select = [
             DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
             'needs.id as need_id',
             'logistic_realization_items.id as realization_id',
+            'logistic_realization_items.created_by',
             'products.category'
         ];
 
-        if ($phase == 'recommendation') {
+        if ($request->route()->named('recommendation')) {
             $select[] = 'logistic_realization_items.product_id as product_id';
             $select[] = 'logistic_realization_items.product_name as product_name';
             $select[] = 'logistic_realization_items.realization_quantity as quantity';

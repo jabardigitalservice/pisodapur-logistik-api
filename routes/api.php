@@ -59,8 +59,8 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/tracking', 'TrackController@index');
         Route::get('/tracking/{id}', 'TrackController@show');
         Route::get('/tracking/{id}/logistic-request', 'TrackController@request');
-        Route::get('/tracking/{id}/logistic-recommendation', 'TrackController@recommendation');
-        Route::get('/tracking/{id}/logistic-finalization', 'TrackController@finalization');
+        Route::get('/tracking/{id}/logistic-recommendation', 'TrackController@getItems')->name('recommendation');
+        Route::get('/tracking/{id}/logistic-finalization', 'TrackController@getItems')->name('finalization');
         Route::get('/tracking/{id}/logistic-outbound', 'TrackController@outbound');
     });
 
