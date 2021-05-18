@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Enums\ApplicantStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 use App\FileUpload;
 
@@ -78,7 +79,7 @@ class Applicant extends Model
 
     public function getVerificationStatusAttribute($value)
     {
-        $status = $value === self::STATUS_NOT_VERIFIED ? 'Belum Terverifikasi' : ($value === self::STATUS_VERIFIED ? 'Terverifikasi' : ($value === self::STATUS_REJECTED ? 'Pengajuan Ditolak' : ''));
+        $status = $value == ApplicantStatusEnum::not_verified() ? 'Belum Terverifikasi' : ($value == ApplicantStatusEnum::verified() ? 'Terverifikasi' : ($value == ApplicantStatusEnum::rejected() ? 'Pengajuan Ditolak' : ''));
         return $status;
     }
 
@@ -94,17 +95,17 @@ class Applicant extends Model
 
     public function getApprovalStatusAttribute($value)
     {
-        $status = $value === self::STATUS_APPROVED ? 'Telah Disetujui' : ($value === self::STATUS_REJECTED ? 'Permohonan Ditolak' : '');
+        $status = $value == ApplicantStatusEnum::approved() ? 'Telah Disetujui' : ($value == ApplicantStatusEnum::rejected() ? 'Permohonan Ditolak' : '');
         return $status;
     }
 
     // Cast for Tracking Module
     public function getVerificationAttribute($value)
     {
-        $status = $value === self::STATUS_VERIFIED ? TRUE : ($value === self::STATUS_REJECTED ? TRUE : FALSE);
+        $status = $value == ApplicantStatusEnum::verified() ? TRUE : ($value == ApplicantStatusEnum::rejected() ? TRUE : FALSE);
         $result = [
             'status' => $status,
-            'is_reject' => $value === self::STATUS_REJECTED ? TRUE : FALSE,
+            'is_reject' => $value == ApplicantStatusEnum::rejected() ? TRUE : FALSE,
         ];
         return $result;
     }
@@ -112,10 +113,10 @@ class Applicant extends Model
     // Cast for Tracking Module
     public function getApprovalAttribute($value)
     {
-        $status = $value === self::STATUS_APPROVED ? TRUE : ($value === self::STATUS_REJECTED ? TRUE : FALSE);
+        $status = $value == ApplicantStatusEnum::approved() ? TRUE : ($value == ApplicantStatusEnum::rejected() ? TRUE : FALSE);
         $result = [
             'status' => $status,
-            'is_reject' => $value === self::STATUS_REJECTED ? TRUE : FALSE,
+            'is_reject' => $value == ApplicantStatusEnum::rejected() ? TRUE : FALSE,
         ];
         return $result;
     }
@@ -124,13 +125,13 @@ class Applicant extends Model
     public function getStatusAttribute($value)
     {
         $status = 'Permohonan Diterima';
-        if ($value == self::STATUS_APPROVED . '-' . self::STATUS_VERIFIED) {
+        if ($value == ApplicantStatusEnum::approved() . '-' . ApplicantStatusEnum::verified()) {
                 $status = 'Permohonan Disetujui';
-        } elseif ($value == self::STATUS_REJECTED . '-' . self::STATUS_VERIFIED) {
+        } elseif ($value == ApplicantStatusEnum::rejected() . '-' . ApplicantStatusEnum::verified()) {
                 $status = 'Permohonan Ditolak';
-        } elseif ($value == self::STATUS_NOT_APPROVED . '-' . self::STATUS_VERIFIED) {
+        } elseif ($value == ApplicantStatusEnum::not_approved() . '-' . ApplicantStatusEnum::verified()) {
                 $status = 'Administrasi Terverifikasi';
-        } elseif ($value == self::STATUS_NOT_APPROVED . '-' . self::STATUS_REJECTED) {
+        } elseif ($value == ApplicantStatusEnum::not_approved() . '-' . ApplicantStatusEnum::rejected()) {
                 $status = 'Administrasi Ditolak';
         }
         return $status;
@@ -144,7 +145,7 @@ class Applicant extends Model
 
     static function applicantStore($request)
     {
-        $request['verification_status'] = self::STATUS_NOT_VERIFIED;
+        $request['verification_status'] = ApplicantStatusEnum::not_verified();
         $request['applicants_office'] = $request->input('applicants_office') == 'undefined' ? '' : $request->input('applicants_office', '');
         $request['email'] = $request->input('email') == 'undefined' ? '' : $request->input('email', '');
         $request['secondary_phone_number'] = $request->input('secondary_phone_number') == 'undefined' ? '' : $request->input('secondary_phone_number', '');
