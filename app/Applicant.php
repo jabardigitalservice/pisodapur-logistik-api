@@ -125,7 +125,7 @@ class Applicant extends Model
         } elseif ($value == ApplicantStatusEnum::rejected() . '-' . ApplicantStatusEnum::verified()) {
             $status = LogisticRequestEnum::approval_rejected();
         } elseif ($value == ApplicantStatusEnum::not_approved() . '-' . ApplicantStatusEnum::verified()) {
-            $status = LogisticRequestEnum::not_yet_approve();
+            $status = LogisticRequestEnum::not_yet_approved();
         } elseif ($value == ApplicantStatusEnum::not_approved() . '-' . ApplicantStatusEnum::rejected()) {
             $status = LogisticRequestEnum::verification_rejected();
         }

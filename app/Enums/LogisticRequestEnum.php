@@ -68,7 +68,7 @@ class LogisticRequestEnum extends Enum
         };
     }
 
-    public static function not_yet_approve(): LogisticRequestEnum
+    public static function not_yet_approved(): LogisticRequestEnum
     {
         return new class () extends LogisticRequestEnum {
             public function getValue(): string
