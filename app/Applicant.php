@@ -150,12 +150,11 @@ class Applicant extends Model
             $phase = TrackingStatusEnum::verification_rejected();
         } else if ($this->finalized_by) {
             $phase = TrackingStatusEnum::finalized();
-        } else if ($this->verification_status == LogisticRequestEnum::verified() && $this->approval_status == LogisticRequestEnum::approved()) {
+        } else if ($this->approval_status == LogisticRequestEnum::approved()) {
             $phase = TrackingStatusEnum::approved();
         } else if ($this->verification_status == LogisticRequestEnum::verified()) {
             $phase = TrackingStatusEnum::verified();
         }
-        // return $this->verification_status . '-' . $this->approval_status . '-' . $this->finalized_by;
         return $phase;
     }
 
