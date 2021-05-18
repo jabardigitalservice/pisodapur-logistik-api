@@ -104,39 +104,17 @@ class Applicant extends Model
     }
 
     // Cast for Tracking Module
-    public function getVerificationAttribute($value)
-    {
-        $status = $value == ApplicantStatusEnum::verified() ? TRUE : ($value == ApplicantStatusEnum::rejected() ? TRUE : FALSE);
-        $result = [
-            'status' => $status,
-            'is_reject' => $value == ApplicantStatusEnum::rejected() ? TRUE : FALSE,
-        ];
-        return $result;
-    }
-
-    // Cast for Tracking Module
-    public function getApprovalAttribute($value)
-    {
-        $status = $value == ApplicantStatusEnum::approved() ? TRUE : ($value == ApplicantStatusEnum::rejected() ? TRUE : FALSE);
-        $result = [
-            'status' => $status,
-            'is_reject' => $value == ApplicantStatusEnum::rejected() ? TRUE : FALSE,
-        ];
-        return $result;
-    }
-
-    // Cast for Tracking Module
     public function getStatusAttribute($value)
     {
         $status = LogisticRequestEnum::not_yet_verify();
         if ($value == ApplicantStatusEnum::approved() . '-' . ApplicantStatusEnum::verified()) {
-                $status = LogisticRequestEnum::recommended();
+            $status = LogisticRequestEnum::recommended();
         } elseif ($value == ApplicantStatusEnum::rejected() . '-' . ApplicantStatusEnum::verified()) {
-                $status = LogisticRequestEnum::approval_rejected();
+            $status = LogisticRequestEnum::approval_rejected();
         } elseif ($value == ApplicantStatusEnum::not_approved() . '-' . ApplicantStatusEnum::verified()) {
-                $status = LogisticRequestEnum::not_yet_approve();
+            $status = LogisticRequestEnum::not_yet_approve();
         } elseif ($value == ApplicantStatusEnum::not_approved() . '-' . ApplicantStatusEnum::rejected()) {
-                $status = LogisticRequestEnum::verification_rejected();
+            $status = LogisticRequestEnum::verification_rejected();
         }
         return $status;
     }
