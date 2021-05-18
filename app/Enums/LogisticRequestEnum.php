@@ -5,12 +5,12 @@ namespace App\Enums;
 use Spatie\Enum\Enum;
 
 /**
- * @method static self not_yet_verify()
+ * @method static self not_yet_verified()
  * @method static self not_verified()
  * @method static self verified()
  * @method static self recommended()
  * @method static self approval_rejected()
- * @method static self not_yet_approve()
+ * @method static self not_yet_approved()
  * @method static self approved()
  * @method static self verification_rejected()
  * @method static self request_rejected()
@@ -18,7 +18,7 @@ use Spatie\Enum\Enum;
 
 class LogisticRequestEnum extends Enum
 {
-    public static function not_yet_verify(): LogisticRequestEnum
+    public static function not_yet_verified(): LogisticRequestEnum
     {
         return new class () extends LogisticRequestEnum {
             public function getValue(): string

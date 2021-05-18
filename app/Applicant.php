@@ -119,7 +119,7 @@ class Applicant extends Model
     // Cast for Tracking Module
     public function getStatusAttribute($value)
     {
-        $status = LogisticRequestEnum::not_yet_verify();
+        $status = LogisticRequestEnum::not_yet_verified();
         if ($value == ApplicantStatusEnum::approved() . '-' . ApplicantStatusEnum::verified()) {
             $status = LogisticRequestEnum::recommended();
         } elseif ($value == ApplicantStatusEnum::rejected() . '-' . ApplicantStatusEnum::verified()) {
