@@ -75,7 +75,6 @@ class TrackController extends Controller
 
     public function getItems(Request $request, $id)
     {
-        $limit = $request->input('limit', 3);
         $applicant = Applicant::where('agency_id', $id)->active()->first();
         $select = $this->setSelect($request);
 
@@ -83,20 +82,7 @@ class TrackController extends Controller
         $data = Tracking::getLogisticRequest($select, $request, $id); //List of updated item(s)
 
         $status = $applicant->tracking_status;
-        if ($request->route()->named('finalization')) {
-            $logisticAdmin = $logisticAdmin->whereIn('final_status', ['approved', 'replaced'])
-                        ->whereNotNull('logistic_realization_items.final_date');
-
-            $data = $data->whereIn('final_status', ['approved', 'replaced'])
-                ->whereNotNull('logistic_realization_items.final_date');
-        } else {
-            $logisticAdmin = $logisticAdmin->whereIn('logistic_realization_items.status', ['approved', 'replaced'])
-                        ->whereNotNull('logistic_realization_items.recommendation_at');
-
-            $data = $data->whereIn('logistic_realization_items.status', ['approved', 'replaced'])
-                ->whereNotNull('logistic_realization_items.recommendation_at');
-        }
-        $data = $data->union($logisticAdmin)->paginate($limit);
+        $data = $this->whereByStatus($request, $logisticAdmin, $data);
 
         return [
             'status' => $status,
@@ -149,5 +135,25 @@ class TrackController extends Controller
         }
 
         return $select;
+    }
+
+    public function whereByStatus($request, $logisticAdmin, $data)
+    {
+        $limit = $request->input('limit', 3);
+        if ($request->route()->named('finalization')) {
+            $logisticAdmin = $logisticAdmin->whereIn('final_status', ['approved', 'replaced'])
+                        ->whereNotNull('logistic_realization_items.final_date');
+
+            $data = $data->whereIn('final_status', ['approved', 'replaced'])
+                ->whereNotNull('logistic_realization_items.final_date');
+        } else {
+            $logisticAdmin = $logisticAdmin->whereIn('logistic_realization_items.status', ['approved', 'replaced'])
+                        ->whereNotNull('logistic_realization_items.recommendation_at');
+
+            $data = $data->whereIn('logistic_realization_items.status', ['approved', 'replaced'])
+                ->whereNotNull('logistic_realization_items.recommendation_at');
+        }
+
+        return $data->union($logisticAdmin)->paginate($limit);
     }
 }
