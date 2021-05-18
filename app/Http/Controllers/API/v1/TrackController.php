@@ -120,28 +120,23 @@ class TrackController extends Controller
             DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
             'needs.id as need_id',
             'logistic_realization_items.id as realization_id',
-            'products.category',
-            'logistic_realization_items.final_product_id as product_id',
-            'logistic_realization_items.final_product_name as product_name',
-            'logistic_realization_items.final_quantity as quantity',
-            'logistic_realization_items.final_unit as unit_name',
-            'logistic_realization_items.final_date as created_at',
-            'logistic_realization_items.final_status as status'
+            'products.category'
         ];
 
         if ($phase == 'recommendation') {
-            $select = [
-                DB::raw('IFNULL(logistic_realization_items.id, needs.id) as id'),
-                'needs.id as need_id',
-                'logistic_realization_items.id as realization_id',
-                'products.category',
-                'logistic_realization_items.product_id as product_id',
-                'logistic_realization_items.product_name as product_name',
-                'logistic_realization_items.realization_quantity as quantity',
-                'realization_unit as unit_name',
-                'logistic_realization_items.created_at',
-                'logistic_realization_items.status as status'
-            ];
+            $select[] = 'logistic_realization_items.product_id as product_id';
+            $select[] = 'logistic_realization_items.product_name as product_name';
+            $select[] = 'logistic_realization_items.realization_quantity as quantity';
+            $select[] = 'realization_unit as unit_name';
+            $select[] = 'logistic_realization_items.created_at';
+            $select[] = 'logistic_realization_items.status as status';
+        } else {
+            $select[] = 'logistic_realization_items.final_product_id as product_id';
+            $select[] = 'logistic_realization_items.final_product_name as product_name';
+            $select[] = 'logistic_realization_items.final_quantity as quantity';
+            $select[] = 'logistic_realization_items.final_unit as unit_name';
+            $select[] = 'logistic_realization_items.final_date as created_at';
+            $select[] = 'logistic_realization_items.final_status as status';
         }
 
         return $select;
