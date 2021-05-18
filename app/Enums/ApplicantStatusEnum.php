@@ -15,4 +15,5 @@ use Spatie\Enum\Enum;
 
 class ApplicantStatusEnum extends Enum
 {
+
 }

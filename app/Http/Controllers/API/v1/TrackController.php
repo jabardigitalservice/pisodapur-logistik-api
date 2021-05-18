@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\v1;
 
+use App\Applicant;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
@@ -49,7 +50,8 @@ class TrackController extends Controller
     public function request(Request $request, $id)
     {
         $limit = $request->input('limit', 3);
-        return $data = Needs::select(
+        $applicant = Applicant::where('agency_id', $id)->active()->first();
+        $items = Needs::select(
                     'needs.id',
                     'needs.product_id',
                     'needs.brand as description',
@@ -64,16 +66,23 @@ class TrackController extends Controller
                 ->where('needs.agency_id', $id)
                 ->orderBy('needs.id')
                 ->paginate($limit);
+
+        return [
+            'status' => $applicant->tracking_status,
+            'items' => $items
+        ];
     }
 
     public function getItems(Request $request, $id)
     {
         $limit = $request->input('limit', 3);
+        $applicant = Applicant::where('agency_id', $id)->active()->first();
         $select = $this->setSelect($request);
 
         $logisticAdmin = Tracking::getLogisticAdmin($select, $request, $id); //List of item(s) added from admin
         $data = Tracking::getLogisticRequest($select, $request, $id); //List of updated item(s)
 
+        $status = $applicant->tracking_status;
         if ($request->route()->named('finalization')) {
             $logisticAdmin = $logisticAdmin->whereIn('final_status', ['approved', 'replaced'])
                         ->whereNotNull('logistic_realization_items.final_date');
@@ -88,7 +97,11 @@ class TrackController extends Controller
                 ->whereNotNull('logistic_realization_items.recommendation_at');
         }
         $data = $data->union($logisticAdmin)->paginate($limit);
-        return $data;
+
+        return [
+            'status' => $status,
+            'items' => $data
+        ];
     }
 
     public function outbound(Request $request, $id)
