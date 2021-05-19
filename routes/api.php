@@ -62,6 +62,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/tracking/{id}/logistic-recommendation', 'TrackController@getItems')->name('recommendation');
         Route::get('/tracking/{id}/logistic-finalization', 'TrackController@getItems')->name('finalization');
         Route::get('/tracking/{id}/logistic-outbound', 'OutboundController@tracking');
+        Route::get('/tracking/{id}/logistic-outbound/{loId}', 'OutboundDetailController@tracking');
     });
 
     //Insert New Logistic Request Public
