@@ -94,7 +94,7 @@ class Applicant extends Model
                 $status = LogisticRequestEnum::request_rejected();
                 break;
             default:
-                $value = '';
+                $status = '';
                 break;
         }
         return $status;
