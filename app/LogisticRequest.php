@@ -65,10 +65,10 @@ class LogisticRequest extends Model
         DB::beginTransaction();
         try {
             $responseData['agency'] = self::agencyStore($request);
-            $request->request->add(['agency_id' => $responseData['agency']->id]);
+            $request->merge(['agency_id' => $responseData['agency']->id]);
 
             $responseData['applicant'] = Applicant::applicantStore($request);
-            $request->request->add(['applicant_id' => $responseData['applicant']->id]);
+            $request->merge(['applicant_id' => $responseData['applicant']->id]);
 
             if ($request->hasFile('applicant_file')) {
                 $responseData['applicant_file'] = FileUpload::storeApplicantFile($request);
@@ -177,10 +177,6 @@ class LogisticRequest extends Model
             case 3:
                 $model = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->firstOrFail();
                 $request = self::setRequestEditLetter($request);
-                break;
-            default:
-                $model = Agency::findOrFail($request->agency_id);
-                $request['agency_name'] = MasterFaskes::getFaskesName($request);
                 break;
         }
         unset($request['id']);

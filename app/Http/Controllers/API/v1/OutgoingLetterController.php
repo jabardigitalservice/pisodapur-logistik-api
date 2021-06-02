@@ -27,11 +27,11 @@ class OutgoingLetterController extends Controller
         $limit = $request->input('limit', 10);
         $sortType = $request->input('sort', 'DESC');
         $data = OutgoingLetter::where(function ($query) use ($request) {
-            if ($request->filled('letter_number')) {
+            if ($request->has('letter_number')) {
                 $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
             }
 
-            if ($request->filled('letter_date')) {
+            if ($request->has('letter_date')) {
                 $query->where('letter_date', $request->input('letter_date'));
             }
 
@@ -73,14 +73,9 @@ class OutgoingLetterController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $data = [];
         $limit = $request->input('limit', 10);
-        try {
-            $outgoingLetter = OutgoingLetter::find($id);
-            $data = [ 'outgoing_letter' => $outgoingLetter ];
-        } catch (\Exception $exception) {
-            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
-        }
+        $outgoingLetter = OutgoingLetter::find($id);
+        $data = [ 'outgoing_letter' => $outgoingLetter ];
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
@@ -135,7 +130,7 @@ class OutgoingLetterController extends Controller
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === Response::HTTP_OK) {
             try {
-                $path = Storage::disk('s3')->put('registration/outgoing_letter', $request->file);
+                $path = Storage::put('registration/outgoing_letter', $request->file);
                 $fileUpload = FileUpload::create(['name' => $path]);
                 $fileUploadId = $fileUpload->id;
                 $update = OutgoingLetter::where('id', $request->id)->update([//Update file to Outgoing Letter by ID
@@ -163,10 +158,10 @@ class OutgoingLetterController extends Controller
     {
         DB::beginTransaction();
         try {
-            $request->request->add(['user_id' => JWTAuth::user()->id]);
-            $request->request->add(['status' =>  OutgoingLetter::NOT_APPROVED]);
+            $request->merge(['user_id' => JWTAuth::user()->id]);
+            $request->merge(['status' =>  OutgoingLetter::NOT_APPROVED]);
             $outgoing_letter = OutgoingLetter::create($request->all());
-            $request->request->add(['outgoing_letter_id' => $outgoing_letter->id]);
+            $request->merge(['outgoing_letter_id' => $outgoing_letter->id]);
             $request_letter = $this->requestLetterStore($request);
             $response = [
                 'outgoing_letter' => $outgoing_letter,
