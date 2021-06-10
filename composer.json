@@ -9,6 +9,7 @@
     "license": "MIT",
     "require": {
         "php": "^7.2.5",
+        "composer-runtime-api": "2.0.0",
         "async-aws/core": "^1.10",
         "async-aws/sns": "^1.2",
         "async-aws/sqs": "^1.5",
