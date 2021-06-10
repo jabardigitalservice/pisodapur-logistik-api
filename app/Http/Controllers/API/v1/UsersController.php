@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\v1;
 use App\User;
 use App\Validation;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
@@ -76,9 +77,9 @@ class UsersController extends ApiController
 
     public function changePassword(Request $request)
     {
-        $request->request->add(['username' => JWTAuth::user()->username]);
+        $request->merge(['username' => JWTAuth::user()->username]);
         $response = $this->authenticate($request);
-        if ($response->getStatusCode() === 200) {
+        if ($response->getStatusCode() === Response::HTTP_OK) {
             $update = User::where('id', JWTAuth::user()->id)->update(['password' => bcrypt($request->password_new)]);
             return response()->format(200, true, $update);
         }

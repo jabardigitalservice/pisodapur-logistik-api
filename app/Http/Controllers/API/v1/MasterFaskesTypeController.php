@@ -17,10 +17,10 @@ class MasterFaskesTypeController extends Controller
 
         try {
             $data = MasterFaskesType::where(function ($query) use ($request) {
-                if ($request->filled('is_imported')) {
+                if ($request->has('is_imported')) {
                     $query->where('is_imported', $request->input('is_imported'));
                 }
-                if ($request->filled('non_public')) {
+                if ($request->has('non_public')) {
                     $query->where('non_public', $request->input('non_public'));
                 }
             })->get();
@@ -69,7 +69,7 @@ class MasterFaskesTypeController extends Controller
                             });
                         }])
                         ->orderBy('total', 'desc')
-                        ->firstOrFail();
+                        ->first();
 
         $agencyTotal = Agency::select('agency_type')
                             ->whereHas('applicant', function($query) use ($request) {

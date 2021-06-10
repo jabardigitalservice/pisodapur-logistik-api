@@ -58,6 +58,11 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         //Tracking Application
         Route::get('/tracking', 'TrackController@index');
         Route::get('/tracking/{id}', 'TrackController@show');
+        Route::get('/tracking/{id}/logistic-request', 'TrackController@request');
+        Route::get('/tracking/{id}/logistic-recommendation', 'TrackController@getItems')->name('recommendation');
+        Route::get('/tracking/{id}/logistic-finalization', 'TrackController@getItems')->name('finalization');
+        Route::get('/tracking/{id}/logistic-outbound', 'OutboundController@tracking');
+        Route::get('/tracking/{id}/logistic-outbound/{loId}', 'OutboundDetailController@tracking');
     });
 
     //Insert New Logistic Request Public
@@ -106,31 +111,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/products-total-request', 'ProductsController@productRequest');
         Route::get('/products-top-request', 'ProductsController@productTopRequest');
 
-        // TRANSACTIONS
-        Route::prefix('/transactions')->group(function() {
-            Route::get('/summary', 'TransactionController@summary');
-            Route::get('/export', 'TransactionController@export');
-            Route::get('/{id}', 'TransactionController@show');
-            Route::put('/{id}', 'TransactionController@update');
-            Route::delete('/{id}', 'TransactionController@destroy');
-            Route::get('/', 'TransactionController@index');
-            Route::post('/', 'TransactionController@store');
-        });
-
-        Route::prefix('/recipients')->group(function() {
-          Route::get('/', 'RecipientController@index');
-          Route::get('/rdt-result-summary', 'RecipientController@summary_rdt_result');
-          Route::get('/summary', 'RecipientController@summary');
-          // need to be last so /summary wont be treated as city_code=summary
-          Route::get('/{city_code}', 'RecipientController@show');
-        });
-
-        Route::prefix('/recipients-faskes')->group(function() {
-          Route::get('/summary', 'RecipientFaskesController@summary');
-          Route::get('/export', 'RecipientFaskesController@export');
-          Route::get('/', 'RecipientFaskesController@index');
-        });
-
         Route::get('/logistic-request', 'LogisticRequestController@index');
         Route::get('/logistic-request/{id}', 'LogisticRequestController@show');
         Route::post('/logistic-request/verification', 'LogisticRequestController@changeStatus')->name('verification');
@@ -142,7 +122,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::post('/logistic-request-non-public', 'LogisticRequestController@store')->name('non-public');
         Route::post('/logistic-request/approval', 'LogisticRequestController@changeStatus')->name('approval');
         Route::post('/logistic-request/final', 'LogisticRequestController@changeStatus')->name('final');
-        Route::post('/logistic-request/stock-checking', 'LogisticRequestController@stockCheking');
         Route::post('/logistic-request/letter/{id}', 'LogisticRequestController@uploadLetter');
         Route::post('/logistic-request/identity/{id}', 'LogisticRequestController@uploadApplicantFile');
         Route::post('/logistic-request/urgency', 'LogisticRequestController@urgencyChange');
@@ -183,7 +162,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
         //Incoming Letter Management
         Route::get('/incoming-letter', 'IncomingLetterController@index');
-        Route::get('/incoming-letter/{id}', 'IncomingLetterController@show');
 
         //Dashboard
         Route::get('/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
