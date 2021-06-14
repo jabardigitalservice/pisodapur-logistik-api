@@ -12,18 +12,22 @@ ENV MAX_UPLOAD_SIZE 10M
 
 RUN apt-get update && apt-get install mysql-client -y
 
-RUN php composer.phar install
+# Install composer
+COPY --from=registry.digitalservice.id/proxyjds/library/composer:2.0.9 /usr/bin/composer /usr/bin/composer
+
+RUN composer install --no-dev
+
 RUN chown -R www-data:www-data \
         /var/www/html/storage \
         /var/www/html/bootstrap \
         && chmod -R 777 /var/www/html/storage \
         /var/www/html/bootstrap
-        
+
 COPY docker/php/php.ini /usr/local/etc/php/php.ini
 
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
     && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-  
+
 EXPOSE 80
 
 ENTRYPOINT [ "sh","docker/docker-entrypoint.sh" ]
