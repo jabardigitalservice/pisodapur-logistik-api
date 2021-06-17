@@ -49,18 +49,22 @@ class IncomingLetter extends Model
     static function whereList(Request $request, $data)
     {
         return $data->where(function ($query) use ($request) {
-            if ($request->has('letter_date')) {
+            $query->when($request->input('letter_date'), function ($query) use ($request) {
                 $query->whereRaw("DATE(applicants.created_at) = '" . $request->input('letter_date') . "'");
-            }
-            if ($request->has('district_code')) {
+            });
+
+            $query->when($request->input('district_code'), function ($query) use ($request) {
                 $query->where('agency.location_district_code', '=', $request->input('district_code'));
-            }
-            if ($request->has('agency_type')) {
+            });
+
+            $query->when($request->input('agency_type'), function ($query) use ($request) {
                 $query->where('agency.agency_type', '=', $request->input('agency_type'));
-            }
-            if ($request->has('letter_number')) {
+            });
+
+            $query->when($request->input('letter_number'), function ($query) use ($request) {
                 $query->where('applicants.application_letter_number', 'LIKE', "%{$request->input('letter_number')}%");
-            }
+            });
+
             if ($request->has('mail_status')) {
                 if ($request->input('mail_status') === 'exists') {
                     $query->whereNotNull('request_letters.id');
