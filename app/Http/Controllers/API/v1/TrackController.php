@@ -69,6 +69,7 @@ class TrackController extends Controller
 
         return [
             'status' => $applicant->tracking_status,
+            'note' => $applicant->note,
             'items' => $items
         ];
     }
