@@ -225,7 +225,11 @@ class OutgoingLetterController extends Controller
             'final_unit',
             'material_group',
             'soh_location_name'
-        )->orderBy('agency_name', 'final_product_id', 'final_product_name')->get();
+        )
+        ->orderBy('agency_name')
+        ->orderBy('final_product_id')
+        ->orderBy('final_product_name')
+        ->get();
         return $data;
     }
 }
