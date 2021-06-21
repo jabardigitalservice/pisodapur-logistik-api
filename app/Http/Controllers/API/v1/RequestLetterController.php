@@ -156,16 +156,16 @@ class RequestLetterController extends Controller
     {
         $realization_total = LogisticRealizationItems::where('agency_id', $request_letter->agency_id)
         ->where('applicant_id', $request_letter->applicant_id)
-        ->sum('realization_quantity');
+        ->sum('final_quantity');
 
 
         $realization = LogisticRealizationItems::where('agency_id', $request_letter->agency_id)
         ->where('applicant_id', $request_letter->applicant_id)
-        ->whereNotNull('realization_date')
+        ->whereNotNull('final_date')
         ->first();
 
         $request_letter->realization_total = $realization_total;
-        $request_letter->realization_date = $realization['realization_date'];
+        $request_letter->realization_date = $realization['final_date'];
 
         $data = $request_letter;
         return $data;
