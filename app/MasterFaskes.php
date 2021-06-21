@@ -52,37 +52,6 @@ class MasterFaskes extends Model
         return $name;
     }
 
-    static function getFaskesList($request)
-    {
-        $limit = $request->input('limit', 20);
-        $sort = $request->input('sort') ?? 'asc';
-
-        $data = self::with('masterFaskesType')
-        ->where(function ($query) use ($request) {
-            if ($request->has('nama_faskes')) {
-                $query->where('master_faskes.nama_faskes', 'LIKE', "%{$request->input('nama_faskes')}%");
-            }
-
-            if ($request->has('id_tipe_faskes')) {
-                $query->where('master_faskes.id_tipe_faskes', '=', $request->input('id_tipe_faskes'));
-            }
-
-            if ($request->has('verification_status')) {
-                $query->where('master_faskes.verification_status', '=', $request->input('verification_status'));
-            } else {
-                $query->where('master_faskes.verification_status', '=', self::STATUS_VERIFIED);
-            }
-
-            if ($request->has('is_imported')) {
-                $query->where('master_faskes.is_imported', $request->input('is_imported'));
-            }
-
-        })
-        ->orderBy('nama_faskes', $sort)
-        ->paginate($limit);
-        return $data;
-    }
-
     static function createFaskes(Request $request)
     {
         try {

@@ -5,17 +5,40 @@ namespace App\Http\Controllers\API\v1;
 use App\MasterFaskes;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Traits\PaginateTrait;
 use App\Validation;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 
 class MasterFaskesController extends Controller
 {
+    use PaginateTrait;
+
     public function index(Request $request)
     {
-        $data = MasterFaskes::getFaskesList($request);
-        $response = response()->format(Response::HTTP_OK, 'success', $data);
-        return $response;
+        $limit = $request->input('limit', 20);
+        $sort = $this->getValidOrderDirection($request->input('sort'));
+
+        $data = MasterFaskes::with('masterFaskesType')
+                ->where(function ($query) use ($request) {
+                    $query->when($request->has('nama_faskes'), function ($query) use ($request) {
+                        $query->where('master_faskes.nama_faskes', 'LIKE', "%{$request->input('nama_faskes')}%");
+                    })
+                    ->when($request->has('id_tipe_faskes'), function ($query) use ($request) {
+                        $query->where('master_faskes.id_tipe_faskes', '=', $request->input('id_tipe_faskes'));
+                    })
+                    ->when($request->has('verification_status'), function ($query) use ($request) {
+                        $query->where('master_faskes.verification_status', '=', $request->input('verification_status'));
+                    }, function ($query) use ($request) {
+                        $query->where('master_faskes.verification_status', '=', MasterFaskes::STATUS_VERIFIED);
+                    })
+                    ->when($request->has('is_imported'), function ($query) use ($request) {
+                        $query->where('master_faskes.is_imported', $request->input('is_imported'));
+                    });
+                })
+                ->orderBy('nama_faskes', $sort)
+                ->paginate($limit);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function show($id)
