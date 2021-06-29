@@ -25,7 +25,7 @@ spec:
         - name: logistik-api-app
           image: registry.digitalservice.id/logistik-pikobar/api-logistik-production:%VERSION%
           ports:
-            - containerPort: 80
+            - containerPort: 8080
           readinessProbe:
             tcpSocket:
               port: 8080
