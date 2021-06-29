@@ -108,16 +108,12 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         // PRODUCTS
         Route::get('/products', 'ProductsController@index');
         Route::get('/products/{id}', 'ProductsController@show');
-        Route::get('/products-total-request', 'ProductsController@productRequest');
-        Route::get('/products-top-request', 'ProductsController@productTopRequest');
 
         Route::get('/logistic-request', 'LogisticRequestController@index');
-        Route::get('/logistic-request/{id}', 'LogisticRequestController@show');
         Route::post('/logistic-request/verification', 'LogisticRequestController@changeStatus')->name('verification');
         Route::get('/logistic-request/need/list', 'LogisticRequestController@listNeed');
         Route::post('/logistic-request/import', 'LogisticRequestController@import');
         Route::post('/logistic-request/realization', 'LogisticRealizationItemController@store');
-        Route::get('/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
         Route::get('/logistic-request/data/export', 'ExportLogisticRequestController@export');
         Route::post('/logistic-request-non-public', 'LogisticRequestController@store')->name('non-public');
         Route::post('/logistic-request/approval', 'LogisticRequestController@changeStatus')->name('approval');
@@ -162,11 +158,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
         //Incoming Letter Management
         Route::get('/incoming-letter', 'IncomingLetterController@index');
-
-        //Dashboard
-        Route::get('/faskes-type-total-request', 'MasterFaskesTypeController@masterFaskesTypeRequest');
-        Route::get('/faskes-type-top-request', 'MasterFaskesTypeController@masterFaskesTypeTopRequest');
-        Route::get('/logistic-request-summary', 'LogisticRequestController@requestSummary');
 
         //Notification via Whatsapp
         Route::post('/notify', 'ChangeStatusNotifyController@sendNotification');
