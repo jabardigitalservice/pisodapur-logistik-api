@@ -27,7 +27,6 @@
         <div>Salam,</div>
         <div>{{ $from }}</div>
         <div>Hotline Pikobar: {{ $hotLine }}</div>
-        <div>Email: digital.service@jabarprov.go.id</div>
     </div>
 </body>
 </html>
