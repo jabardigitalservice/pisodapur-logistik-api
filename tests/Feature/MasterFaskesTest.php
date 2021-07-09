@@ -88,13 +88,39 @@ class MasterFaskesTest extends TestCase
 
     public function testGetFaskesTypeTotalRequest()
     {
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/faskes-type-total-request');
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
+        ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)->json('GET', '/api/v1/faskes-type-total-request');
         $response->assertSuccessful();
     }
 
     public function testGetFaskesTypeTopRequest()
     {
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/faskes-type-top-request');
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
+        ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)->json('GET', '/api/v1/faskes-type-top-request');
         $response->assertSuccessful();
     }
 }

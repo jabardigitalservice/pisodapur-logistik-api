@@ -130,9 +130,22 @@ class LogisticRequestTest extends TestCase
 
     public function testGetLogisticRequestByAgencyId()
     {
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
+        ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+
         $agency = Agency::first();
         $agencyId = $agency->id;
-        $response = $this->actingAs($this->admin, 'api')->get('/api/v1/logistic-request/' . $agencyId);
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)->get('/api/v1/logistic-request/' . $agencyId);
         $response->assertSuccessful();
     }
 
@@ -240,7 +253,20 @@ class LogisticRequestTest extends TestCase
 
     public function testLogisticRequestSummary()
     {
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/logistic-request-summary');
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
+        ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)->json('GET', '/api/v1/logistic-request-summary');
         $response->assertSuccessful();
     }
 

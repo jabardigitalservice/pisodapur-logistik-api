@@ -46,19 +46,58 @@ class ProductsTest extends TestCase
 
     public function testGetProductsTotalRequest()
     {
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/products-total-request');
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
+        ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)->json('GET', '/api/v1/products-total-request');
         $response->assertStatus(Response::HTTP_OK);
     }
 
     public function testGetProductsTotalRequestPaginate()
     {
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/products-total-request', ['limit' => 10]);
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
+        ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)->json('GET', '/api/v1/products-total-request', ['limit' => 10]);
         $response->assertStatus(Response::HTTP_OK);
     }
 
     public function testGetProductsTopRequest()
     {
-        $response = $this->actingAs($this->admin, 'api')->get('/api/v1/products-top-request');
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
+        ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)->get('/api/v1/products-top-request');
         $response->assertStatus(Response::HTTP_OK);
     }
 }
