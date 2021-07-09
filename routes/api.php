@@ -86,7 +86,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/logistic-request/cities/total-request', 'AreasController@getCitiesTotalRequest');
         // Integrate with POSLOG
         Route::get('/logistic-request-list', 'LogisticRequestController@finalList');
-        Route::get('/logistic-request/{id}', 'LogisticRequestController@show');
         Route::apiResource('/outbound', 'OutboundController');
         Route::get('/outbound-notification', 'OutboundController@notification');
         Route::get('/sendping', 'OutboundController@sendPing');
@@ -110,6 +109,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/products/{id}', 'ProductsController@show');
 
         Route::get('/logistic-request', 'LogisticRequestController@index');
+        Route::get('/logistic-request/{id}', 'LogisticRequestController@show');
         Route::post('/logistic-request/verification', 'LogisticRequestController@changeStatus')->name('verification');
         Route::get('/logistic-request/need/list', 'LogisticRequestController@listNeed');
         Route::post('/logistic-request/import', 'LogisticRequestController@import');
