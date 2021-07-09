@@ -92,7 +92,7 @@ class LogisticRequestController extends Controller
         try {
             $isNotAdmin = !in_array(JWTAuth::user()->roles, User::ADMIN_ROLE);
         } catch (\Exception $exception) {
-            return response()->format(Response::HTTP_UNAUTHORIZED, 'Anda tidak memiliki akses untuk membuka alamat URL tersebut');
+            return response()->format(Response::HTTP_UNAUTHORIZED, 'Anda tidak memiliki akses untuk membuka alamat URL tersebut.');
         }
 
         $isDifferentDistrict = $data->location_district_code != JWTAuth::user()->code_district_city;
