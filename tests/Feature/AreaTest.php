@@ -55,11 +55,25 @@ class AreaTest extends TestCase
 
     public function testGetCityTotalRequest()
     {
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/logistic-request/cities/total-request', [
-            'start_date' => date('Y-m-d H:i:s'),
-            'end_date' => date('Y-m-d H:i:s'),
-            'sort' => 'asc',
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
         ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+                         ->json('GET', '/api/v1/logistic-request/cities/total-request', [
+                            'start_date' => date('Y-m-d H:i:s'),
+                            'end_date' => date('Y-m-d H:i:s'),
+                            'sort' => 'asc',
+                         ]);
         $response->assertSuccessful();
     }
 }
