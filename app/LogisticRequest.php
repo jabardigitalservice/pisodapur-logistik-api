@@ -231,11 +231,15 @@ class LogisticRequest extends Model
 
     static function finalProcess(Request $request)
     {
-        $param['needsSum'] = Needs::where('applicant_id', $request->applicant_id)->count();
         $param['applicantStatus'] = Applicant::STATUS_FINALIZED;
-        $param['realizationSum'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->count();
-        $param['finalSum'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('final_by')->count();
+        $param['needsSum'] = Needs::where('applicant_id', $request->applicant_id)->count(); // total item from user request
+        $param['realizationSum'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->count(); // total item from admin recommendation
         $param['recommendationItemsTotal'] = $param['needsSum'] + $param['realizationSum'];
+
+        $param['finalSumByNeeds'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('need_id')->whereNotNull('final_by')->count(); // total final item from user Request
+        $param['finalSumByAdmin'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->whereNotNull('final_by')->count(); // total final item from Admin Recommendation
+        $param['finalSum'] = $param['finalSumByNeeds'] + $param['finalSumByAdmin'];
+
         $param['checkAllItemsStatus'] = $param['finalSum'] != $param['recommendationItemsTotal'] && $request->approval_status === Applicant::STATUS_APPROVED;
         $param['notReadyItemsTotal'] = $param['recommendationItemsTotal'] - $param['finalSum'];
         $param['failMessage'] = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . $param['notReadyItemsTotal'] .' item';
