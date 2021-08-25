@@ -3,21 +3,13 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\FileUpload;
-use App\Agency;
-use App\Needs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
-use App\User;
 use App\Notifications\ChangeStatusNotification;
 use JWTAuth;
-use App\Applicant;
-use App\LogisticRealizationItems;
-use App\Validation;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\LogisticRequestResource;
-use App\WmsJabar;
 use Illuminate\Http\Response;
 
 class LogisticRequest extends Model
