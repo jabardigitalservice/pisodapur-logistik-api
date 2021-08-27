@@ -44,7 +44,10 @@ class WmsJabar extends Usage
             $config['apiFunction'] = '/api/pingme';
             $res = self::callAPI($config);
 
-            $outboundPlans = json_decode($res->getBody(), true);
+            $outboundPlans = [];
+            if ($res->getStatusCode() == Response::HTTP_OK) {
+                $outboundPlans = json_decode($res->getBody(), true);
+            }
             $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
             if ($outboundPlans) {
                 $response = self::insertData($outboundPlans);
