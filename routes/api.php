@@ -167,5 +167,8 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::apiResource('/acceptance-report-detail', 'AcceptanceReportDetailController');
         Route::apiResource('/acceptance-report-evidence', 'AcceptanceReportEvidenceController');
         Route::get('/acceptance-report-statistic', 'AcceptanceReportController@statistic');
+
+        // API Allocation Requests
+        Route::apiResource('/allocation-request', 'AllocationRequestController');
     });
 });
