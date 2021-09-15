@@ -18,8 +18,7 @@ class CreateAllocationMaterialsTable extends Migration
             $table->string('matg_id');
             $table->string('material_id');
             $table->string('material_name');
-            $table->string('soh_location');
-            $table->string('soh_location_name');
+            $table->string('type')->default('alkes');
             $table->string('UoM');
             $table->timestamps();
         });
