@@ -171,5 +171,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         // API Allocation Requests
         Route::apiResource('/allocation-request', 'AllocationRequestController');
         Route::apiResource('/allocation-vaccine-request', 'AllocationVaccineRequestController');
+        Route::apiResource('/allocation-material', 'AllocationMaterialController');
     });
 });
