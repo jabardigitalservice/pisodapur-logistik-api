@@ -7,18 +7,18 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 
-class AllocationRequestController extends Controller
+class AllocationVaccineRequestController extends Controller
 {
     public function index(Request $request)
     {
         $limit = $request->input('limit', 10);
-        $data = AllocationRequest::where('type', 'alkes')->paginate($limit);
+        $data = AllocationRequest::where('type', 'vaccine')->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function show(Request $request, $id)
     {
-        $data = AllocationRequest::where('type', 'alkes')->find($id);
+        $data = AllocationRequest::where('type', 'vaccine')->find($id);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 }

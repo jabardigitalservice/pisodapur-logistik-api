@@ -17,6 +17,7 @@ class CreateAllocationRequestsTable extends Migration
             $table->id();
             $table->string('letter_number');
             $table->date('letter_date');
+            $table->string('type')->default('alkes');
             $table->string('applicant_name');
             $table->string('applicant_position');
             $table->bigInteger('applicant_agency_id');
