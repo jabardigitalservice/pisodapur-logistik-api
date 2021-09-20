@@ -15,10 +15,10 @@ class CreateAllocationMaterialRequestsTable extends Migration
     {
         Schema::create('allocation_material_requests', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('allocation_request_id');
-            $table->bigInteger('allocation_distribution_id');
-            $table->string('matg_id');
-            $table->string('material_id');
+            $table->bigInteger('allocation_request_id')->index();
+            $table->bigInteger('allocation_distribution_id')->index();
+            $table->string('matg_id')->index();
+            $table->string('material_id')->index();
             $table->string('material_name');
             $table->string('soh_location')->nullable();
             $table->string('soh_location_name')->nullable();

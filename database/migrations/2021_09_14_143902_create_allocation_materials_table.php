@@ -15,10 +15,10 @@ class CreateAllocationMaterialsTable extends Migration
     {
         Schema::create('allocation_materials', function (Blueprint $table) {
             $table->id();
-            $table->string('matg_id');
-            $table->string('material_id');
+            $table->string('matg_id')->index();
+            $table->string('material_id')->index();
             $table->string('material_name');
-            $table->string('type')->default('alkes');
+            $table->string('type')->default('alkes')->index();
             $table->string('UoM');
             $table->timestamps();
         });

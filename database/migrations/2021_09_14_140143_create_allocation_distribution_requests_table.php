@@ -15,8 +15,8 @@ class CreateAllocationDistributionRequestsTable extends Migration
     {
         Schema::create('allocation_distribution_requests', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('allocation_request_id');
-            $table->bigInteger('agency_id');
+            $table->bigInteger('allocation_request_id')->index();
+            $table->bigInteger('agency_id')->index();
             $table->string('agency_name');
             $table->timestamps();
         });

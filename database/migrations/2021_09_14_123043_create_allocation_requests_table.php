@@ -15,15 +15,15 @@ class CreateAllocationRequestsTable extends Migration
     {
         Schema::create('allocation_requests', function (Blueprint $table) {
             $table->id();
-            $table->string('letter_number');
+            $table->string('letter_number')->index();
             $table->date('letter_date');
             $table->string('type')->default('alkes');
             $table->string('applicant_name');
             $table->string('applicant_position');
-            $table->bigInteger('applicant_agency_id');
+            $table->bigInteger('applicant_agency_id')->index();
             $table->string('applicant_agency_name');
             $table->string('letter_url');
-            $table->string('status')->default('draft');
+            $table->string('status')->default('draft')->index();
             $table->integer('is_integrated')->default(0);
             $table->timestamps();
         });
