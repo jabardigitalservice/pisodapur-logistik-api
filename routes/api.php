@@ -32,7 +32,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     });
 
     // API Vaccine Material
-    Route::apiResource('/vaccine-material', 'AllocationMaterialController');
+    Route::apiResource('/vaccine-material', 'AllocationMaterialController')->only(['index', 'show']);
 
     // API Report of Logistics Acceptance
     Route::post('/acceptance-report', 'AcceptanceReportController@store');
@@ -172,7 +172,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/acceptance-report-statistic', 'AcceptanceReportController@statistic');
 
         // API Allocation Requests
-        Route::apiResource('/allocation-request', 'AllocationRequestController');
-        Route::apiResource('/allocation-vaccine-request', 'AllocationVaccineRequestController');
+        Route::apiResource('/allocation-request', 'AllocationRequestController')->only(['index', 'show']);
+        Route::apiResource('/allocation-vaccine-request', 'AllocationVaccineRequestController')->only(['index', 'show']);
     });
 });
