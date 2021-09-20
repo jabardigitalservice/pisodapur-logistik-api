@@ -20,7 +20,7 @@ class AllocationMaterialController extends Controller
     public function show(Request $request, $id)
     {
         $type = $request->input('type', 'vaccine');
-        $data = AllocationMaterial::where('type', $type)->find($id);
+        $data = AllocationMaterial::where('type', $type)->where('material_id', $id)->firstOrFail();
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 }
