@@ -12,13 +12,17 @@ class AllocationRequestController extends Controller
     public function index(Request $request)
     {
         $limit = $request->input('limit', 10);
-        $data = AllocationRequest::where('type', 'alkes')->paginate($limit);
+        $data = AllocationRequest::where('type', 'alkes')
+        ->with(['allocationDistributionRequest', 'allocationMaterialRequest'])
+        ->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function show(Request $request, $id)
     {
-        $data = AllocationRequest::where('type', 'alkes')->find($id);
+        $data = AllocationRequest::where('type', 'alkes')
+        ->with(['allocationDistributionRequest', 'allocationMaterialRequest'])
+        ->find($id);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 }

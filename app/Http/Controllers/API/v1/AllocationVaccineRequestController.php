@@ -12,13 +12,17 @@ class AllocationVaccineRequestController extends Controller
     public function index(Request $request)
     {
         $limit = $request->input('limit', 10);
-        $data = AllocationRequest::where('type', 'vaccine')->paginate($limit);
+        $data = AllocationRequest::where('type', 'vaccine')
+            ->with(['allocationDistributionRequest', 'allocationMaterialRequest'])
+            ->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function show(Request $request, $id)
     {
-        $data = AllocationRequest::where('type', 'vaccine')->find($id);
+        $data = AllocationRequest::where('type', 'vaccine')
+            ->with(['allocationDistributionRequest', 'allocationMaterialRequest'])
+            ->find($id);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 }

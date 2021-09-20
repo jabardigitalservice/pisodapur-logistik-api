@@ -20,8 +20,8 @@ class CreateAllocationMaterialRequestsTable extends Migration
             $table->string('matg_id');
             $table->string('material_id');
             $table->string('material_name');
-            $table->string('soh_location');
-            $table->string('soh_location_name');
+            $table->string('soh_location')->nullable();
+            $table->string('soh_location_name')->nullable();
             $table->integer('qty');
             $table->string('UoM');
             $table->date('distribution_plan_date');
