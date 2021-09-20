@@ -11,7 +11,7 @@ class AllocationMaterialController extends Controller
 {
     public function index(Request $request)
     {
-        $type = $request->input('type', 'alkes');
+        $type = $request->input('type', 'vaccine');
         $limit = $request->input('limit', 10);
         $data = AllocationMaterial::where('type', $type)->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
@@ -19,7 +19,7 @@ class AllocationMaterialController extends Controller
 
     public function show(Request $request, $id)
     {
-        $type = $request->input('type', 'alkes');
+        $type = $request->input('type', 'vaccine');
         $data = AllocationMaterial::where('type', $type)->find($id);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
