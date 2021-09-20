@@ -6,17 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class AllocationRequest extends Model
 {
-    public function allocationDistributionRequest()
+    public function allocationDistributionRequests()
     {
         return $this->hasMany('App\AllocationDistributionRequest');
     }
 
-    public function allocationMaterial()
+    public function allocationMaterials()
     {
         return $this->hasMany('App\AllocationMaterial');
     }
 
-    public function allocationMaterialRequest()
+    public function allocationMaterialRequests()
     {
         return $this->hasMany('App\AllocationMaterialRequest');
     }
