@@ -84,6 +84,13 @@ class ProductsController extends Controller
                 ->withCount(['need as total_request' => function($query) use ($request) {
                     $query->select(DB::raw('sum(quantity)'))->filterByApplicant($request);
                 }])
+                ->where(function ($query) use ($request) {
+                    if ($request->has('category')) {
+                        $query->where('products.category', $request->input('category'));
+                    } else {
+                        $query->where('products.category', '!=', 'VAKSIN');
+                    }
+                })
                 ->orderBy('total_request', $request->input('sort', 'desc'));
 
         if ($request->has('limit')) {
@@ -114,6 +121,13 @@ class ProductsController extends Controller
                                     ->withCount(['need as total' => function($query) use ($request) {
                                         $query->select(DB::raw('sum(quantity)'))->filterByApplicant($request);
                                     }])
+                                    ->where(function ($query) use ($request) {
+                                        if ($request->has('category')) {
+                                            $query->where('category', $request->input('category'));
+                                        } else {
+                                            $query->where('category', '!=', 'VAKSIN');
+                                        }
+                                    })
                                     ->orderBy('total', 'desc')
                                     ->orderBy('name')
                                     ->first()
