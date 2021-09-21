@@ -32,16 +32,11 @@ class ProductsController extends Controller
                                 $query->where('products.name', 'LIKE', "%{$request->input('name')}%");
                             }
 
-                            if ($request->has('category')) {
-                                $query->where('products.category', $request->input('category'));
-                            } else {
-                                $query->where('products.category', '!=', ProductCategoryEnum::vaksin());
-                            }
-
                             if ($request->has('user_filter')) {
                                 $query->where('products.user_filter', '=', $request->input('user_filter'));
                             }
                         })
+                        ->categoryFilter($request)
                         ->orderBy('products.sort', 'ASC')
                         ->orderBy('products.name', 'ASC')
                         ->get();
@@ -85,13 +80,7 @@ class ProductsController extends Controller
                 ->withCount(['need as total_request' => function($query) use ($request) {
                     $query->select(DB::raw('sum(quantity)'))->filterByApplicant($request);
                 }])
-                ->where(function ($query) use ($request) {
-                    if ($request->has('category')) {
-                        $query->where('products.category', $request->input('category'));
-                    } else {
-                        $query->where('products.category', '!=', ProductCategoryEnum::vaksin());
-                    }
-                })
+                ->categoryFilter($request)
                 ->orderBy('total_request', $request->input('sort', 'desc'));
 
         if ($request->has('limit')) {
@@ -122,13 +111,7 @@ class ProductsController extends Controller
                                     ->withCount(['need as total' => function($query) use ($request) {
                                         $query->select(DB::raw('sum(quantity)'))->filterByApplicant($request);
                                     }])
-                                    ->where(function ($query) use ($request) {
-                                        if ($request->has('category')) {
-                                            $query->where('category', $request->input('category'));
-                                        } else {
-                                            $query->where('category', '!=', ProductCategoryEnum::vaksin());
-                                        }
-                                    })
+                                    ->categoryFilter($request)
                                     ->orderBy('total', 'desc')
                                     ->orderBy('name')
                                     ->first()
