@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Product;
 use App\Applicant;
+use App\Enums\ProductCategoryEnum;
 use App\Needs;
 use DB;
 
@@ -34,7 +35,7 @@ class ProductsController extends Controller
                             if ($request->has('category')) {
                                 $query->where('products.category', $request->input('category'));
                             } else {
-                                $query->where('products.category', '!=', 'VAKSIN');
+                                $query->where('products.category', '!=', ProductCategoryEnum::vaksin());
                             }
 
                             if ($request->has('user_filter')) {
@@ -88,7 +89,7 @@ class ProductsController extends Controller
                     if ($request->has('category')) {
                         $query->where('products.category', $request->input('category'));
                     } else {
-                        $query->where('products.category', '!=', 'VAKSIN');
+                        $query->where('products.category', '!=', ProductCategoryEnum::vaksin());
                     }
                 })
                 ->orderBy('total_request', $request->input('sort', 'desc'));
@@ -125,7 +126,7 @@ class ProductsController extends Controller
                                         if ($request->has('category')) {
                                             $query->where('category', $request->input('category'));
                                         } else {
-                                            $query->where('category', '!=', 'VAKSIN');
+                                            $query->where('category', '!=', ProductCategoryEnum::vaksin());
                                         }
                                     })
                                     ->orderBy('total', 'desc')
