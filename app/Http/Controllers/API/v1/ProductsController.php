@@ -20,7 +20,6 @@ class ProductsController extends Controller
      */
     public function index(Request $request)
     {
-        $category = $request->input('category', 'alkes');
         $query = Product::where('products.is_imported', false)
                         ->where('products.material_group_status', 1)
                         ->where(function ($query) use ($request) {
@@ -32,11 +31,16 @@ class ProductsController extends Controller
                                 $query->where('products.name', 'LIKE', "%{$request->input('name')}%");
                             }
 
+                            if ($request->has('category')) {
+                                $query->where('products.category', $request->input('category'));
+                            } else {
+                                $query->where('products.category', '!=', 'VAKSIN');
+                            }
+
                             if ($request->has('user_filter')) {
                                 $query->where('products.user_filter', '=', $request->input('user_filter'));
                             }
                         })
-                        ->where('products.category', $category)
                         ->orderBy('products.sort', 'ASC')
                         ->orderBy('products.name', 'ASC')
                         ->get();
