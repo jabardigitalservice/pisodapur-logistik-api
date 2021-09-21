@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Product;
 use App\Applicant;
+use App\Enums\ProductCategoryEnum;
 use App\Needs;
 use DB;
 
@@ -35,6 +36,7 @@ class ProductsController extends Controller
                                 $query->where('products.user_filter', '=', $request->input('user_filter'));
                             }
                         })
+                        ->categoryFilter($request)
                         ->orderBy('products.sort', 'ASC')
                         ->orderBy('products.name', 'ASC')
                         ->get();
@@ -78,6 +80,7 @@ class ProductsController extends Controller
                 ->withCount(['need as total_request' => function($query) use ($request) {
                     $query->select(DB::raw('sum(quantity)'))->filterByApplicant($request);
                 }])
+                ->categoryFilter($request)
                 ->orderBy('total_request', $request->input('sort', 'desc'));
 
         if ($request->has('limit')) {
@@ -108,6 +111,7 @@ class ProductsController extends Controller
                                     ->withCount(['need as total' => function($query) use ($request) {
                                         $query->select(DB::raw('sum(quantity)'))->filterByApplicant($request);
                                     }])
+                                    ->categoryFilter($request)
                                     ->orderBy('total', 'desc')
                                     ->orderBy('name')
                                     ->first()

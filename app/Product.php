@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Enums\ProductCategoryEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
@@ -34,5 +35,14 @@ class Product extends Model
             $data = [];
         }
         return $data;
+    }
+
+    public function scopeCategoryFilter($query, $request)
+    {
+        if ($request->has('category')) {
+            return $query->where('products.category', $request->input('category'));
+        } else {
+            return $query->where('products.category', '!=', ProductCategoryEnum::vaksin());
+        }
     }
 }
