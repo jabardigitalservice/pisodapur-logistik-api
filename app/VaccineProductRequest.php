@@ -10,7 +10,7 @@ class VaccineProductRequest extends Model
         'vaccine_request_id',
         'product_id',
         'quantity',
-        'unit_id',
+        'unit',
         'description',
         'usage',
     ];
@@ -23,7 +23,7 @@ class VaccineProductRequest extends Model
                 'product_id' => $value['product_id'],
                 'description' => $value['description'],
                 'quantity' => $value['quantity'],
-                'unit_id' => $value['unit_id'],
+                'unit' => $value['unit'],
                 'usage' => $value['usage'],
             ];
             $response[] = VaccineProductRequest::create($vaccineProductRequest);

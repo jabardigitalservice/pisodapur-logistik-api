@@ -16,9 +16,9 @@ class CreateVaccineProductRequestsTable extends Migration
         Schema::create('vaccine_product_requests', function (Blueprint $table) {
             $table->id();
             $table->integer('vaccine_request_id');
-            $table->string('product_id', 30);
+            $table->integer('product_id');
             $table->integer('quantity');
-            $table->integer('unit_id');
+            $table->string('unit', 30);
             $table->text('description');
             $table->text('usage');
             $table->timestamps();
