@@ -14,19 +14,6 @@ use Illuminate\Support\Facades\Storage;
 
 class VaccineRequestController extends Controller
 {
-    public function index(Request $request)
-    {
-        $limit = $request->input('limit', 10);
-        $data = VaccineRequest::paginate($limit);
-        return response()->format(Response::HTTP_OK, 'success', $data);
-    }
-
-    public function show(Request $request, $id)
-    {
-        $data = VaccineRequest::find($id);
-        return response()->format(Response::HTTP_OK, 'success', $data);
-    }
-
     public function store(StoreVaccineRequest $request)
     {
         DB::beginTransaction();
