@@ -107,7 +107,7 @@ class LogisticRequest extends Model
                 'agency_id' => $request->input('agency_id'),
                 'applicant_id' => $request->input('applicant_id'),
                 'product_id' => $value['product_id'],
-                'brand' => $value['brand'],
+                'brand' => $value['description'],
                 'quantity' => $value['quantity'],
                 'unit' => $value['unit'],
                 'usage' => $value['usage'],

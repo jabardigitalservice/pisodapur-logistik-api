@@ -18,7 +18,7 @@ class LogisticRequestResource extends JsonResource
     foreach ($this['need'] as $key => $value) {
       $need[] = array(
         'product_id' => $value->product_id,
-        'brand' => $value->brand,
+        'description' => $value->brand,
         'quantity' => $value->quantity,
         'unit' => $value->unit,
         'usage' => $value->usage,
