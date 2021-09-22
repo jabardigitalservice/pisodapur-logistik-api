@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateVaccineMaterialRequestsTable extends Migration
+class CreateVaccineProductRequestsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateVaccineMaterialRequestsTable extends Migration
      */
     public function up()
     {
-        Schema::create('vaccine_material_requests', function (Blueprint $table) {
+        Schema::create('vaccine_product_requests', function (Blueprint $table) {
             $table->id();
             $table->integer('vaccine_request_id');
             $table->string('product_id', 30);
@@ -21,7 +21,6 @@ class CreateVaccineMaterialRequestsTable extends Migration
             $table->integer('unit_id');
             $table->text('description');
             $table->text('usage');
-            $table->string('priority', 20)->default('Menengah');
             $table->timestamps();
         });
     }
@@ -33,6 +32,6 @@ class CreateVaccineMaterialRequestsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('vaccine_material_requests');
+        Schema::dropIfExists('vaccine_product_requests');
     }
 }

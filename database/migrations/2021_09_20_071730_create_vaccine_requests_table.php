@@ -29,8 +29,9 @@ class CreateVaccineRequestsTable extends Migration
             $table->string('applicant_primary_phone_number', 30)->index();
             $table->string('applicant_secondary_phone_number', 30)->index();
             $table->string('letter_number', 50);
-            $table->string('letter_file_url')->nullable();
-            $table->string('status', 10)->default('not_verified');
+            $table->string('letter_file_url');
+            $table->string('applicant_file_url');
+            $table->string('status', 20)->default('not_verified');
             $table->text('note')->nullable();
             $table->timestamps();
         });
