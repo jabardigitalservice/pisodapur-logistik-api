@@ -169,7 +169,7 @@ class LogisticRequestTest extends TestCase
             'usage' => $this->faker->text,
             'priority' => 'Menengah',
             'product_id' => rand(1,200),
-            'brand' => $this->faker->text,
+            'description' => $this->faker->text,
             'quantity' => rand(1,99999),
             'unit' => 'PCS'
         ];
@@ -210,7 +210,7 @@ class LogisticRequestTest extends TestCase
             'usage' => $this->faker->text,
             'priority' => 'Menengah',
             'product_id' => rand(1,200),
-            'brand' => $this->faker->text,
+            'description' => $this->faker->text,
             'quantity' => rand(1,99999),
             'unit' => 'PCS'
         ];
