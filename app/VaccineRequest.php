@@ -27,12 +27,14 @@ class VaccineRequest extends Model
 
     public function getLetterFileUrlAttribute($value)
     {
-        return config('aws.url') . $value;
+        $awsUrl = config('aws.url');
+        return $value ? $awsUrl . $value : "";
     }
 
     public function getApplicantFileUrlAttribute($value)
     {
-        return config('aws.url') . $value;
+        $awsUrl = config('aws.url');
+        return $value ? $awsUrl . $value : "";
     }
 
     static function add($request)

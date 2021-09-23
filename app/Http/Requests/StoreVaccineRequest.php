@@ -34,7 +34,7 @@ class StoreVaccineRequest extends FormRequest
             'primary_phone_number' => 'required|numeric',
             'logistic_request' => 'required',
             'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
-            'applicant_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
+            'applicant_file' => 'mimes:jpeg,jpg,png,pdf|max:10240',
             'application_letter_number' => 'required|string'
         ];
     }
