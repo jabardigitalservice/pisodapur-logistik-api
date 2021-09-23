@@ -19,7 +19,9 @@ class VaccineRequestController extends Controller
         DB::beginTransaction();
         try {
             $request->merge(['letter_file_url' => Storage::put(FileUpload::LETTER_PATH, $request->file('letter_file'))]);
-            $request->merge(['applicant_file_url' => Storage::put(FileUpload::APPLICANT_IDENTITY_PATH, $request->file('applicant_file'))]);
+            if ($request->hasFile('applicant_file')) {
+                $request->merge(['applicant_file_url' => Storage::put(FileUpload::APPLICANT_IDENTITY_PATH, $request->file('applicant_file'))]);
+            }
             $data = VaccineRequest::add($request);
             $request->merge(['vaccine_request_id' => $data->id]);
             $data['need'] = VaccineProductRequest::add($request);
