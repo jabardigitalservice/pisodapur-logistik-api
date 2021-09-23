@@ -173,7 +173,9 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
         // API Allocation Requests
         Route::apiResource('/allocation-request', 'AllocationRequestController')->only(['index', 'show']);
+        Route::get('/allocation-request-statistic', 'AllocationRequestController@statistic');
         Route::apiResource('/allocation-vaccine-request', 'AllocationVaccineRequestController')->only(['index', 'show']);
+        Route::get('/allocation-vaccine-request-statistic', 'AllocationVaccineRequestController@statistic');
 
         // API Vaccine Requests
         Route::apiResource('/allocation-request', 'AllocationRequestController')->only(['index', 'show']);
