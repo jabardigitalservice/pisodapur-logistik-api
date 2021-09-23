@@ -14,6 +14,7 @@ class AllocationVaccineRequestController extends Controller
         $limit = $request->input('limit', 10);
         $data = AllocationRequest::where('type', 'vaccine')
             ->with(['allocationDistributionRequests', 'allocationMaterialRequests'])
+            ->withCount(['allocationDistributionRequests'])
             ->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
@@ -22,6 +23,7 @@ class AllocationVaccineRequestController extends Controller
     {
         $data = AllocationRequest::where('type', 'vaccine')
             ->with(['allocationDistributionRequests', 'allocationMaterialRequests'])
+            ->withCount(['allocationDistributionRequests'])
             ->find($id);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
