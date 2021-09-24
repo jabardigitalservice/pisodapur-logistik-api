@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API\v1;
 
 use App\AllocationRequest;
 use App\Enums\AllocationRequestStatusEnum;
-use App\Enums\AllocationRequestTypeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
