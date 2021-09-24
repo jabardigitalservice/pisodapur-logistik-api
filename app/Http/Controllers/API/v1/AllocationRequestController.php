@@ -14,14 +14,14 @@ class AllocationRequestController extends Controller
     public function index(Request $request)
     {
         $limit = $request->input('limit', 10);
-        $data = AllocationRequest::where('type', AllocationRequestTypeEnum::alkes())
+        $data = AllocationRequest::alkes()
         ->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function show(Request $request, $id)
     {
-        $data = AllocationRequest::where('type', AllocationRequestTypeEnum::alkes())
+        $data = AllocationRequest::alkes()
         ->with(['allocationDistributionRequests', 'allocationMaterialRequests'])
         ->find($id);
         return response()->format(Response::HTTP_OK, 'success', $data);
@@ -29,7 +29,7 @@ class AllocationRequestController extends Controller
 
     public function statistic(Request $request)
     {
-        $allocationRequest = AllocationRequest::where('type', AllocationRequestTypeEnum::alkes());
+        $allocationRequest = AllocationRequest::alkes();
         return [
             'total_requests' => $allocationRequest->count(),
             'total_draft' => $allocationRequest->where('status', AllocationRequestStatusEnum::draft())->count(),

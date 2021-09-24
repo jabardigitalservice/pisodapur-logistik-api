@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Enums\AllocationRequestTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class AllocationRequest extends Model
@@ -27,5 +28,15 @@ class AllocationRequest extends Model
     public function allocationMaterialRequests()
     {
         return $this->hasMany('App\AllocationMaterialRequest');
+    }
+
+    public function scopeAlkes($query)
+    {
+        return $query->where('type', AllocationRequestTypeEnum::alkes());
+    }
+
+    public function scopeVaccine($query)
+    {
+        return $query->where('type', AllocationRequestTypeEnum::vaccine());
     }
 }

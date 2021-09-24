@@ -14,7 +14,7 @@ class AllocationVaccineRequestController extends Controller
     public function index(Request $request)
     {
         $limit = $request->input('limit', 10);
-        $data = AllocationRequest::where('type', AllocationRequestTypeEnum::vaccine())
+        $data = AllocationRequest::vaccine()
             ->withCount(['allocationDistributionRequests'])
             ->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
@@ -22,7 +22,7 @@ class AllocationVaccineRequestController extends Controller
 
     public function show(Request $request, $id)
     {
-        $data = AllocationRequest::where('type', AllocationRequestTypeEnum::vaccine())
+        $data = AllocationRequest::vaccine()
             ->with(['allocationDistributionRequests', 'allocationMaterialRequests'])
             ->withCount(['allocationDistributionRequests'])
             ->find($id);
@@ -31,7 +31,7 @@ class AllocationVaccineRequestController extends Controller
 
     public function statistic(Request $request)
     {
-        $allocationRequest = AllocationRequest::where('type', AllocationRequestTypeEnum::vaccine());
+        $allocationRequest = AllocationRequest::vaccine();
         return [
             'total_requests' => $allocationRequest->count(),
             'total_draft' => $allocationRequest->where('status', AllocationRequestStatusEnum::draft())->count(),
