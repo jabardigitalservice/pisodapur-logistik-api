@@ -28,11 +28,10 @@ class AllocationRequestController extends Controller
 
     public function statistic(Request $request)
     {
-        $allocationRequest = AllocationRequest::alkes();
         return [
-            'total_requests' => $allocationRequest->count(),
-            'total_draft' => $allocationRequest->where('status', AllocationRequestStatusEnum::draft())->count(),
-            'total_success' => $allocationRequest->where('status', AllocationRequestStatusEnum::success())->count(),
+            'total_success' => AllocationRequest::alkes()->where('status', AllocationRequestStatusEnum::success())->count(),
+            'total_draft' => AllocationRequest::alkes()->where('status', AllocationRequestStatusEnum::draft())->count(),
+            'total_requests' => AllocationRequest::alkes()->count(),
         ];
     }
 }
