@@ -30,11 +30,10 @@ class AllocationVaccineRequestController extends Controller
 
     public function statistic(Request $request)
     {
-        $allocationRequest = AllocationRequest::vaccine();
         return [
-            'total_requests' => $allocationRequest->count(),
-            'total_draft' => $allocationRequest->where('status', AllocationRequestStatusEnum::draft())->count(),
-            'total_success' => $allocationRequest->where('status', AllocationRequestStatusEnum::success())->count(),
+            'total_success' => AllocationRequest::vaccine()->where('status', AllocationRequestStatusEnum::success())->count(),
+            'total_draft' => AllocationRequest::vaccine()->where('status', AllocationRequestStatusEnum::draft())->count(),
+            'total_requests' => AllocationRequest::vaccine()->count(),
         ];
     }
 }
