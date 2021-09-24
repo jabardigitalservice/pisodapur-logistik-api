@@ -15,7 +15,6 @@ class AllocationRequestController extends Controller
     {
         $limit = $request->input('limit', 10);
         $data = AllocationRequest::where('type', AllocationRequestTypeEnum::alkes())
-        ->with(['allocationDistributionRequests', 'allocationMaterialRequests'])
         ->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
