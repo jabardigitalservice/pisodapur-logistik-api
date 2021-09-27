@@ -13,7 +13,7 @@ class AllocationRequestController extends Controller
     public function index(Request $request)
     {
         $limit = $request->input('limit', 10);
-        $data = AllocationRequest::alkes()
+        $data = AllocationRequest::alkes()->filter($request)
         ->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }

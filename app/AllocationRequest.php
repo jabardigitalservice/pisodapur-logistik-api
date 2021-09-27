@@ -39,4 +39,21 @@ class AllocationRequest extends Model
     {
         return $query->where('type', AllocationRequestTypeEnum::vaccine());
     }
+
+    public function scopeFilter($query, $request)
+    {
+        $isHasDateRangeFilter = $request->has('start_date') && $request->has('end_date');
+
+        $query->when($isHasDateRangeFilter, function ($query) use ($request) {
+            $query->whereBetween('letter_date', [$request->input('start_date'), $request->input('end_date')]);
+        })
+        ->when($request->has('search'), function ($query) use ($request) {
+            $query->where('letter_number', 'LIKE', '%' . $request->input('search') . '%');
+        })
+        ->when($request->has('status'), function ($query) use ($request) {
+            $query->where('status',  $request->input('status'));
+        });
+
+        return $query;
+    }
 }

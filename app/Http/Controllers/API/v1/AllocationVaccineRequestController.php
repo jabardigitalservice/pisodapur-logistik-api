@@ -13,7 +13,7 @@ class AllocationVaccineRequestController extends Controller
     public function index(Request $request)
     {
         $limit = $request->input('limit', 10);
-        $data = AllocationRequest::vaccine()
+        $data = AllocationRequest::vaccine()->filter($request)
             ->withCount(['allocationDistributionRequests'])
             ->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
