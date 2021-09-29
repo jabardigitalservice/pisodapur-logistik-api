@@ -21,7 +21,8 @@ class AllocationRequestController extends Controller
     public function show(Request $request, $id)
     {
         $data = AllocationRequest::alkes()
-        ->with(['allocationDistributionRequests', 'allocationMaterialRequests'])
+        ->with(['allocationDistributionRequests.allocationMaterialRequests'])
+        ->withCount(['allocationDistributionRequests'])
         ->find($id);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
