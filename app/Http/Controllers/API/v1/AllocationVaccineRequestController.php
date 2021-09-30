@@ -22,7 +22,13 @@ class AllocationVaccineRequestController extends Controller
     public function show(Request $request, $id)
     {
         $data = AllocationRequest::vaccine()
-            ->with(['allocationDistributionRequests', 'allocationMaterialRequests'])
+            ->with([
+                'allocationDistributionRequests.allocationMaterialRequests',
+                'allocationMaterialRequests' => function ($query) {
+                    $query->select(['allocation_request_id', 'material_id', 'material_name'])
+                          ->groupByRaw('material_id, material_name, allocation_request_id');
+                }
+            ])
             ->withCount(['allocationDistributionRequests'])
             ->find($id);
         return response()->format(Response::HTTP_OK, 'success', $data);
