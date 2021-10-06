@@ -7,6 +7,7 @@ use App\Enums\AllocationRequestStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
+use DB;
 
 class AllocationRequestController extends Controller
 {
@@ -24,8 +25,8 @@ class AllocationRequestController extends Controller
             ->with([
                 'allocationDistributionRequests.allocationMaterialRequests',
                 'allocationMaterialRequests' => function ($query) {
-                    $query->select(['allocation_request_id', 'material_id', 'material_name'])
-                        ->groupByRaw('material_id, material_name, allocation_request_id');
+                    $query->select(['allocation_request_id', 'material_id', 'material_name', DB::raw('sum(qty)')])
+                        ->groupByRaw('material_id, material_name, allocation_request_id, qty');
                 }
             ])
             ->withCount(['allocationDistributionRequests'])
