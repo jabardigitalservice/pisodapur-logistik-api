@@ -7,6 +7,7 @@ use App\Enums\AllocationRequestStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
+use DB;
 
 class AllocationVaccineRequestController extends Controller
 {
@@ -25,8 +26,8 @@ class AllocationVaccineRequestController extends Controller
             ->with([
                 'allocationDistributionRequests.allocationMaterialRequests',
                 'allocationMaterialRequests' => function ($query) {
-                    $query->select(['allocation_request_id', 'material_id', 'material_name'])
-                          ->groupByRaw('material_id, material_name, allocation_request_id');
+                    $query->select(['allocation_request_id', 'material_id', 'material_name', DB::raw('sum(qty) as total_qty'), 'UoM'])
+                          ->groupByRaw('allocation_request_id, material_id, material_name, UoM');
                 }
             ])
             ->withCount(['allocationDistributionRequests'])
