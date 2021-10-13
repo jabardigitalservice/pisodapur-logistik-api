@@ -35,7 +35,7 @@ class LogisticVerificationController extends Controller
             $logisticVerification = $this->sendEmailCondition($logisticVerification);
             return response()->format(Response::HTTP_OK, $message, $logisticVerification);
         } catch (\Exception $exception) {
-            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Permohonan dengan Kode Permohonan ' . $request->register_id . ' tidak ditemukan.');
+            return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, 'Permohonan dengan Kode Permohonan ' . $request->register_id . ' tidak ditemukan.');
         }
     }
 
