@@ -70,7 +70,7 @@ class ImportAllocationVaccineRequestController extends Controller
                 }
             }
             DB::commit();
-            return response()->format(Response::HTTP_OK, 'success', $allocations);
+            return response()->format(Response::HTTP_OK, 'success');
         } catch (\Exception $exception) {
             DB::rollBack();
             return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage(), $exception->getTrace());
