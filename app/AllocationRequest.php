@@ -7,6 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class AllocationRequest extends Model
 {
+    protected $fillable = [
+        'letter_number',
+        'letter_date',
+        'type',
+        'applicant_name',
+        'applicant_position',
+        'applicant_agency_id',
+        'applicant_agency_name',
+        'distribution_description',
+        'letter_url',
+    ];
+
     protected $appends = ['allocation_material_requests_total'];
 
     public function getAllocationMaterialRequestsTotalAttribute($value)
