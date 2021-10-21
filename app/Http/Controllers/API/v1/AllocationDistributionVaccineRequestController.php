@@ -12,7 +12,8 @@ class AllocationDistributionVaccineRequestController extends Controller
     public function index(GetAllocationDistributionVaccineRequest $request)
     {
         $limit = $request->input('limit', 10);
-        $data = AllocationDistributionRequest::where('allocation_request_id', $request->input('allocation_request_id'))
+        $data = AllocationDistributionRequest::filter($request)
+            ->where('allocation_request_id', $request->input('allocation_request_id'))
             ->with(['allocationMaterialRequests'])
             ->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
