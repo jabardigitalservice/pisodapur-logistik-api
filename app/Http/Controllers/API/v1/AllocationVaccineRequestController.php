@@ -24,7 +24,6 @@ class AllocationVaccineRequestController extends Controller
     {
         $data = AllocationRequest::vaccine()
             ->with([
-                'allocationDistributionRequests.allocationMaterialRequests',
                 'allocationMaterialRequests' => function ($query) {
                     $query->select(['allocation_request_id', 'material_id', 'material_name', DB::raw('sum(qty) as total_qty'), 'UoM'])
                           ->groupByRaw('allocation_request_id, material_id, material_name, UoM');

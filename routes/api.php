@@ -175,6 +175,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::apiResource('/allocation-request', 'AllocationRequestController')->only(['index', 'show']);
         Route::get('/allocation-request-statistic', 'AllocationRequestController@statistic');
         Route::apiResource('/allocation-vaccine-request', 'AllocationVaccineRequestController')->only(['index', 'show']);
+        Route::get('/allocation-distribution-vaccine-request', 'AllocationDistributionVaccineRequestController@index');
         Route::get('/allocation-vaccine-request-statistic', 'AllocationVaccineRequestController@statistic');
         Route::post('/allocation-vaccine-import', 'ImportAllocationVaccineRequestController@import');
 
