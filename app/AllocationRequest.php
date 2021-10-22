@@ -17,6 +17,7 @@ class AllocationRequest extends Model
         'applicant_agency_name',
         'distribution_description',
         'letter_url',
+        'status'
     ];
 
     protected $appends = ['allocation_material_requests_total'];
