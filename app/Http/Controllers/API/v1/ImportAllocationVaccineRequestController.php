@@ -6,6 +6,7 @@ use App\AllocationDistributionRequest;
 use App\AllocationMaterial;
 use App\AllocationMaterialRequest;
 use App\AllocationRequest;
+use App\Enums\AllocationRequestStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportExcelRequest;
 use App\Imports\MultipleSheetImport;
@@ -39,6 +40,7 @@ class ImportAllocationVaccineRequestController extends Controller
                 'applicant_agency_name' => $allocations[6][0],
                 'distribution_description' => $allocations[7][0],
                 'letter_url' => $allocations[8][0],
+                'status' => AllocationRequestStatusEnum::success()
             ]);
 
             // Get distribution allocation requests
