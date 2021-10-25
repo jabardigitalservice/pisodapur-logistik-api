@@ -27,7 +27,8 @@ class AddColumnsToVaccineRequestsTable extends Migration
     public function down()
     {
         Schema::table('vaccine_requests', function (Blueprint $table) {
-            //
+            $table->dropColumn('is_completed');
+            $table->dropColumn('is_urgency');
         });
     }
 }
