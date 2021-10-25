@@ -19,6 +19,7 @@ class VaccineRequestController extends Controller
         $limit = $request->input('limit', 10);
         $data = VaccineRequest::with([
             'masterFaskes:id,nama_faskes',
+            'masterFaskesType:id,name',
         ])
         ->filter($request)
         ->paginate($limit);
