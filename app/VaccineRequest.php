@@ -76,4 +76,19 @@ class VaccineRequest extends Model
     {
         return $this->hasMany('App\VaccineProductRequest');
     }
+
+    public function masterFaskesType()
+    {
+        return $this->hasOne('App\MasterFaskesType', 'id', 'agency_type_id');
+    }
+
+    public function masterFaskes()
+    {
+        return $this->hasOne('App\MasterFaskes', 'id', 'agency_id');
+    }
+
+    public function village()
+    {
+        return $this->hasOne('App\Village', 'kemendagri_desa_kode', 'agency_location_village_code');
+    }
 }

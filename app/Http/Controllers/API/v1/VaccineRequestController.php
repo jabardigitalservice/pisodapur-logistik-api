@@ -17,7 +17,11 @@ class VaccineRequestController extends Controller
     public function index(GetVaccineRequest $request)
     {
         $limit = $request->input('limit', 10);
-        $data = VaccineRequest::with(['vaccineProductRequests'])->filter($request)->paginate($limit);
+        $data = VaccineRequest::with([
+            'masterFaskes:id,nama_faskes',
+        ])
+        ->filter($request)
+        ->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
