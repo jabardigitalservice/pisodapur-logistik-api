@@ -20,6 +20,7 @@ class VaccineRequestController extends Controller
         $data = VaccineRequest::with([
             'masterFaskes:id,nama_faskes',
             'masterFaskesType:id,name',
+            'village'
         ])
         ->filter($request)
         ->paginate($limit);
