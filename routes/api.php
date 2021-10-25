@@ -183,6 +183,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::apiResource('/allocation-request', 'AllocationRequestController')->only(['index', 'show']);
 
         // API Store Vaccine Request
-        Route::post('/vaccine-request', 'VaccineRequestController@store');
+        Route::apiResource('/vaccine-request', 'VaccineRequestController');
     });
 });

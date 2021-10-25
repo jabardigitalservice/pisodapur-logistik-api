@@ -4,16 +4,29 @@ namespace App\Http\Controllers\API\v1;
 
 use App\FileUpload;
 use App\VaccineRequest;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreVaccineRequest;
+use App\Http\Requests\VaccineRequest\GetVaccineRequest;
 use App\VaccineProductRequest;
 use DB;
 use Illuminate\Support\Facades\Storage;
 
 class VaccineRequestController extends Controller
 {
+    public function index(GetVaccineRequest $request)
+    {
+        $limit = $request->input('limit', 10);
+        $data = VaccineRequest::with([
+            'masterFaskes:id,nama_faskes',
+            'masterFaskesType:id,name',
+            'village'
+        ])
+        ->filter($request)
+        ->paginate($limit);
+        return response()->format(Response::HTTP_OK, 'success', $data);
+    }
+
     public function store(StoreVaccineRequest $request)
     {
         DB::beginTransaction();

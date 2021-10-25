@@ -59,4 +59,36 @@ class VaccineRequest extends Model
         ];
         return VaccineRequest::create($vaccineRequest);
     }
+
+    public function scopeFilter($query, $request)
+    {
+        $query->when($request->has('search'), function ($query) use ($request) {
+            $query->where(function ($query) use ($request) {
+                $query->where('applicant_fullname', 'LIKE', '%' . $request->input('search') . '%')
+                      ->orWhere('agency_name', 'LIKE', '%' . $request->input('search') . '%')
+                      ->orWhere('letter_number', 'LIKE', '%' . $request->input('search') . '%');
+            });
+        });
+        return $query;
+    }
+
+    public function vaccineProductRequests()
+    {
+        return $this->hasMany('App\VaccineProductRequest');
+    }
+
+    public function masterFaskesType()
+    {
+        return $this->hasOne('App\MasterFaskesType', 'id', 'agency_type_id');
+    }
+
+    public function masterFaskes()
+    {
+        return $this->hasOne('App\MasterFaskes', 'id', 'agency_id');
+    }
+
+    public function village()
+    {
+        return $this->hasOne('App\Village', 'kemendagri_desa_kode', 'agency_location_village_code');
+    }
 }
