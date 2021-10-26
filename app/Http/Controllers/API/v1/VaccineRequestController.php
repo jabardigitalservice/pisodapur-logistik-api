@@ -18,7 +18,7 @@ class VaccineRequestController extends Controller
     {
         $limit = $request->input('limit', 10);
         $data = VaccineRequest::with([
-            'masterFaskes:id,nama_faskes',
+            'masterFaskes:id,nama_faskes,is_reference',
             'masterFaskesType:id,name',
             'village'
         ])

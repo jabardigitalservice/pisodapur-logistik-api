@@ -19,6 +19,7 @@ class AddHistoryStatusToVaccineRequestsTable extends Migration
             $table->index('letter_number');
             $table->index('is_completed');
             $table->index('is_urgency');
+            $table->integer('created_by')->after('updated_at')->nullable();
             $table->datetime('verified_at')->nullable();
             $table->integer('verified_by')->index()->nullable();
             $table->datetime('approved_at')->nullable();
@@ -42,6 +43,7 @@ class AddHistoryStatusToVaccineRequestsTable extends Migration
             $table->dropIndex(['letter_number']);
             $table->dropIndex(['is_completed']);
             $table->dropIndex(['is_urgency']);
+            $table->dropColumn('created_by');
             $table->dropColumn('verified_at');
             $table->dropColumn('verified_by');
             $table->dropColumn('approved_at');
