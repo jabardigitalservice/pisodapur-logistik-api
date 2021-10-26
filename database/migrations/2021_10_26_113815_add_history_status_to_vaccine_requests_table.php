@@ -37,11 +37,11 @@ class AddHistoryStatusToVaccineRequestsTable extends Migration
     public function down()
     {
         Schema::table('vaccine_requests', function (Blueprint $table) {
-            $table->dropIndex('vaccine_requests_agency_name_index');
-            $table->dropIndex('vaccine_requests_applicant_fullname_index');
-            $table->dropIndex('vaccine_requests_letter_number_index');
-            $table->dropIndex('vaccine_requests_is_completed_index');
-            $table->dropIndex('vaccine_requests_is_urgency_index');
+            $table->dropIndex(['agency_name']);
+            $table->dropIndex(['applicant_fullname']);
+            $table->dropIndex(['letter_number']);
+            $table->dropIndex(['is_completed']);
+            $table->dropIndex(['is_urgency']);
             $table->dropColumn('verified_at');
             $table->dropColumn('verified_by');
             $table->dropColumn('approved_at');
