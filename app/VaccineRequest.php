@@ -71,6 +71,12 @@ class VaccineRequest extends Model
         ->when($request->has('city_id'), function ($query) use ($request) {
             $query->where('agency_city_id', $request->input('city_id'));
         });
+
+        $query->whereHas('masterFaskes', function ($query) use ($request) {
+            $query->when($request->has('is_reference'), function ($query) use ($request) {
+                $query->where('is_reference', $request->input('is_reference'));
+            });
+        });
         return $query;
     }
 
