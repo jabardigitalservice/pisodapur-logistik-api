@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\VaccineRequest;
 
+use App\Enums\ApplicantStatusEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Spatie\Enum\Laravel\Rules\EnumRule;
 
 class GetVaccineRequest extends FormRequest
 {
@@ -25,7 +27,8 @@ class GetVaccineRequest extends FormRequest
     {
         return [
             'limit' => 'numeric',
-            'page' => 'numeric'
+            'page' => 'numeric',
+            'status' => [new EnumRule(ApplicantStatusEnum::class)]
         ];
     }
 }
