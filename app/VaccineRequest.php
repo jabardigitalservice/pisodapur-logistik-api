@@ -64,6 +64,9 @@ class VaccineRequest extends Model
     {
         $query->when($request->has('search'), function ($query) use ($request) {
             $query->where('agency_name', 'LIKE', '%' . $request->input('search') . '%');
+        })
+        ->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
+            $query->whereBetween('created_at', [$request->input('start_date'), $request->input('end_date')]);
         });
         return $query;
     }
