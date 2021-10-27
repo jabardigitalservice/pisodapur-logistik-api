@@ -63,11 +63,7 @@ class VaccineRequest extends Model
     public function scopeFilter($query, $request)
     {
         $query->when($request->has('search'), function ($query) use ($request) {
-            $query->where(function ($query) use ($request) {
-                $query->where('applicant_fullname', 'LIKE', '%' . $request->input('search') . '%')
-                      ->orWhere('agency_name', 'LIKE', '%' . $request->input('search') . '%')
-                      ->orWhere('letter_number', 'LIKE', '%' . $request->input('search') . '%');
-            });
+            $query->where('agency_name', 'LIKE', '%' . $request->input('search') . '%');
         });
         return $query;
     }
