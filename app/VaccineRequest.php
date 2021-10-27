@@ -62,7 +62,10 @@ class VaccineRequest extends Model
 
     public function scopeFilter($query, $request)
     {
-        $query->when($request->has('search'), function ($query) use ($request) {
+        $query->when($request->has('status'), function ($query) use ($request) {
+            $query->where('status', $request->input('status'));
+        })
+        ->when($request->has('search'), function ($query) use ($request) {
             $query->where('agency_name', 'LIKE', '%' . $request->input('search') . '%');
         })
         ->when($request->has('start_date') && $request->has('end_date'), function ($query) use ($request) {
