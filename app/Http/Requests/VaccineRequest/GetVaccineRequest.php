@@ -28,7 +28,8 @@ class GetVaccineRequest extends FormRequest
         return [
             'limit' => 'numeric',
             'page' => 'numeric',
-            'status' => [new EnumRule(ApplicantStatusEnum::class)]
+            'status' => [new EnumRule(ApplicantStatusEnum::class)],
+            'sort' => [new EnumRule(OrderEnum::class)],
         ];
     }
 }
