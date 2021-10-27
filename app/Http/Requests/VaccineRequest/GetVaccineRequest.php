@@ -3,6 +3,7 @@
 namespace App\Http\Requests\VaccineRequest;
 
 use App\Enums\ApplicantStatusEnum;
+use App\Enums\OrderEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Spatie\Enum\Laravel\Rules\EnumRule;
 
@@ -32,6 +33,7 @@ class GetVaccineRequest extends FormRequest
             'sort' => [new EnumRule(OrderEnum::class)],
             'is_reference' => 'boolean',
             'is_completed' => 'boolean',
+            'is_urgency' => 'boolean',
         ];
     }
 }
