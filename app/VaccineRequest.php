@@ -11,10 +11,10 @@ class VaccineRequest extends Model
         'agency_type_id',
         'agency_name',
         'agency_phone_number',
-        'agency_location_district_code',
-        'agency_location_subdistrict_code',
-        'agency_location_village_code',
-        'agency_location_address',
+        'agency_city_id',
+        'agency_district_id',
+        'agency_village_id',
+        'agency_address',
         'applicant_fullname',
         'applicant_position',
         'applicant_email',
@@ -44,10 +44,10 @@ class VaccineRequest extends Model
             'agency_type_id' => $request->input('agency_type'),
             'agency_name' => $request->input('agency_name'),
             'agency_phone_number' => $request->input('phone_number'),
-            'agency_location_district_code' => $request->input('location_district_code'),
-            'agency_location_subdistrict_code' => $request->input('location_subdistrict_code'),
-            'agency_location_village_code' => $request->input('location_village_code'),
-            'agency_location_address' => $request->input('location_address'),
+            'agency_city_id' => $request->input('location_district_code'),
+            'agency_district_id' => $request->input('location_subdistrict_code'),
+            'agency_village_id' => $request->input('location_village_code'),
+            'agency_address' => $request->input('location_address'),
             'applicant_fullname' => $request->input('applicant_name'),
             'applicant_position' => $request->input('applicants_office'),
             'applicant_email' => $request->input('email'),
@@ -88,6 +88,6 @@ class VaccineRequest extends Model
 
     public function village()
     {
-        return $this->hasOne('App\Village', 'kemendagri_desa_kode', 'agency_location_village_code');
+        return $this->hasOne('App\Village', 'kemendagri_desa_kode', 'agency_village_id');
     }
 }
