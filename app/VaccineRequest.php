@@ -89,6 +89,14 @@ class VaccineRequest extends Model
         return $query;
     }
 
+    public function scopeSort($query, $request)
+    {
+        $query->when($request->has('sort'), function ($query) use ($request) {
+            $query->orderBy('agency_name', $request->input('sort'));
+        });
+        return $query;
+    }
+
     public function vaccineProductRequests()
     {
         return $this->hasMany('App\VaccineProductRequest');
