@@ -73,6 +73,12 @@ class VaccineRequest extends Model
         })
         ->when($request->has('is_completed'), function ($query) use ($request) {
             $query->where('is_completed', $request->input('is_completed'));
+        })
+        ->when($request->has('is_completed'), function ($query) use ($request) {
+            $query->where('is_completed', $request->input('is_completed'));
+        })
+        ->when($request->has('is_urgency'), function ($query) use ($request) {
+            $query->where('is_urgency', $request->input('is_urgency'));
         });
 
         $query->whereHas('masterFaskes', function ($query) use ($request) {
