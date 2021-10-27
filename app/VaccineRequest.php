@@ -70,6 +70,9 @@ class VaccineRequest extends Model
         })
         ->when($request->has('city_id'), function ($query) use ($request) {
             $query->where('agency_city_id', $request->input('city_id'));
+        })
+        ->when($request->has('is_completed'), function ($query) use ($request) {
+            $query->where('is_completed', $request->input('is_completed'));
         });
 
         $query->whereHas('masterFaskes', function ($query) use ($request) {
