@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreVaccineRequest;
 use App\Http\Requests\VaccineRequest\GetVaccineRequest;
+use App\Http\Resources\VaccineRequestResource;
 use App\VaccineProductRequest;
 use DB;
 use Illuminate\Support\Facades\Storage;
@@ -18,13 +19,12 @@ class VaccineRequestController extends Controller
     {
         $limit = $request->input('limit', 10);
         $data = VaccineRequest::with([
-            'masterFaskes:id,nama_faskes',
+            'masterFaskes:id,nama_faskes,is_reference',
             'masterFaskesType:id,name',
             'village'
         ])
-        ->filter($request)
-        ->paginate($limit);
-        return response()->format(Response::HTTP_OK, 'success', $data);
+        ->filter($request);
+        return VaccineRequestResource::collection($data->paginate($limit));
     }
 
     public function store(StoreVaccineRequest $request)
