@@ -23,7 +23,8 @@ class VaccineRequestController extends Controller
             'masterFaskesType:id,name',
             'village'
         ])
-        ->filter($request);
+        ->filter($request)
+        ->sort($request);
         return VaccineRequestResource::collection($data->paginate($limit));
     }
 
