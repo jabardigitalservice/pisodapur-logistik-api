@@ -36,7 +36,7 @@ class ImportAllocationVaccineRequestController extends Controller
                 'type' => 'vaccine',
                 'applicant_name' => $allocations[3][0],
                 'applicant_position' => $allocations[4][0],
-                'applicant_agency_id' => $allocations[5][0],
+                'applicant_agency_id' => MasterFaskes::where('poslog_id', $allocations[5][0])->value('id'),
                 'applicant_agency_name' => $allocations[6][0],
                 'distribution_description' => $allocations[7][0],
                 'letter_url' => $allocations[8][0],
