@@ -66,9 +66,6 @@ class VaccineRequest extends Model
             $query->where('status', $request->input('status'));
         })
         ->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
-            $query->where('agency_name', 'LIKE', '%' . $request->input('search') . '%');
-        })
-        ->when($request->has('start_date') && $request->has('end_date'), function ($query) use ($request) {
             $query->whereBetween('created_at', [$request->input('start_date'), $request->input('end_date')]);
         })
         ->when($request->input('city_id'), function ($query) use ($request) {
@@ -87,6 +84,8 @@ class VaccineRequest extends Model
         $query->whereHas('masterFaskes', function ($query) use ($request) {
             $query->when($request->has('is_reference'), function ($query) use ($request) {
                 $query->where('is_reference', $request->input('is_reference'));
+            })->when($request->input('search'), function ($query) use ($request) {
+                $query->where('nama_faskes', 'like', '%' . $request->input('search') . '%');
             });
         });
         return $query;
