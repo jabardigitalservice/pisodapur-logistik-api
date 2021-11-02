@@ -27,16 +27,17 @@ class GetVaccineRequest extends FormRequest
     public function rules()
     {
         return [
-            'limit' => 'numeric',
-            'page' => 'numeric',
-            'status' => [new EnumRule(ApplicantStatusEnum::class)],
-            'sort' => [new EnumRule(OrderEnum::class)],
+            'limit' => 'nullable|numeric',
+            'page' => 'nullable|numeric',
+            'status' => ['nullable', new EnumRule(ApplicantStatusEnum::class)],
+            'sort' => ['nullable', new EnumRule(OrderEnum::class)],
             'is_reference' => 'boolean',
             'is_completed' => 'boolean',
             'is_urgency' => 'boolean',
-            'start_date' => 'required_with:end_date|date',
-            'end_date' => 'required_with:start_date|date',
-            'city_id' => 'exists:districtcities,kemendagri_kabupaten_kode',
+            'start_date' => 'nullable|required_with:end_date|date',
+            'end_date' => 'nullable|required_with:start_date|date',
+            'city_id' => 'nullable|exists:districtcities,kemendagri_kabupaten_kode',
+            'faskes_type' => 'nullable|exists:master_faskes_types,id',
         ];
     }
 }

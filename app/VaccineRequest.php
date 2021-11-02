@@ -62,16 +62,13 @@ class VaccineRequest extends Model
 
     public function scopeFilter($query, $request)
     {
-        $query->when($request->has('status'), function ($query) use ($request) {
+        $query->when($request->input('status'), function ($query) use ($request) {
             $query->where('status', $request->input('status'));
         })
-        ->when($request->has('search'), function ($query) use ($request) {
-            $query->where('agency_name', 'LIKE', '%' . $request->input('search') . '%');
-        })
-        ->when($request->has('start_date') && $request->has('end_date'), function ($query) use ($request) {
+        ->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
             $query->whereBetween('created_at', [$request->input('start_date'), $request->input('end_date')]);
         })
-        ->when($request->has('city_id'), function ($query) use ($request) {
+        ->when($request->input('city_id'), function ($query) use ($request) {
             $query->where('agency_city_id', $request->input('city_id'));
         })
         ->when($request->has('is_completed'), function ($query) use ($request) {
@@ -82,11 +79,16 @@ class VaccineRequest extends Model
         })
         ->when($request->has('is_urgency'), function ($query) use ($request) {
             $query->where('is_urgency', $request->input('is_urgency'));
+        })
+        ->when($request->input('faskes_type'), function ($query) use ($request) {
+            $query->where('agency_type_id', $request->input('faskes_type'));
         });
 
         $query->whereHas('masterFaskes', function ($query) use ($request) {
             $query->when($request->has('is_reference'), function ($query) use ($request) {
                 $query->where('is_reference', $request->input('is_reference'));
+            })->when($request->input('search'), function ($query) use ($request) {
+                $query->where('nama_faskes', 'like', '%' . $request->input('search') . '%');
             });
         });
         return $query;
@@ -94,7 +96,7 @@ class VaccineRequest extends Model
 
     public function scopeSort($query, $request)
     {
-        $query->when($request->has('sort'), function ($query) use ($request) {
+        $query->when($request->input('sort'), function ($query) use ($request) {
             $query->orderBy('agency_name', $request->input('sort'));
         });
         return $query;
