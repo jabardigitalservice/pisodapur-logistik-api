@@ -79,6 +79,9 @@ class VaccineRequest extends Model
         })
         ->when($request->has('is_urgency'), function ($query) use ($request) {
             $query->where('is_urgency', $request->input('is_urgency'));
+        })
+        ->when($request->input('faskes_type'), function ($query) use ($request) {
+            $query->where('agency_type_id', $request->input('faskes_type'));
         });
 
         $query->whereHas('masterFaskes', function ($query) use ($request) {

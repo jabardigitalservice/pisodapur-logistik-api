@@ -37,6 +37,7 @@ class GetVaccineRequest extends FormRequest
             'start_date' => 'nullable|required_with:end_date|date',
             'end_date' => 'nullable|required_with:start_date|date',
             'city_id' => 'nullable|exists:districtcities,kemendagri_kabupaten_kode',
+            'faskes_type' => 'nullable|exists:master_faskes_types,id',
         ];
     }
 }
