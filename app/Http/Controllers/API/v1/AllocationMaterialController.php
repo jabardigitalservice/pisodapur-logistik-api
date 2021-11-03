@@ -11,9 +11,11 @@ class AllocationMaterialController extends Controller
 {
     public function index(Request $request)
     {
+        $isPaginated = $request->input('is_paginated', 0);
         $type = $request->input('type', 'vaccine');
         $limit = $request->input('limit', 10);
-        $data = AllocationMaterial::where('type', $type)->paginate($limit);
+        $data = AllocationMaterial::where('type', $type)
+        $data = $isPaginated ? $data->get() : $data->paginate($limit);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
