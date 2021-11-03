@@ -18,6 +18,8 @@ class AllocationMaterialController extends Controller
         $data = AllocationMaterial::where('type', $type)
                 ->when($request->input('material_name'), function ($query) use ($request) {
                     $query->where('material_name', 'LIKE', "%{$request->input('material_name')}%");
+                })->when($request->input('matg_id'), function ($query) use ($request) {
+                    $query->where('matg_id', $request->input('matg_id'));
                 });
 
         $data = $isPaginated ? $data->get() : $data->paginate($limit);
