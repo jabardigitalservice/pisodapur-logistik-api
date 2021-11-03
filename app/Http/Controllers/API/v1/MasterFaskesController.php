@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\v1;
 use App\MasterFaskes;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\VaccineRequest\GetMasterFaskesRequest;
 use App\Traits\PaginateTrait;
 use App\Validation;
 use Illuminate\Http\Response;
@@ -14,10 +15,11 @@ class MasterFaskesController extends Controller
 {
     use PaginateTrait;
 
-    public function index(Request $request)
+    public function index(GetMasterFaskesRequest $request)
     {
         $limit = $request->input('limit', 20);
         $sort = $this->getValidOrderDirection($request->input('sort'));
+        $isPaginated = $request->input('is_paginated', 0);
 
         $data = MasterFaskes::with('masterFaskesType')
                 ->where(function ($query) use ($request) {
@@ -36,8 +38,10 @@ class MasterFaskesController extends Controller
                         $query->where('master_faskes.is_imported', $request->input('is_imported'));
                     });
                 })
-                ->orderBy('nama_faskes', $sort)
-                ->paginate($limit);
+                ->orderBy('nama_faskes', $sort);
+
+        $data = $isPaginated ? $data->select('id', 'nama_faskes')->get() : $data->paginate($limit);
+
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
