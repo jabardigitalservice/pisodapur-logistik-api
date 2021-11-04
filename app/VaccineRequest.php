@@ -23,6 +23,7 @@ class VaccineRequest extends Model
         'letter_number',
         'letter_file_url',
         'applicant_file_url',
+        'is_completed',
     ];
 
     public function getLetterFileUrlAttribute($value)
@@ -56,8 +57,23 @@ class VaccineRequest extends Model
             'letter_number' => $request->input('application_letter_number'),
             'letter_file_url' => $request->input('letter_file_url'),
             'applicant_file_url' => $request->input('applicant_file_url'),
+            'is_completed' => VaccineRequest::setIsCompleted($request)
         ];
         return VaccineRequest::create($vaccineRequest);
+    }
+
+    public static function setIsCompleted($request)
+    {
+        $isCompleted = 0;
+        if ($request->input('applicant_file_url')
+            && $request->input('primary_phone_number')
+            && $request->input('email')
+            && $request->input('location_address')
+        ) {
+            $isCompleted = 1;
+        }
+
+        return $isCompleted;
     }
 
     public function scopeFilter($query, $request)
