@@ -37,7 +37,7 @@ class ImportAllocationVaccineRequestController extends Controller
                 'type' => 'vaccine',
                 'applicant_name' => $allocations[3][0],
                 'applicant_position' => $allocations[4][0],
-                'applicant_agency_id' => MasterFaskes::where('poslog_id', $allocations[5][0])->value('id'),
+                'applicant_agency_id' => $allocations[5][0],
                 'applicant_agency_name' => $allocations[6][0],
                 'distribution_description' => $allocations[7][0],
                 'letter_url' => $allocations[8][0],
@@ -50,7 +50,7 @@ class ImportAllocationVaccineRequestController extends Controller
                 if ($allocations[$index][1]) {
                     $allocationDistributionRequest = AllocationDistributionRequest::create([
                         'allocation_request_id' => $allocationRequest->id,
-                        'agency_id' => MasterFaskes::where('poslog_id', $allocations[$index][1])->value('id'),
+                        'agency_id' => $allocations[$index][1],
                         'agency_name' => $allocations[$index][0],
                         'distribution_plan_date' => Carbon::instance(Date::excelToDateTimeObject($allocations[$index][8])),
                     ]);
