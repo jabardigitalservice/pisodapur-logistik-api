@@ -10,10 +10,11 @@ use App\Enums\AllocationRequestStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportExcelRequest;
 use App\Imports\MultipleSheetImport;
-use App\MasterFaskes;
+use Carbon\Carbon;
 use Illuminate\Http\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class ImportAllocationVaccineRequestController extends Controller
 {
@@ -32,7 +33,7 @@ class ImportAllocationVaccineRequestController extends Controller
 
             $allocationRequest = AllocationRequest::create([
                 'letter_number' => $allocations[1][0],
-                'letter_date' => $allocations[2][0],
+                'letter_date' => Carbon::instance(Date::excelToDateTimeObject($allocations[2][0])),
                 'type' => 'vaccine',
                 'applicant_name' => $allocations[3][0],
                 'applicant_position' => $allocations[4][0],
@@ -51,7 +52,7 @@ class ImportAllocationVaccineRequestController extends Controller
                         'allocation_request_id' => $allocationRequest->id,
                         'agency_id' => MasterFaskes::where('poslog_id', $allocations[$index][1])->value('id'),
                         'agency_name' => $allocations[$index][0],
-                        'distribution_plan_date' => $allocations[$index][8],
+                        'distribution_plan_date' => Carbon::instance(Date::excelToDateTimeObject($allocations[$index][8])),
                     ]);
 
                     for ($column = 0; $column < count($allocations[10])-1; $column++) {
