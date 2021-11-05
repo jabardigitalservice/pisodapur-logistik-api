@@ -10,10 +10,11 @@ use App\Enums\AllocationRequestStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportExcelRequest;
 use App\Imports\MultipleSheetImport;
-use App\MasterFaskes;
+use Carbon\Carbon;
 use Illuminate\Http\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class ImportAllocationVaccineRequestController extends Controller
 {
@@ -32,11 +33,11 @@ class ImportAllocationVaccineRequestController extends Controller
 
             $allocationRequest = AllocationRequest::create([
                 'letter_number' => $allocations[1][0],
-                'letter_date' => $allocations[2][0],
+                'letter_date' => Carbon::instance(Date::excelToDateTimeObject($allocations[2][0])),
                 'type' => 'vaccine',
                 'applicant_name' => $allocations[3][0],
                 'applicant_position' => $allocations[4][0],
-                'applicant_agency_id' => MasterFaskes::where('poslog_id', $allocations[5][0])->value('id'),
+                'applicant_agency_id' => $allocations[5][0],
                 'applicant_agency_name' => $allocations[6][0],
                 'distribution_description' => $allocations[7][0],
                 'letter_url' => $allocations[8][0],
@@ -49,9 +50,9 @@ class ImportAllocationVaccineRequestController extends Controller
                 if ($allocations[$index][1]) {
                     $allocationDistributionRequest = AllocationDistributionRequest::create([
                         'allocation_request_id' => $allocationRequest->id,
-                        'agency_id' => MasterFaskes::where('poslog_id', $allocations[$index][1])->value('id'),
+                        'agency_id' => $allocations[$index][1],
                         'agency_name' => $allocations[$index][0],
-                        'distribution_plan_date' => $allocations[$index][8],
+                        'distribution_plan_date' => Carbon::instance(Date::excelToDateTimeObject($allocations[$index][8])),
                     ]);
 
                     for ($column = 0; $column < count($allocations[10])-1; $column++) {
@@ -65,7 +66,7 @@ class ImportAllocationVaccineRequestController extends Controller
                                 'material_id' => $allocations[10][$column],
                                 'material_name' => $allocations[12][$column],
                                 'qty' => $allocations[$index][$column] ?? 0,
-                                'UoM' => $allocationMaterial->UoM,
+                                'UoM' => optional($allocationMaterial)->UoM ?? 'PCS',
                             ]);
                         }
                     }
