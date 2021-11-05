@@ -66,7 +66,7 @@ class ImportAllocationVaccineRequestController extends Controller
                                 'material_id' => $allocations[10][$column],
                                 'material_name' => $allocations[12][$column],
                                 'qty' => $allocations[$index][$column] ?? 0,
-                                'UoM' => $allocationMaterial->UoM,
+                                'UoM' => optional($allocationMaterial)->UoM ?? 'PCS',
                             ]);
                         }
                     }
