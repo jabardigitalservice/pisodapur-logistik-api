@@ -31,6 +31,13 @@ class ImportAllocationVaccineRequestController extends Controller
             $importExcel = Excel::import($import, request()->file('file'));
             $allocations = $import->sheetData[2]->toArray();
 
+            $isExists = AllocationRequest::where('letter_number', $allocations[1][0])->exists();
+
+            if ($isExists) {
+                DB::rollBack();
+                return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, 'Cannot Import. Letter Number already exists.');
+            }
+
             $allocationRequest = AllocationRequest::create([
                 'letter_number' => $allocations[1][0],
                 'letter_date' => Carbon::instance(Date::excelToDateTimeObject($allocations[2][0])),
