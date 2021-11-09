@@ -35,6 +35,11 @@ class MasterFaskes extends Model
         return $this->hasOne('App\MasterFaskesType', 'id', 'id_tipe_faskes');
     }
 
+    public function village()
+    {
+        return $this->hasOne('App\Village', 'kemendagri_desa_kode', 'kode_kel_kemendagri');
+    }
+
     public function getVerificationStatusAttribute($value)
     {
         $status = $value === self::STATUS_NOT_VERIFIED ? 'Belum Terverifikasi' : ($value === self::STATUS_VERIFIED ? 'Terverifikasi' : '');

@@ -6,6 +6,7 @@ use App\MasterFaskes;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VaccineRequest\GetMasterFaskesRequest;
+use App\MasterFaskesType;
 use App\Traits\PaginateTrait;
 use App\Validation;
 use Illuminate\Http\Response;
@@ -19,15 +20,22 @@ class MasterFaskesController extends Controller
     {
         $limit = $request->input('limit', 20);
         $sort = $this->getValidOrderDirection($request->input('sort'));
-        $isPaginated = $request->input('is_paginated', 0);
+        $isPaginated = $request->input('is_paginated', 1);
 
-        $data = MasterFaskes::with('masterFaskesType')
+        $data = MasterFaskes::with(['masterFaskesType', 'village'])
                 ->where(function ($query) use ($request) {
                     $query->when($request->has('nama_faskes'), function ($query) use ($request) {
                         $query->where('master_faskes.nama_faskes', 'LIKE', "%{$request->input('nama_faskes')}%");
                     })
                     ->when($request->has('id_tipe_faskes'), function ($query) use ($request) {
                         $query->where('master_faskes.id_tipe_faskes', '=', $request->input('id_tipe_faskes'));
+                    })
+                    ->when($request->has('is_faskes'), function ($query) use ($request) {
+                        $query->when($request->input('is_faskes'), function ($query) use ($request) {
+                            $query->whereIn('master_faskes.id_tipe_faskes', MasterFaskesType::HEALTH_FACILITY);
+                        },  function ($query) use ($request) {
+                            $query->whereIn('master_faskes.id_tipe_faskes', MasterFaskesType::NON_HEALTH_FACILITY);
+                        });
                     })
                     ->when($request->has('verification_status'), function ($query) use ($request) {
                         $query->where('master_faskes.verification_status', '=', $request->input('verification_status'));
@@ -40,7 +48,7 @@ class MasterFaskesController extends Controller
                 })
                 ->orderBy('nama_faskes', $sort);
 
-        $data = $isPaginated ? $data->select('id', 'nama_faskes')->get() : $data->paginate($limit);
+        $data = $isPaginated ? $data->paginate($limit) : $data->select('id', 'nama_faskes', 'id_tipe_faskes', 'kode_kel_kemendagri')->get();
 
         return response()->format(Response::HTTP_OK, 'success', $data);
     }

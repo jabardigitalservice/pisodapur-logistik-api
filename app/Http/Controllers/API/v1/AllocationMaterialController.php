@@ -12,7 +12,7 @@ class AllocationMaterialController extends Controller
 {
     public function index(GetAllocationMaterialRequest $request)
     {
-        $isPaginated = $request->input('is_paginated', 0);
+        $isPaginated = $request->input('is_paginated', 1);
         $type = $request->input('type', 'vaccine');
         $limit = $request->input('limit', 10);
         $data = AllocationMaterial::where('type', $type)
@@ -22,7 +22,7 @@ class AllocationMaterialController extends Controller
                     $query->where('matg_id', $request->input('matg_id'));
                 });
 
-        $data = $isPaginated ? $data->get() : $data->paginate($limit);
+        $data = $isPaginated ? $data->paginate($limit) : $data->get();
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
