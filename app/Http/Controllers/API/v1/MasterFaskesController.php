@@ -21,7 +21,7 @@ class MasterFaskesController extends Controller
         $sort = $this->getValidOrderDirection($request->input('sort'));
         $isPaginated = $request->input('is_paginated', 1);
 
-        $data = MasterFaskes::with('masterFaskesType')
+        $data = MasterFaskes::with(['masterFaskesType', 'village'])
                 ->where(function ($query) use ($request) {
                     $query->when($request->has('nama_faskes'), function ($query) use ($request) {
                         $query->where('master_faskes.nama_faskes', 'LIKE', "%{$request->input('nama_faskes')}%");
@@ -47,7 +47,7 @@ class MasterFaskesController extends Controller
                 })
                 ->orderBy('nama_faskes', $sort);
 
-        $data = $isPaginated ? $data->paginate($limit) : $data->select('id', 'nama_faskes')->get();
+        $data = $isPaginated ? $data->paginate($limit) : $data->select('id', 'nama_faskes', 'id_tipe_faskes', 'kode_kel_kemendagri')->get();
 
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
