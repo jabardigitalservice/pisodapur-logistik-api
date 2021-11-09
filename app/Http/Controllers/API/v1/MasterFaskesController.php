@@ -6,6 +6,7 @@ use App\MasterFaskes;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VaccineRequest\GetMasterFaskesRequest;
+use App\MasterFaskesType;
 use App\Traits\PaginateTrait;
 use App\Validation;
 use Illuminate\Http\Response;
@@ -31,9 +32,9 @@ class MasterFaskesController extends Controller
                     })
                     ->when($request->has('is_faskes'), function ($query) use ($request) {
                         $query->when($request->input('is_faskes'), function ($query) use ($request) {
-                            $query->whereIn('master_faskes.id_tipe_faskes', [1, 2, 3]);
+                            $query->whereIn('master_faskes.id_tipe_faskes', MasterFaskesType::HEALTH_FACILITY);
                         },  function ($query) use ($request) {
-                            $query->whereIn('master_faskes.id_tipe_faskes', [4, 5]);
+                            $query->whereIn('master_faskes.id_tipe_faskes', MasterFaskesType::NON_HEALTH_FACILITY);
                         });
                     })
                     ->when($request->has('verification_status'), function ($query) use ($request) {
