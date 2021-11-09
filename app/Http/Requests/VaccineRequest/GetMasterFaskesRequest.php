@@ -29,6 +29,7 @@ class GetMasterFaskesRequest extends FormRequest
             'limit' => 'nullable|numeric',
             'page' => 'nullable|numeric',
             'is_paginated' => 'boolean',
+            'is_faskes' => 'boolean',
             'id_tipe_faskes' => 'nullable|exists:master_faskes_types,id',
             'verification_status' => [new EnumRule(MasterFaskesVerificationStatusEnum::class)],
         ];

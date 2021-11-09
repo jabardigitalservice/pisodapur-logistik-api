@@ -29,6 +29,13 @@ class MasterFaskesController extends Controller
                     ->when($request->has('id_tipe_faskes'), function ($query) use ($request) {
                         $query->where('master_faskes.id_tipe_faskes', '=', $request->input('id_tipe_faskes'));
                     })
+                    ->when($request->has('is_faskes'), function ($query) use ($request) {
+                        $query->when($request->input('is_faskes'), function ($query) use ($request) {
+                            $query->whereIn('master_faskes.id_tipe_faskes', [1, 2, 3]);
+                        },  function ($query) use ($request) {
+                            $query->whereIn('master_faskes.id_tipe_faskes', [4, 5]);
+                        });
+                    })
                     ->when($request->has('verification_status'), function ($query) use ($request) {
                         $query->where('master_faskes.verification_status', '=', $request->input('verification_status'));
                     }, function ($query) use ($request) {
