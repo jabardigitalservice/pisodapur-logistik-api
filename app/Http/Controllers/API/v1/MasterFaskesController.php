@@ -19,7 +19,7 @@ class MasterFaskesController extends Controller
     {
         $limit = $request->input('limit', 20);
         $sort = $this->getValidOrderDirection($request->input('sort'));
-        $isPaginated = $request->input('is_paginated', 0);
+        $isPaginated = $request->input('is_paginated', 1);
 
         $data = MasterFaskes::with('masterFaskesType')
                 ->where(function ($query) use ($request) {
@@ -40,7 +40,7 @@ class MasterFaskesController extends Controller
                 })
                 ->orderBy('nama_faskes', $sort);
 
-        $data = $isPaginated ? $data->select('id', 'nama_faskes')->get() : $data->paginate($limit);
+        $data = $isPaginated ? $data->paginate($limit) : $data->select('id', 'nama_faskes')->get();
 
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
