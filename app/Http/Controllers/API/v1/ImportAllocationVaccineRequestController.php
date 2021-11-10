@@ -35,7 +35,7 @@ class ImportAllocationVaccineRequestController extends Controller
 
             if ($isExists) {
                 DB::rollBack();
-                return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, 'Cannot Import. Letter Number already exists.');
+                return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Cannot Import. Letter Number already exists.');
             }
 
             $allocationRequest = AllocationRequest::create([
