@@ -6,13 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class AllocationDistributionRequest extends Model
 {
-    const STORE_RULE = [
-        'agency_id' => 'required|exists:master_faskes,id',
-        'agency_name' => 'required',
-        'distribution_plan_date' => 'required|date_format:Y-m-d',
-        'allocation_material_requests' => 'required'
-    ];
-
     protected $fillable = [
         'allocation_request_id',
         'agency_id',

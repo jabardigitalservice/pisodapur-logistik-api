@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API\v1;
 
 use App\AllocationDistributionRequest;
-use App\AllocationMaterial;
 use App\AllocationMaterialRequest;
 use App\AllocationRequest;
 use App\Enums\AllocationRequestStatusEnum;
@@ -17,6 +16,20 @@ use Validator;
 
 class AllocationVaccineRequestController extends Controller
 {
+    public $materialDataRule = [
+        'matg_id' => 'required|exists:allocation_materials,matg_id',
+        'material_id' => 'required|exists:allocation_materials,material_id',
+        'material_name' => 'required',
+        'qty' => 'required|numeric',
+    ];
+
+    public $distributionDataRule = [
+        'agency_id' => 'required|exists:master_faskes,id',
+        'agency_name' => 'required',
+        'distribution_plan_date' => 'required|date_format:Y-m-d',
+        'allocation_material_requests' => 'required'
+    ];
+
     public function index(Request $request)
     {
         $limit = $request->input('limit', 10);
@@ -65,13 +78,13 @@ class AllocationVaccineRequestController extends Controller
     {
         $errors = [];
         foreach (json_decode($distributionList) as $list) {
-            $validator = Validator::make((array) $list, AllocationDistributionRequest::STORE_RULE);
+            $validator = Validator::make((array) $list, $this->distributionDataRule);
             if ($validator->fails()) {
                 $errors['allocation_request'] = $validator->errors()->messages();
             }
 
             foreach ($list->allocation_material_requests as $materialList) {
-                $validator = Validator::make((array) $materialList, AllocationMaterialRequest::STORE_RULE);
+                $validator = Validator::make((array) $materialList, $this->materialDataRule);
                 if ($validator->fails()) {
                     $errors['allocation_request'] = $validator->errors()->messages();
                 }
