@@ -77,7 +77,8 @@ class AllocationVaccineRequestController extends Controller
     public function getErrorValidate($distributionList)
     {
         $errors = [];
-        foreach (json_decode($distributionList) as $list) {
+        $distributionList = !is_array($distributionList) ? json_decode($distributionList) : $distributionList;
+        foreach ($distributionList as $list) {
             $validator = Validator::make((array) $list, $this->distributionDataRule);
             if ($validator->fails()) {
                 $errors['allocation_request'] = $validator->errors()->messages();
@@ -101,7 +102,9 @@ class AllocationVaccineRequestController extends Controller
             $allocationRequest = AllocationRequest::create($request->validated());
 
             $materialRequests = [];
-            foreach (json_decode($distributionList) as $list) {
+
+            $distributionList = !is_array($distributionList) ? json_decode($distributionList) : $distributionList;
+            foreach ($distributionList as $list) {
                 $allocationDistribution = (array) $list;
                 $allocationDistribution['allocation_request_id'] = $allocationRequest->id;
                 $allocationDistributionRequest = AllocationDistributionRequest::create($allocationDistribution);
