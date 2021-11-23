@@ -48,15 +48,13 @@ class MasterFaskesTest extends TestCase
 
         $faskesName = 'FASKES ' . $this->faker->state . ' ' . $this->faker->company;
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/master-faskes', [
-            'id_tipe_faskes' => rand(1, 3),
-            'verification_status' => 'verified',
             'nama_faskes' => $faskesName,
-            'poslog_id' => $this->faker->numerify('219000####'),
-            'poslog_name' => $faskesName,
-            'is_reference' => rand(0, 1),
-            'nomor_izin_sarana' => $this->faker->numerify('####-####-##'),
-            'nama_atasan' => $this->faker->name,
-            'permit_file' => UploadedFile::fake()->image('permit_file.png'),
+            'id_tipe_faskes' => rand(1, 5),
+            'nomor_telepon' => $this->faker->phoneNumber,
+            'kode_kab_kemendagri' => '32.01',
+            'kode_kec_kemendagri' => '32.01.01',
+            'kode_kel_kemendagri' => '32.01.01.1001',
+            'alamat' => $this->faker->address
         ]);
         $response->assertSuccessful();
     }
