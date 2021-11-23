@@ -28,7 +28,7 @@ class StoreMasterFaskesRequest extends FormRequest
         return [
             'nama_faskes' => 'required',
             'id_tipe_faskes' => 'required|numeric|exists:master_faskes_types,id',
-            'nomor_telepon' => 'required',
+            'nomor_telepon' => 'required|numeric',
             'kode_kab_kemendagri' => 'required|exists:districtcities,kemendagri_kabupaten_kode',
             'kode_kec_kemendagri' => 'required|exists:subdistricts,kemendagri_kecamatan_kode',
             'kode_kel_kemendagri' => 'required|exists:villages,kemendagri_desa_kode',

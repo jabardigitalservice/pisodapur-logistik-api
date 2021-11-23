@@ -64,7 +64,7 @@ class MasterFaskesController extends Controller
     public function store(StoreMasterFaskesRequest $request)
     {
         $model = new MasterFaskes();
-        $model->fill($request->input());
+        $model->fill($request->validated());
         $model->verification_status = $request->input('verification_status', MasterFaskesVerificationStatusEnum::not_verified());
         $model->is_imported = 0;
         $model->permit_file = $this->permitLetterStore($request);
