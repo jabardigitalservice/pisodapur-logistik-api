@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\API\v1;
 
+use App\Enums\MasterFaskesVerificationStatusEnum;
 use App\MasterFaskes;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\MasterFaskes\StoreMasterFaskesRequest;
 use App\Http\Requests\VaccineRequest\GetMasterFaskesRequest;
 use App\MasterFaskesType;
 use App\Traits\PaginateTrait;
@@ -59,31 +61,15 @@ class MasterFaskesController extends Controller
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
-    public function store(Request $request)
+    public function store(StoreMasterFaskesRequest $request)
     {
         $model = new MasterFaskes();
-        $param = [
-            'nomor_izin_sarana' => 'required',
-            'nama_faskes' => 'required',
-            'id_tipe_faskes' => 'required',
-            'nama_atasan' => 'required',
-            'point_latitude_longitude' => 'string',
-            'permit_file' => 'required|mimes:jpeg,jpg,png|max:10240'
-        ];
-        $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === Response::HTTP_OK) {
-            try {
-                $model->fill($request->input());
-                $model->verification_status = 'not_verified';
-                $model->is_imported = 0;
-                $model->permit_file = $this->permitLetterStore($request);
-                $model->save();
-                $response = response()->format(Response::HTTP_OK, 'success', $model);
-            } catch (\Exception $e) {
-                $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $e->getMessage());
-            }
-        }
-        return $response;
+        $model->fill($request->validated());
+        $model->verification_status = $request->input('verification_status', MasterFaskesVerificationStatusEnum::not_verified());
+        $model->is_imported = 0;
+        $model->permit_file = $this->permitLetterStore($request);
+        $model->save();
+        return response()->format(Response::HTTP_OK, 'success');
     }
 
     public function verify(Request $request, $id)
