@@ -110,7 +110,7 @@ class AllocationVaccineRequestController extends Controller
                 $allocationDistributionRequest = AllocationDistributionRequest::create($allocationDistribution);
 
                 $distributionID = $allocationDistributionRequest->id;
-                foreach ($list->allocation_material_requests as $key => $materialList) {
+                foreach ($list['allocation_material_requests'] as $key => $materialList) {
                     $material = (array) $materialList;
                     $material['allocation_request_id'] = $allocationRequest->id;
                     $material['allocation_distribution_request_id'] = $distributionID;
