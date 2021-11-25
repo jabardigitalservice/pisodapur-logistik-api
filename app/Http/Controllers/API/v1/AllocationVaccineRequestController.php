@@ -85,8 +85,7 @@ class AllocationVaccineRequestController extends Controller
                 $errors['allocation_request'] = $validator->errors()->messages();
             }
 
-            $allocationMaterialRequests = isset($list->allocation_material_requests) ? $list->allocation_material_requests : $list['allocation_material_requests'];
-            foreach ($allocationMaterialRequests as $materialList) {
+            foreach ($list['allocation_material_requests'] as $materialList) {
                 $validator = Validator::make((array) $materialList, $this->materialDataRule);
                 if ($validator->fails()) {
                     $errors['allocation_request'] = $validator->errors()->messages();
@@ -115,8 +114,7 @@ class AllocationVaccineRequestController extends Controller
 
                 $distributionID = $allocationDistributionRequest->id;
 
-                $allocationMaterialRequests = isset($list->allocation_material_requests) ? $list->allocation_material_requests : $list['allocation_material_requests'];
-                foreach ($allocationMaterialRequests as $materialList) {
+                foreach ($list['allocation_material_requests'] as $materialList) {
                     $material = (array) $materialList;
                     $material['allocation_request_id'] = $allocationRequest->id;
                     $material['allocation_distribution_request_id'] = $distributionID;
