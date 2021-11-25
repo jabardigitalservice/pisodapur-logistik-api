@@ -6,6 +6,7 @@ use App\AllocationDistributionRequest;
 use App\AllocationMaterialRequest;
 use App\AllocationRequest;
 use App\Enums\AllocationRequestStatusEnum;
+use App\Enums\AllocationRequestTypeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
@@ -99,7 +100,10 @@ class AllocationVaccineRequestController extends Controller
     {
         DB::beginTransaction();
         try {
-            $allocationRequest = AllocationRequest::create($request->validated());
+            $allocationRequest = AllocationRequest::create(array_merge($request->validated(), [
+                'type' => AllocationRequestTypeEnum::vaccine(),
+                'status' => AllocationRequestStatusEnum::success(),
+            ]));
 
             $materialRequests = [];
 
@@ -110,7 +114,8 @@ class AllocationVaccineRequestController extends Controller
                 $allocationDistributionRequest = AllocationDistributionRequest::create($allocationDistribution);
 
                 $distributionID = $allocationDistributionRequest->id;
-                foreach ($list['allocation_material_requests'] as $key => $materialList) {
+
+                foreach ($list['allocation_material_requests'] as $materialList) {
                     $material = (array) $materialList;
                     $material['allocation_request_id'] = $allocationRequest->id;
                     $material['allocation_distribution_request_id'] = $distributionID;
