@@ -102,6 +102,7 @@ class AllocationVaccineRequestController extends Controller
         try {
             $allocationRequest = AllocationRequest::create(array_merge($request->validated(), [
                 'type' => AllocationRequestTypeEnum::vaccine(),
+                'status' => AllocationRequestStatusEnum::success(),
             ]));
 
             $materialRequests = [];
