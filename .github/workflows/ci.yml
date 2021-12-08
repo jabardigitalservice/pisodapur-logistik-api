@@ -79,3 +79,10 @@ jobs:
         DB_USERNAME: root
 
       run: vendor/bin/phpunit --testdox
+# Code Climate Coverage
+    - name: Set Up Codeclimate and Send Report Codeclimate
+      uses: paambaati/codeclimate-action@v2.7.5
+      env:
+        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORT_ID }}
+      with:
+        coverageLocations: report/clover.xml:clover

@@ -20,6 +20,9 @@
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./app</directory>
+            <exclude>
+                <directory>./vendor</directory>
+            </exclude>
         </whitelist>
     </filter>
     <php>
@@ -31,4 +34,7 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="FILESYSTEM_DRIVER" value="testing"/>
     </php>
+    <logging>
+        <log type="coverage-clover" target="report/clover.xml"/>
+    </logging>
 </phpunit>
