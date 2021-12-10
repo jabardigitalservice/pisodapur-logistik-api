@@ -1,4 +1,5 @@
-[![Maintainability](https://api.codeclimate.com/v1/badges/78ce000cc84f4304d57d/maintainability)](https://codeclimate.com/github/jabardigitalservice/pikobar-logistik-api/maintainability)
+<a href="https://codeclimate.com/github/jabardigitalservice/pikobar-logistik-api/maintainability"><img src="https://api.codeclimate.com/v1/badges/78ce000cc84f4304d57d/maintainability" /></a>
+<a href="https://codeclimate.com/github/jabardigitalservice/pikobar-logistik-api/test_coverage"><img src="https://api.codeclimate.com/v1/badges/78ce000cc84f4304d57d/test_coverage" /></a>
 
 
 ## PIKOBAR LOGISTIK API
