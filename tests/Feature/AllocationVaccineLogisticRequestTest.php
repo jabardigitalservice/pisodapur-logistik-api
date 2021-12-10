@@ -9,6 +9,7 @@ use App\AllocationMaterial;
 use App\AllocationDistributionRequest;
 use App\AllocationMaterialRequest;
 use App\AllocationRequest;
+use App\Product;
 use App\Enums\AllocationRequestStatusEnum;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,6 +35,10 @@ class AllocationVaccineLogisticRequestTest extends TestCase
             'type' => 'vaccine',
         ]);
 
+        $this->product = factory(Product::class)->create([
+            'material_group' => 'VAKSIN'
+        ]);
+
         $this->allocationDistributionRequest = factory(AllocationDistributionRequest::class)->create([
             'allocation_request_id' => $this->allocationRequest->id,
             'agency_id' => $this->faskes->id,
@@ -53,14 +58,14 @@ class AllocationVaccineLogisticRequestTest extends TestCase
 
     public function testGetAllocationVaccineLogisticRequestNoAuth()
     {
-        $response = $this->get('/api/v1/allocation-vaccine-request');
+        $response = $this->json('GET', '/api/v1/allocation-vaccine-request');
         $response->assertUnauthorized();
     }
 
     public function testGetAllocationVaccineLogisticRequestByAllocationRequestNoAuth()
     {
         $allocationRequest = $this->allocationRequest->id;
-        $response = $this->get('/api/v1/allocation-vaccine-request/' . $allocationRequest);
+        $response = $this->json('GET', '/api/v1/allocation-vaccine-request/' . $allocationRequest);
         $response->assertUnauthorized();
     }
 
@@ -88,7 +93,51 @@ class AllocationVaccineLogisticRequestTest extends TestCase
     public function testGetAllocationVaccineLogisticRequestById()
     {
         $allocationRequest = $this->allocationRequest->id;
-        $response = $this->actingAs($this->admin, 'api')->get('/api/v1/allocation-vaccine-request/' . $allocationRequest);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/allocation-vaccine-request/' . $allocationRequest);
         $response->assertSuccessful();
+    }
+
+    public function testGetAllocationMaterial()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-material');
+        $response->assertSuccessful();
+    }
+
+    public function testGetAllocationMaterialWhereMaterialName()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-material', [
+            'material_name' => 'CORONAVAC'
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testGetAllocationMaterialByMatgId()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-material', [
+            'matg_id' => 'VAKSIN'
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testGetAllocationMaterialByMaterialId()
+    {
+        $materialId = $this->allocationMaterial->material_id;
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-material/' . $materialId);
+        $response->assertSuccessful();
+    }
+
+    public function testGetAllocationRequestStatistic()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/allocation-vaccine-request-statistic');
+        $response->assertSuccessful();
+    }
+
+    public function testGetStockInternalError()
+    {
+        $materialId = $this->allocationMaterial->material_id;
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/stock', [
+            'poslog_id' => $materialId
+        ]);
+        $response->assertStatus(500);
     }
 }
