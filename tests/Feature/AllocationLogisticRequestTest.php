@@ -81,4 +81,10 @@ class AllocationLogisticRequestTest extends TestCase
         $response = $this->actingAs($this->admin, 'api')->get('/api/v1/allocation-request/' . $allocationRequest);
         $response->assertSuccessful();
     }
+
+    public function testGetAllocationRequestStatistic()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/allocation-request-statistic');
+        $response->assertSuccessful();
+    }
 }
