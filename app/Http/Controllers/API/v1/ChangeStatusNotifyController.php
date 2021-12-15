@@ -13,7 +13,7 @@ class ChangeStatusNotifyController extends Controller
     public function sendNotification(ChangeStatusNotifyRequest $request)
     {
         $notify = [];
-        $users = User::where('phase', $request->phase)->where('handphone', '!=', '')->get();
+        $users = User::where('phase', $request->phase)->whereNotNull('handphone')->get();
         $requiredData = [
             'id' => $request->id,
             'url' => $request->url,

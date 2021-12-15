@@ -11,6 +11,7 @@ use App\Http\Requests\AuthKey\ResetRequest;
 
 class AuthKeysController extends Controller
 {
+    protected $tokenLength = 16;
     /**
      * Register function
      *
@@ -21,7 +22,7 @@ class AuthKeysController extends Controller
      */
     public function register(RegisterRequest $request)
     {
-        $generateToken = bin2hex(openssl_random_pseudo_bytes(16));
+        $generateToken = bin2hex(openssl_random_pseudo_bytes($this->tokenLength));
         $user = AuthKey::create([
             'name' => $request->name,
             'token' => $generateToken
@@ -39,7 +40,7 @@ class AuthKeysController extends Controller
      */
     public function reset(ResetRequest $request)
     {
-        $generateToken = bin2hex(openssl_random_pseudo_bytes(16));
+        $generateToken = bin2hex(openssl_random_pseudo_bytes($this->tokenLength));
         $authKey = AuthKey::whereName($request->name)->whereToken($request->token)->update([
             'name' => $request->name,
             'token' => $generateToken
