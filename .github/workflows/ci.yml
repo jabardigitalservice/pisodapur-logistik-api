@@ -1,6 +1,6 @@
 # GithHub Actions Workflow generated with Ghygen
 # Original configuration: http://127.0.0.1:8000?code=74b6fcea522a6a8229456945ca0774c8
-name: Template - Laravel application (Mysql)
+name: CI Pikobar Logistik API
 on:
   push:
     branches:

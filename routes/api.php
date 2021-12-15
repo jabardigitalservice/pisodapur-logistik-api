@@ -21,7 +21,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         return ["result" => true];
     });
 
-    Route::get('/welcome', 'WelcomeController@index');
     Route::post('/login', 'UsersController@authenticate');
     Route::post('/authenticate', 'UsersController@authenticate');
 
@@ -184,5 +183,8 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
         // API Store Vaccine Request
         Route::apiResource('/vaccine-request', 'VaccineRequestController');
+
+        Route::post('/auth-key/register', 'AuthKeysController@register');
+        Route::post('/auth-key/reset', 'AuthKeysController@reset');
     });
 });

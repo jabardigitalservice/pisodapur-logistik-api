@@ -13,6 +13,8 @@ use App\Product;
 use App\Enums\AllocationRequestStatusEnum;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Response;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Notification;
@@ -138,6 +140,17 @@ class AllocationVaccineLogisticRequestTest extends TestCase
         $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/stock', [
             'poslog_id' => $materialId
         ]);
-        $response->assertStatus(500);
+        $response->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    public function testAllocationVaccineImportInvalidId()
+    {
+        $name = 'exampleAllocationVaccineImport.xlsx';
+        $path = resource_path() . '/' . $name;
+        $file = new UploadedFile($path, $name, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', null, true);
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/allocation-vaccine-import', [
+            'file' => $file
+        ]);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 }
