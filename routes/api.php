@@ -184,5 +184,8 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
         // API Store Vaccine Request
         Route::apiResource('/vaccine-request', 'VaccineRequestController');
+
+        Route::post('/auth-key/register', 'AuthKeysController@register');
+        Route::post('/auth-key/reset', 'AuthKeysController@reset');
     });
 });
