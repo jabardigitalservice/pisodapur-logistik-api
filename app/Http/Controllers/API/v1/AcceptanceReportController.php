@@ -72,7 +72,7 @@ class AcceptanceReportController extends Controller
             $response = response()->format(Response::HTTP_OK, 'success');
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Acceptance Report. Because ' . $exception->getMessage(), $exception->getTrace());
+            $response = response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, 'Error Insert Acceptance Report. Because ' . $exception->getMessage(), $exception->getTrace());
         }
         return $response;
     }

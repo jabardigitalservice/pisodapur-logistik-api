@@ -134,15 +134,6 @@ class AllocationVaccineLogisticRequestTest extends TestCase
         $response->assertSuccessful();
     }
 
-    public function testGetStockInternalError()
-    {
-        $materialId = $this->allocationMaterial->material_id;
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/stock', [
-            'poslog_id' => $materialId
-        ]);
-        $response->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR);
-    }
-
     public function testAllocationVaccineImportInvalidId()
     {
         $name = 'exampleAllocationVaccineImport.xlsx';
