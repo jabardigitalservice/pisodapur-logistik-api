@@ -7,6 +7,7 @@
 
 namespace App;
 
+use App\Enums\AllocationRequestTypeEnum;
 use Illuminate\Http\Response;
 
 class VaccineWmsJabar extends WmsJabar
@@ -28,13 +29,12 @@ class VaccineWmsJabar extends WmsJabar
             $data = json_decode($res->getBody(), true);
             self::storeAllocationMaterialVaccine($data['msg']);
         } catch (\Exception $exception) {
-            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $exception->getTrace());
+            return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage(), $exception->getTrace());
         }
     }
 
     static function getVaccineByIDMaterial($request, $id)
     {
-        $request->input('material_id', $id);
         $param = $request->all();
         $param['material_id'] = $id;
         try {
@@ -45,17 +45,16 @@ class VaccineWmsJabar extends WmsJabar
             $data = json_decode($res->getBody(), true);
             self::storeAllocationMaterialVaccine($data['msg']);
         } catch (\Exception $exception) {
-            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $exception->getTrace());
+            return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage(), $exception->getTrace());
         }
     }
 
     static function storeAllocationMaterialVaccine($materials)
     {
         foreach ($materials as $material) {
-            $material['type'] = 'vaccine';
+            $material['type'] = AllocationRequestTypeEnum::vaccine();
             $material['created_at'] = date('Y-m-d H:i:s');
             $material['updated_at'] = date('Y-m-d H:i:s');
-            $material['type'] = 'vaccine';
             $store = AllocationMaterial::updateOrInsert(
                 ['material_id' => $material['material_id']],
                 $material
