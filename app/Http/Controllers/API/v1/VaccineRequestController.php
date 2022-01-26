@@ -11,6 +11,7 @@ use App\Http\Requests\VaccineRequest\GetVaccineRequest;
 use App\Http\Resources\VaccineRequestResource;
 use App\VaccineProductRequest;
 use DB;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -59,5 +60,17 @@ class VaccineRequestController extends Controller
             $response = response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage(), $exception->getTrace());
         }
         return $response;
+    }
+
+    public function update($id, Request $request)
+    {
+        try{
+            $vaccineRequest = VaccineRequest::findOrFail($id);
+            $vaccineRequest->status = $request->status;
+            $vaccineRequest->save();
+            return response()->format(Response::HTTP_OK, 'Vaccine Request Updated', $vaccineRequest);
+        } catch (QueryException $e) {
+            return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, 'Vaccine Request Update Failed ' . $e->errorInfo);
+        }
     }
 }
