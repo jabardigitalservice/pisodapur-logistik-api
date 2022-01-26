@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreVaccineRequest;
 use App\Http\Requests\VaccineRequest\GetVaccineRequest;
+use App\Http\Requests\VaccineRequest\UpdateVaccineRequest;
 use App\Http\Resources\VaccineRequestResource;
 use App\VaccineProductRequest;
 use DB;
@@ -62,11 +63,12 @@ class VaccineRequestController extends Controller
         return $response;
     }
 
-    public function update($id, Request $request)
+    public function update($id, UpdateVaccineRequest $request)
     {
         try{
             $vaccineRequest = VaccineRequest::findOrFail($id);
             $vaccineRequest->status = $request->status;
+            $vaccineRequest->note = $request->note;
             $vaccineRequest->save();
             return response()->format(Response::HTTP_OK, 'Vaccine Request Updated', $vaccineRequest);
         } catch (QueryException $e) {

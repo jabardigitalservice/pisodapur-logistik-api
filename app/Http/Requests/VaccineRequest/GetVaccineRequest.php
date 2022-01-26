@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\VaccineRequest;
 
-use App\Enums\ApplicantStatusEnum;
 use App\Enums\OrderEnum;
+use App\Enums\VaccineRequestStatusEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Spatie\Enum\Laravel\Rules\EnumRule;
 
@@ -29,7 +29,7 @@ class GetVaccineRequest extends FormRequest
         return [
             'limit' => 'nullable|numeric',
             'page' => 'nullable|numeric',
-            'status' => ['nullable', new EnumRule(ApplicantStatusEnum::class)],
+            'status' => ['nullable', new EnumRule(VaccineRequestStatusEnum::class)],
             'sort' => ['nullable', new EnumRule(OrderEnum::class)],
             'is_reference' => 'boolean',
             'is_completed' => 'boolean',

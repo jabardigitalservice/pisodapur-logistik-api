@@ -13,7 +13,7 @@ use Spatie\Enum\Enum;
  * @method static self finalized()
  */
 
-class ApplicantStatusEnum extends Enum
+class VaccineRequestStatusEnum extends Enum
 {
 
 }
