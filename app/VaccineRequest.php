@@ -109,6 +109,7 @@ class VaccineRequest extends Model
 
     public function scopeSort($query, $request)
     {
+        $query->orderBy('created_at', 'desc');
         $query->when($request->input('sort'), function ($query) use ($request) {
             $query->orderBy('agency_name', $request->input('sort'));
         });
