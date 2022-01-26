@@ -44,11 +44,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
     //Landing Page Registration
     Route::prefix('landing-page-registration')->group(function () {
-        Route::post('/agency', 'AgencyController@store');
-        Route::post('/applicant', 'ApplicantController@store');
-        Route::post('/needs', 'NeedsController@store');
-        Route::post('/letter', 'LetterController@store');
-
         // AREAS, for public
         Route::get('/areas/cities', 'AreasController@getCities');
         Route::get('/areas/subarea', 'AreasController@subArea');
@@ -183,6 +178,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
         // API Store Vaccine Request
         Route::apiResource('/vaccine-request', 'VaccineRequestController');
+        Route::get('/vaccine-product-request', 'VaccineProductRequestController@index');
 
         Route::post('/auth-key/register', 'AuthKeysController@register');
         Route::post('/auth-key/reset', 'AuthKeysController@reset');
