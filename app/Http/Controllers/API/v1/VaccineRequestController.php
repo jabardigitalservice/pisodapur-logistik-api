@@ -11,6 +11,7 @@ use App\Http\Requests\VaccineRequest\GetVaccineRequest;
 use App\Http\Resources\VaccineRequestResource;
 use App\VaccineProductRequest;
 use DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class VaccineRequestController extends Controller
@@ -26,6 +27,18 @@ class VaccineRequestController extends Controller
         ->filter($request)
         ->sort($request);
         return VaccineRequestResource::collection($data->paginate($limit));
+    }
+
+    public function show($id, Request $request)
+    {
+        $data = VaccineRequest::with([
+            'masterFaskes:id,nama_faskes,is_reference',
+            'masterFaskesType:id,name',
+            'village'
+        ])
+        ->where('id', $id)
+        ->firstOrFail();
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function store(StoreVaccineRequest $request)
