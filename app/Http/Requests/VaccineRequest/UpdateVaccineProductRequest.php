@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\VaccineRequest;
 
+use App\Enums\VaccineProductRequestStatusEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Spatie\Enum\Laravel\Rules\EnumRule;
 
 class UpdateVaccineProductRequest extends FormRequest
 {
@@ -24,7 +26,11 @@ class UpdateVaccineProductRequest extends FormRequest
     public function rules()
     {
         return [
-            'recommendation_product_id' => 'nullable|exists:allocation_materials,material_id'
+            'recommendation_product_id' => 'nullable|exists:allocation_materials,material_id',
+            'recommendation_date' => 'nullable|date',
+            'recommendation_product_name' => 'nullable|exists:allocation_materials,material_name',
+            'recommendation_quantity' => 'nullable|numeric',
+            'recommendation_status' => ['nullable', new EnumRule(VaccineProductRequestStatusEnum::class)]
         ];
     }
 

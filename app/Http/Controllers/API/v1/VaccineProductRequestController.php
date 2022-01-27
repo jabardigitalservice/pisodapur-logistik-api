@@ -19,10 +19,9 @@ class VaccineProductRequestController extends Controller
         return response()->json($data, Response::HTTP_OK);
     }
 
-    public function update($id, UpdateVaccineProductRequest $request)
+    public function update(VaccineProductRequest $vaccineProductRequest, UpdateVaccineProductRequest $request)
     {
         try {
-            $vaccineProductRequest = VaccineProductRequest::findOrFail($id);
             $vaccineProductRequest->fill($request->input());
             $vaccineProductRequest->save();
             return response()->format(Response::HTTP_OK, 'Vaccine Product Request Updated');
