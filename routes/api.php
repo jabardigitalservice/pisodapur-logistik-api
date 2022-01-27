@@ -44,11 +44,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
     //Landing Page Registration
     Route::prefix('landing-page-registration')->group(function () {
-        Route::post('/agency', 'AgencyController@store');
-        Route::post('/applicant', 'ApplicantController@store');
-        Route::post('/needs', 'NeedsController@store');
-        Route::post('/letter', 'LetterController@store');
-
         // AREAS, for public
         Route::get('/areas/cities', 'AreasController@getCities');
         Route::get('/areas/subarea', 'AreasController@subArea');
@@ -69,6 +64,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
     //Insert New Logistic Request Public
     Route::post('/logistic-request', 'LogisticRequestController@store');
+    Route::post('/vaccine-request', 'VaccineRequestController@store');
 
     //Master Faskes
     Route::apiResource('/master-faskes', 'MasterFaskesController');
@@ -182,7 +178,8 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::apiResource('/allocation-request', 'AllocationRequestController')->only(['index', 'show']);
 
         // API Store Vaccine Request
-        Route::apiResource('/vaccine-request', 'VaccineRequestController');
+        Route::apiResource('/vaccine-request', 'VaccineRequestController')->except('store');
+        Route::get('/vaccine-product-request', 'VaccineProductRequestController@index');
 
         Route::post('/auth-key/register', 'AuthKeysController@register');
         Route::post('/auth-key/reset', 'AuthKeysController@reset');
