@@ -64,6 +64,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
     //Insert New Logistic Request Public
     Route::post('/logistic-request', 'LogisticRequestController@store');
+    Route::post('/vaccine-request', 'VaccineRequestController@store');
 
     //Master Faskes
     Route::apiResource('/master-faskes', 'MasterFaskesController');
@@ -177,7 +178,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::apiResource('/allocation-request', 'AllocationRequestController')->only(['index', 'show']);
 
         // API Store Vaccine Request
-        Route::apiResource('/vaccine-request', 'VaccineRequestController');
+        Route::apiResource('/vaccine-request', 'VaccineRequestController')->except('store');
         Route::get('/vaccine-product-request', 'VaccineProductRequestController@index');
 
         Route::post('/auth-key/register', 'AuthKeysController@register');
