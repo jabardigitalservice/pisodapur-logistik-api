@@ -11,6 +11,7 @@ use App\Http\Requests\VaccineRequest\GetVaccineRequest;
 use App\Http\Requests\VaccineRequest\UpdateVaccineRequest;
 use App\Http\Resources\VaccineRequestResource;
 use App\VaccineProductRequest;
+use App\VaccineWmsJabar;
 use DB;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -69,10 +70,20 @@ class VaccineRequestController extends Controller
             $vaccineRequest = VaccineRequest::findOrFail($id);
             $vaccineRequest->status = $request->status;
             $vaccineRequest->note = $request->note;
+
+            if ($vaccineRequest->status == 'finalized') {
+                return $this->sendToPoslog($vaccineRequest);
+            }
+
             $vaccineRequest->save();
-            return response()->format(Response::HTTP_OK, 'Vaccine Request Updated', $vaccineRequest);
-        } catch (QueryException $e) {
-            return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, 'Vaccine Request Update Failed ' . $e->errorInfo);
+            return response()->format(Response::HTTP_OK, 'Vaccine Request Updated');
+        } catch (\Exception $e) {
+            return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, 'Vaccine Request Update Failed ' . $e->getMessage());
         }
+    }
+
+    public function sendToPoslog(VaccineRequest $vaccineRequest)
+    {
+        return VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
     }
 }
