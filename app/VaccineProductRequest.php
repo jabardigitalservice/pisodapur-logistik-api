@@ -13,6 +13,20 @@ class VaccineProductRequest extends Model
         'unit',
         'description',
         'usage',
+        'recommendation_product_id',
+        'recommendation_product_name',
+        'recommendation_quantity',
+        'recommendation_UoM',
+        'recommendation_date',
+        'recommendation_status',
+        'recommendation_by',
+        'finalized_product_id',
+        'finalized_product_name',
+        'finalized_quantity',
+        'finalized_UoM',
+        'finalized_date',
+        'finalized_status',
+        'finalized_by'
     ];
 
     static function add($request)
