@@ -63,18 +63,24 @@ class VaccineWmsJabar extends WmsJabar
         }
     }
 
-    static function setStoreRequest(VaccineRequest $vaccineRequest)
+    static function setFinalVaccineProductRequests(VaccineRequest $vaccineRequest)
     {
-        $finalization_items = [];
+        $vaccineProductRequests = [];
         foreach ($vaccineRequest->vaccineProductRequests as $product) {
             $soh_location = AllocationMaterial::select('soh_location')->where('material_id', $product->finalized_product_id)->first();
-            $finalization_items[] = [
+            $vaccineProductRequests[] = [
                 'id' => $product->id,
                 'final_product_id' => $product->finalized_product_id,
                 'final_quantity' => $product->finalized_quantity,
                 'final_soh_location' => $soh_location->soh_location,
             ];
         }
+        return $vaccineProductRequests;
+    }
+
+    static function setStoreRequest(VaccineRequest $vaccineRequest)
+    {
+        $vaccineProductRequests = self::setFinalVaccineProductRequests($vaccineRequest);
 
         $config['param']['data'] = [
             'id' => $vaccineRequest->id,
@@ -91,7 +97,7 @@ class VaccineWmsJabar extends WmsJabar
                 'primary_phone_number' => $vaccineRequest->applicant_primary_phone_number,
                 'application_letter_number' => $vaccineRequest->letter_number
             ],
-            'finalization_items' => $finalization_items
+            'finalization_items' => $vaccineProductRequests
         ];
 
         return $config;
