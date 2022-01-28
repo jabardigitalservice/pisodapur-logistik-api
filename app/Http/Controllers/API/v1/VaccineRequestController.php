@@ -11,6 +11,7 @@ use App\Http\Requests\VaccineRequest\GetVaccineRequest;
 use App\Http\Requests\VaccineRequest\UpdateVaccineRequest;
 use App\Http\Resources\VaccineRequestResource;
 use App\VaccineProductRequest;
+use App\VaccineWmsJabar;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -62,12 +63,20 @@ class VaccineRequestController extends Controller
         return $response;
     }
 
-    public function update($id, UpdateVaccineRequest $request)
+    public function update(VaccineRequest $vaccineRequest, UpdateVaccineRequest $request)
     {
-        $vaccineRequest = VaccineRequest::findOrFail($id);
-        $vaccineRequest->status = $request->status;
-        $vaccineRequest->note = $request->note;
+        $vaccineRequest->fill($request->validated());
         $vaccineRequest->save();
+
+        if ($vaccineRequest->status == 'finalized') {
+            return $this->sendToPoslog($vaccineRequest);
+        }
+
         return response()->format(Response::HTTP_OK, 'Vaccine Request Updated');
+    }
+
+    public function sendToPoslog(VaccineRequest $vaccineRequest)
+    {
+        return VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
     }
 }
