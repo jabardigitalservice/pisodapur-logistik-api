@@ -24,9 +24,13 @@ class AllocationMaterialController extends Controller
         $limit = $request->input('limit', 10);
 
         $data = AllocationMaterial::where('type', $type)
+                ->when($request->input('material_id'), function ($query) use ($request) {
+                    $query->where('material_id', $request->input('material_id'));
+                })
                 ->when($request->input('material_name'), function ($query) use ($request) {
                     $query->where('material_name', 'LIKE', "%{$request->input('material_name')}%");
-                })->when($request->input('matg_id'), function ($query) use ($request) {
+                })
+                ->when($request->input('matg_id'), function ($query) use ($request) {
                     $query->where('matg_id', $request->input('matg_id'));
                 })
                 ->whereRaw('(stock_ok - booked_stock) > 0')
