@@ -28,7 +28,9 @@ class AllocationMaterialController extends Controller
                     $query->where('material_name', 'LIKE', "%{$request->input('material_name')}%");
                 })->when($request->input('matg_id'), function ($query) use ($request) {
                     $query->where('matg_id', $request->input('matg_id'));
-                });
+                })
+                ->whereRaw('(stock_ok - booked_stock) > 0')
+                ->orderBy('material_name');
 
         $data = $isPaginated ? $data->paginate($limit) : $data->get();
         return response()->format(Response::HTTP_OK, 'success', $data);
