@@ -15,7 +15,7 @@ use DB;
 
 class WmsJabar extends Usage
 {
-    static function callAPI($config, $method = 'get')
+    static function callAPI($config)
     {
         try {
             $param = $config['param'];
@@ -23,20 +23,14 @@ class WmsJabar extends Usage
             $apiKey = config('wmsjabar.key');
             $apiFunction = $config['apiFunction'];
             $url = $apiLink . $apiFunction;
-            $attributes = [
+            return static::getClient()->get($url, [
                 'headers' => [
                     'accept' => 'application/json',
                     'Content-Type' => 'application/json',
                     'api-key' => $apiKey,
                 ],
                 'body' => json_encode($param)
-            ];
-
-            if ($method == 'post') {
-                return static::getClient()->post($url, $attributes);
-            } else {
-                return static::getClient()->get($url, $attributes);
-            }
+            ]);
         } catch (\Throwable $th) {
             return $th;
         }
