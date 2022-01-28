@@ -117,39 +117,9 @@ class VaccineWmsJabar extends WmsJabar
             }
 
             $lo = $data['result'];
-            return self::insertDataLOVaccine($lo);
+            return self::insertData($lo, AllocationRequestTypeEnum::vaccine());
         } catch (\Exception $exception) {
             return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage(), $exception->getTrace());
         }
-    }
-
-    static function insertDataLOVaccine($outboundPlans)
-    {
-        DB::beginTransaction();
-        $vaccineRequestIds = [];
-        try {
-            foreach ($outboundPlans['msg'] as $key => $outboundPlan) {
-                if (isset($outboundPlan['lo_detil'])) {
-                    OutboundVaccine::updateOrCreate([
-                            'lo_id' => $outboundPlan['lo_id'],
-                            'req_id' => $outboundPlan['req_id']
-                        ],
-                        $outboundPlan
-                    );
-                    OutboundDetailVaccine::massInsert($outboundPlan['lo_detil']);
-                    self::updateFaskes($outboundPlan);
-
-                    $vaccineRequestIds[] = $outboundPlan['req_id'];
-                }
-            }
-            $flagging = VaccineRequest::whereIn('id', $vaccineRequestIds)->update(['is_integrated' => 1]);
-            DB::commit();
-            $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Outbound. Because ' . $exception->getMessage(), $exception->getTrace());
-        }
-
-        return $response;
     }
 }

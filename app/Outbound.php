@@ -8,6 +8,7 @@ class Outbound extends Model
 {
     protected $fillable = [
         'req_id',
+        'req_type',
         'lo_id',
         'lo_date',
         'lo_desc',

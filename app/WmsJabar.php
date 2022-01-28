@@ -6,6 +6,8 @@
  */
 
 namespace App;
+
+use App\Enums\AllocationRequestTypeEnum;
 use App\Outbound;
 use App\OutboundDetail;
 use App\MasterFaskes;
@@ -65,29 +67,32 @@ class WmsJabar extends Usage
         return $response;
     }
 
-    static function insertData($outboundPlans)
+    static function insertData($outbounds, $req_type = null)
     {
+        $req_type = AllocationRequestTypeEnum::vaccine();
         DB::beginTransaction();
-        $agency_ids = [];
+        $vaccineRequestIds = [];
         try {
-            foreach ($outboundPlans['msg'] as $key => $outboundPlan) {
-                if (isset($outboundPlan['lo_detil'])) {
+            foreach ($outbounds['msg'] as $key => $outbound) {
+                if (isset($outbound['lo_detil'])) {
+                    $lo = $outbound;
+                    $lo['req_type'] = $req_type;
                     Outbound::updateOrCreate([
-                            'lo_id' => $outboundPlan['lo_id'],
-                            'req_id' => $outboundPlan['req_id']
+                            'lo_id' => $lo['lo_id'],
+                            'req_id' => $lo['req_id'],
+                            'req_type' => $req_type,
                         ],
-                        $outboundPlan
+                        $lo
                     );
-                    OutboundDetail::massInsert($outboundPlan['lo_detil']);
-                    self::updateFaskes($outboundPlan);
+                    OutboundDetail::massInsert($lo['lo_detil']);
+                    self::updateFaskes($lo);
 
-                    $agency_ids[] = $outboundPlan['req_id'];
+                    $vaccineRequestIds[] = $lo['req_id'];
                 }
             }
-            //Flagging to applicants by agency_id = req_id
-            $applicantFlagging = Applicant::whereIn('agency_id', $agency_ids)->update(['is_integrated' => 1]);
+            $flagging = VaccineRequest::whereIn('id', $vaccineRequestIds)->update(['is_integrated' => 1]);
             DB::commit();
-            $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
+            $response = response()->format(Response::HTTP_OK, 'success', $outbounds);
         } catch (\Exception $exception) {
             DB::rollBack();
             $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Outbound. Because ' . $exception->getMessage(), $exception->getTrace());

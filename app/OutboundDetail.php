@@ -9,6 +9,7 @@ class OutboundDetail extends Model
 {
     protected $fillable = [
         'req_id',
+        'req_type',
         'lo_id',
         'material_id',
         'material_name',
