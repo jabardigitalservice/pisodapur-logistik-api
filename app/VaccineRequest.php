@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use JWTAuth;
 
 class VaccineRequest extends Model
 {
@@ -41,6 +42,7 @@ class VaccineRequest extends Model
 
     static function add($request)
     {
+        $user = JWTAuth::user();
         $vaccineRequest = [
             'agency_id' => $request->input('master_faskes_id'),
             'agency_type_id' => $request->input('agency_type'),
@@ -58,7 +60,8 @@ class VaccineRequest extends Model
             'letter_number' => $request->input('application_letter_number'),
             'letter_file_url' => $request->input('letter_file_url'),
             'applicant_file_url' => $request->input('applicant_file_url'),
-            'is_completed' => VaccineRequest::setIsCompleted($request)
+            'is_completed' => VaccineRequest::setIsCompleted($request),
+            'created_by' => $user->id
         ];
         return VaccineRequest::create($vaccineRequest);
     }

@@ -6,6 +6,8 @@
  */
 
 namespace App;
+
+use App\Enums\AllocationRequestTypeEnum;
 use App\Outbound;
 use App\OutboundDetail;
 use App\MasterFaskes;
@@ -15,7 +17,7 @@ use DB;
 
 class WmsJabar extends Usage
 {
-    static function callAPI($config)
+    static function callAPI($config, $method = 'get')
     {
         try {
             $param = $config['param'];
@@ -23,14 +25,20 @@ class WmsJabar extends Usage
             $apiKey = config('wmsjabar.key');
             $apiFunction = $config['apiFunction'];
             $url = $apiLink . $apiFunction;
-            return static::getClient()->get($url, [
+            $attributes = [
                 'headers' => [
                     'accept' => 'application/json',
                     'Content-Type' => 'application/json',
                     'api-key' => $apiKey,
                 ],
                 'body' => json_encode($param)
-            ]);
+            ];
+
+            if ($method == 'post') {
+                return static::getClient()->post($url, $attributes);
+            } else {
+                return static::getClient()->get($url, $attributes);
+            }
         } catch (\Throwable $th) {
             return $th;
         }
@@ -59,35 +67,29 @@ class WmsJabar extends Usage
         return $response;
     }
 
-    static function insertData($outboundPlans)
+    static function insertData($outbounds, $req_type = null)
     {
+        $req_type = $req_type ?? AllocationRequestTypeEnum::vaccine();
         DB::beginTransaction();
-        $agency_ids = [];
+        $vaccineRequestIds = [];
         try {
-            foreach ($outboundPlans['msg'] as $key => $outboundPlan) {
-                if (isset($outboundPlan['lo_detil'])) {
-                    Outbound::updateOrCreate([
-                            'lo_id' => $outboundPlan['lo_id'],
-                            'req_id' => $outboundPlan['req_id']
-                        ],
-                        $outboundPlan
-                    );
-                    OutboundDetail::massInsert($outboundPlan['lo_detil']);
-                    self::updateFaskes($outboundPlan);
+            foreach ($outbounds['msg'] as $key => $outbound) {
+                if (isset($outbound['lo_detil'])) {
+                    $lo = $outbound;
+                    $lo['req_type'] = $req_type;
+                    Outbound::updateData($lo);
+                    OutboundDetail::massInsert($lo['lo_detil'], $req_type);
+                    self::updateFaskes($lo);
 
-                    $agency_ids[] = $outboundPlan['req_id'];
+                    $vaccineRequestIds[] = $lo['req_id'];
                 }
             }
-            //Flagging to applicants by agency_id = req_id
-            $applicantFlagging = Applicant::whereIn('agency_id', $agency_ids)->update(['is_integrated' => 1]);
             DB::commit();
-            $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
+            return response()->format(Response::HTTP_OK, 'success', $outbounds);
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Outbound. Because ' . $exception->getMessage(), $exception->getTrace());
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Outbound. Because ' . $exception->getMessage(), $exception->getTrace());
         }
-
-        return $response;
     }
 
     static function getOutboundById($request)

@@ -9,6 +9,7 @@ namespace App;
 
 use App\Enums\AllocationRequestTypeEnum;
 use Illuminate\Http\Response;
+use DB;
 
 class VaccineWmsJabar extends WmsJabar
 {
@@ -59,6 +60,66 @@ class VaccineWmsJabar extends WmsJabar
                 ['material_id' => $material['material_id']],
                 $material
             );
+        }
+    }
+
+    static function setFinalVaccineProductRequests(VaccineRequest $vaccineRequest)
+    {
+        $vaccineProductRequests = [];
+        foreach ($vaccineRequest->vaccineProductRequests as $product) {
+            $soh_location = AllocationMaterial::select('soh_location')->where('material_id', $product->finalized_product_id)->first();
+            $vaccineProductRequests[] = [
+                'id' => $product->id,
+                'final_product_id' => $product->finalized_product_id,
+                'final_quantity' => $product->finalized_quantity,
+                'final_soh_location' => $soh_location->soh_location,
+            ];
+        }
+        return $vaccineProductRequests;
+    }
+
+    static function setStoreRequest(VaccineRequest $vaccineRequest)
+    {
+        $vaccineProductRequests = self::setFinalVaccineProductRequests($vaccineRequest);
+
+        $config['param']['data'] = [
+            'id' => $vaccineRequest->id,
+            'master_faskes_id' => $vaccineRequest->agency_id,
+            'agency_name' => $vaccineRequest->masterFaskes->nama_faskes,
+            'location_district_code' => $vaccineRequest->agency_city_id,
+            'location_address' => $vaccineRequest->agency_address,
+            'master_faskes' => [
+                'poslog_id' => $vaccineRequest->masterFaskes->poslog_id
+            ],
+            'applicant' => [
+                'id' => $vaccineRequest->id,
+                'applicant_name' => $vaccineRequest->applicant_fullname,
+                'primary_phone_number' => $vaccineRequest->applicant_primary_phone_number,
+                'application_letter_number' => $vaccineRequest->letter_number
+            ],
+            'finalization_items' => $vaccineProductRequests
+        ];
+
+        return $config;
+    }
+
+    static function sendVaccineRequest(VaccineRequest $vaccineRequest)
+    {
+        try {
+            $config = self::setStoreRequest($vaccineRequest);
+            $config['apiFunction'] = '/api_vaksin/index.php?route=pingme_v2';
+            $res = self::callAPI($config, 'post');
+
+            $data = json_decode($res->getBody(), true);
+
+            if ($data['result']['stt'] != 1) {
+                return response()->format($data['result']['stt'], 'Failed at WMS Poslog: ' . $data['msg'], $data['error']);
+            }
+
+            $lo = $data['result'];
+            return self::insertData($lo, AllocationRequestTypeEnum::vaccine());
+        } catch (\Exception $exception) {
+            return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage(), $exception->getTrace());
         }
     }
 }
