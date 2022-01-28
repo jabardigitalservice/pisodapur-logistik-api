@@ -21,12 +21,8 @@ class VaccineProductRequestController extends Controller
 
     public function update(VaccineProductRequest $vaccineProductRequest, UpdateVaccineProductRequest $request)
     {
-        try {
-            $vaccineProductRequest->fill($request->input());
-            $vaccineProductRequest->save();
-            return response()->format(Response::HTTP_OK, 'Vaccine Product Request Updated');
-        } catch (\Exception $e) {
-            return response()->json('Update Vaccine Product Request Failed.' . $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        $vaccineProductRequest->fill($request->input());
+        $vaccineProductRequest->save();
+        return response()->format(Response::HTTP_OK, 'Vaccine Product Request Updated');
     }
 }
