@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\v1;
 
+use App\Enums\VaccineRequestStatusEnum;
 use App\FileUpload;
 use App\VaccineRequest;
 use Illuminate\Http\Response;
@@ -12,7 +13,9 @@ use App\Http\Requests\VaccineRequest\UpdateVaccineRequest;
 use App\Http\Resources\VaccineRequestResource;
 use App\VaccineProductRequest;
 use App\VaccineWmsJabar;
+use Carbon\Carbon;
 use DB;
+use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -54,7 +57,7 @@ class VaccineRequestController extends Controller
             $data = VaccineRequest::add($request);
             $request->merge(['vaccine_request_id' => $data->id]);
             $data['need'] = VaccineProductRequest::add($request);
-            $response = response()->format(Response::HTTP_OK, 'success', $data);
+            $response = response()->format(Response::HTTP_CREATED, 'success', $data);
             DB::commit();
         } catch (\Exception $exception) {
             DB::rollBack();
@@ -65,18 +68,33 @@ class VaccineRequestController extends Controller
 
     public function update(VaccineRequest $vaccineRequest, UpdateVaccineRequest $request)
     {
+        $user = JWTAuth::user();
         $vaccineRequest->fill($request->validated());
+        if (in_array($request->status, [VaccineRequestStatusEnum::verified(), VaccineRequestStatusEnum::verification_rejected()])) {
+            $vaccineRequest->verified_at = Carbon::now();
+            $vaccineRequest->verified_by = $user->id;
+        } else if (in_array($request->status, [VaccineRequestStatusEnum::approved(), VaccineRequestStatusEnum::approval_rejected()])) {
+            $vaccineRequest->approved_at = Carbon::now();
+            $vaccineRequest->approved_by = $user->id;
+        } else if ($request->status == VaccineRequestStatusEnum::finalized()) {
+            return $this->sendToPoslog($vaccineRequest, $user);
+        }
         $vaccineRequest->save();
 
-        if ($vaccineRequest->status == 'finalized') {
-            return $this->sendToPoslog($vaccineRequest);
-        }
-
-        return response()->format(Response::HTTP_OK, 'Vaccine Request Updated');
+        return response()->format(Response::HTTP_OK, 'Vaccine request updated');
     }
 
-    public function sendToPoslog(VaccineRequest $vaccineRequest)
+    public function sendToPoslog(VaccineRequest $vaccineRequest, $user)
     {
-        return VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
+        $response = VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
+
+        if ($response->getStatusCode() == Response::HTTP_OK) {
+            $vaccineRequest->finalized_at = Carbon::now();
+            $vaccineRequest->finalized_by = $user->id;
+            $vaccineRequest->is_integrated = 1;
+            $vaccineRequest->is_completed = 1;
+            $vaccineRequest->save();
+        }
+        return $response;
     }
 }

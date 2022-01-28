@@ -69,7 +69,7 @@ class WmsJabar extends Usage
 
     static function insertData($outbounds, $req_type = null)
     {
-        $req_type = AllocationRequestTypeEnum::vaccine();
+        $req_type = $req_type ?? AllocationRequestTypeEnum::vaccine();
         DB::beginTransaction();
         $vaccineRequestIds = [];
         try {
@@ -77,28 +77,19 @@ class WmsJabar extends Usage
                 if (isset($outbound['lo_detil'])) {
                     $lo = $outbound;
                     $lo['req_type'] = $req_type;
-                    Outbound::updateOrCreate([
-                            'lo_id' => $lo['lo_id'],
-                            'req_id' => $lo['req_id'],
-                            'req_type' => $req_type,
-                        ],
-                        $lo
-                    );
-                    OutboundDetail::massInsert($lo['lo_detil']);
+                    Outbound::updateData($lo);
+                    OutboundDetail::massInsert($lo['lo_detil'], $req_type);
                     self::updateFaskes($lo);
 
                     $vaccineRequestIds[] = $lo['req_id'];
                 }
             }
-            $flagging = VaccineRequest::whereIn('id', $vaccineRequestIds)->update(['is_integrated' => 1]);
             DB::commit();
-            $response = response()->format(Response::HTTP_OK, 'success', $outbounds);
+            return response()->format(Response::HTTP_OK, 'success', $outbounds);
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Outbound. Because ' . $exception->getMessage(), $exception->getTrace());
+            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Outbound. Because ' . $exception->getMessage(), $exception->getTrace());
         }
-
-        return $response;
     }
 
     static function getOutboundById($request)
