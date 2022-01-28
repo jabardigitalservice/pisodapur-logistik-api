@@ -63,39 +63,44 @@ class VaccineWmsJabar extends WmsJabar
         }
     }
 
+    static function setStoreRequest(VaccineRequest $vaccineRequest)
+    {
+        $finalization_items = [];
+        foreach ($vaccineRequest->vaccineProductRequests as $product) {
+            $soh_location = AllocationMaterial::select('soh_location')->where('material_id', $product->finalized_product_id)->first();
+            $finalization_items[] = [
+                'id' => $product->id,
+                'final_product_id' => $product->finalized_product_id,
+                'final_quantity' => $product->finalized_quantity,
+                'final_soh_location' => $soh_location->soh_location,
+            ];
+        }
+
+        $config['param']['data'] = [
+            'id' => $vaccineRequest->id,
+            'master_faskes_id' => $vaccineRequest->agency_id,
+            'agency_name' => $vaccineRequest->masterFaskes->nama_faskes,
+            'location_district_code' => $vaccineRequest->agency_city_id,
+            'location_address' => $vaccineRequest->agency_address,
+            'master_faskes' => [
+                'poslog_id' => $vaccineRequest->masterFaskes->poslog_id
+            ],
+            'applicant' => [
+                'id' => $vaccineRequest->id,
+                'applicant_name' => $vaccineRequest->applicant_fullname,
+                'primary_phone_number' => $vaccineRequest->applicant_primary_phone_number,
+                'application_letter_number' => $vaccineRequest->letter_number
+            ],
+            'finalization_items' => $finalization_items
+        ];
+
+        return $config;
+    }
+
     static function sendVaccineRequest(VaccineRequest $vaccineRequest)
     {
         try {
-            $finalization_items = [];
-            foreach ($vaccineRequest->vaccineProductRequests as $product) {
-                $soh_location = AllocationMaterial::select('soh_location')->where('material_id', $product->finalized_product_id)->first();
-                $finalization_items[] = [
-                    'id' => $product->id,
-                    'final_product_id' => $product->finalized_product_id,
-                    'final_quantity' => $product->finalized_quantity,
-                    'final_soh_location' => $soh_location->soh_location,
-                ];
-            }
-
-            $config['param']['data'] = [
-                'id' => $vaccineRequest->id,
-                'master_faskes_id' => $vaccineRequest->agency_id,
-                'agency_name' => $vaccineRequest->masterFaskes->nama_faskes,
-                'location_district_code' => $vaccineRequest->agency_city_id,
-                'location_address' => $vaccineRequest->agency_address,
-                'master_faskes' => [
-                    'poslog_id' => $vaccineRequest->masterFaskes->poslog_id
-                ],
-                'applicant' => [
-                    'id' => $vaccineRequest->id,
-                    'applicant_name' => $vaccineRequest->applicant_fullname,
-                    'primary_phone_number' => $vaccineRequest->applicant_primary_phone_number,
-                    'application_letter_number' => $vaccineRequest->letter_number
-                ],
-                'finalization_items' => $finalization_items
-            ];
-
-            // return $config;
+            $config = self::setStoreRequest($vaccineRequest);
             $config['apiFunction'] = '/api_vaksin/index.php?route=pingme_v2';
             $res = self::callAPI($config, 'post');
 
@@ -107,7 +112,6 @@ class VaccineWmsJabar extends WmsJabar
 
             $lo = $data['result'];
             return self::insertDataLOVaccine($lo);
-            // return self::insertData($lo);
         } catch (\Exception $exception) {
             return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage(), $exception->getTrace());
         }
@@ -132,7 +136,6 @@ class VaccineWmsJabar extends WmsJabar
                     $vaccineRequestIds[] = $outboundPlan['req_id'];
                 }
             }
-            //Flagging to applicants by agency_id = req_id
             $flagging = VaccineRequest::whereIn('id', $vaccineRequestIds)->update(['is_integrated' => 1]);
             DB::commit();
             $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
