@@ -8,8 +8,8 @@
 namespace App;
 
 use App\Enums\AllocationRequestTypeEnum;
-use Carbon\Carbon;
 use Illuminate\Http\Response;
+use DB;
 
 class VaccineWmsJabar extends WmsJabar
 {
@@ -66,6 +66,17 @@ class VaccineWmsJabar extends WmsJabar
     static function sendVaccineRequest(VaccineRequest $vaccineRequest)
     {
         try {
+            $finalization_items = [];
+            foreach ($vaccineRequest->vaccineProductRequests as $product) {
+                $soh_location = AllocationMaterial::select('soh_location')->where('material_id', $product->finalized_product_id)->first();
+                $finalization_items[] = [
+                    'id' => $product->id,
+                    'final_product_id' => $product->finalized_product_id,
+                    'final_quantity' => $product->finalized_quantity,
+                    'final_soh_location' => $soh_location->soh_location,
+                ];
+            }
+
             $config['param']['data'] = [
                 'id' => $vaccineRequest->id,
                 'master_faskes_id' => $vaccineRequest->agency_id,
@@ -81,7 +92,7 @@ class VaccineWmsJabar extends WmsJabar
                     'primary_phone_number' => $vaccineRequest->applicant_primary_phone_number,
                     'application_letter_number' => $vaccineRequest->letter_number
                 ],
-                'finalization_items' => $vaccineRequest->vaccineProductRequests()
+                'finalization_items' => $finalization_items
             ];
 
             // return $config;
@@ -90,31 +101,46 @@ class VaccineWmsJabar extends WmsJabar
 
             $data = json_decode($res->getBody(), true);
 
-            if ($data['stt'] != 200) {
-                return response()->format($data['stt'], 'Failed at WMS Poslog: ' . $data['msg'], $data['error']);
+            if ($data['result']['stt'] != 1) {
+                return response()->format($data['result']['stt'], 'Failed at WMS Poslog: ' . $data['msg'], $data['error']);
             }
 
-            $lo = $data['msg'];
-            return self::storeLO($lo);
+            $lo = $data['result'];
+            return self::insertDataLOVaccine($lo);
+            // return self::insertData($lo);
         } catch (\Exception $exception) {
             return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage(), $exception->getTrace());
         }
     }
 
-    static function storeLO($los)
+    static function insertDataLOVaccine($outboundPlans)
     {
+        DB::beginTransaction();
+        $vaccineRequestIds = [];
         try {
-            $detil = [];
-            foreach ($los as $key => $lo) {
-                $detil[] = $lo['lo_detil'];
-                $lo[$key]['created_at'] = Carbon::now();
-                $lo[$key]['updated_at'] = Carbon::now();
+            foreach ($outboundPlans['msg'] as $key => $outboundPlan) {
+                if (isset($outboundPlan['lo_detil'])) {
+                    OutboundVaccine::updateOrCreate([
+                            'lo_id' => $outboundPlan['lo_id'],
+                            'req_id' => $outboundPlan['req_id']
+                        ],
+                        $outboundPlan
+                    );
+                    OutboundDetailVaccine::massInsert($outboundPlan['lo_detil']);
+                    self::updateFaskes($outboundPlan);
+
+                    $vaccineRequestIds[] = $outboundPlan['req_id'];
+                }
             }
-            $outbound = Outbound::insert($lo);
-            $outboundDetail = OutboundDetail::insert($detil);
-            return response()->format(Response::HTTP_CREATED, 'LO created!', $los);
+            //Flagging to applicants by agency_id = req_id
+            $flagging = VaccineRequest::whereIn('id', $vaccineRequestIds)->update(['is_integrated' => 1]);
+            DB::commit();
+            $response = response()->format(Response::HTTP_OK, 'success', $outboundPlans);
         } catch (\Exception $exception) {
-            return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage(), $exception->getTrace());
+            DB::rollBack();
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Error Insert Outbound. Because ' . $exception->getMessage(), $exception->getTrace());
         }
+
+        return $response;
     }
 }

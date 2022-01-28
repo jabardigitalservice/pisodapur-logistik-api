@@ -66,20 +66,16 @@ class VaccineRequestController extends Controller
 
     public function update($id, UpdateVaccineRequest $request)
     {
-        try{
-            $vaccineRequest = VaccineRequest::findOrFail($id);
-            $vaccineRequest->status = $request->status;
-            $vaccineRequest->note = $request->note;
+        $vaccineRequest = VaccineRequest::findOrFail($id);
+        $vaccineRequest->status = $request->status;
+        $vaccineRequest->note = $request->note;
+        $vaccineRequest->save();
 
-            if ($vaccineRequest->status == 'finalized') {
-                return $this->sendToPoslog($vaccineRequest);
-            }
-
-            $vaccineRequest->save();
-            return response()->format(Response::HTTP_OK, 'Vaccine Request Updated');
-        } catch (\Exception $e) {
-            return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, 'Vaccine Request Update Failed ' . $e->getMessage());
+        if ($vaccineRequest->status == 'finalized') {
+            return $this->sendToPoslog($vaccineRequest);
         }
+
+        return response()->format(Response::HTTP_OK, 'Vaccine Request Updated');
     }
 
     public function sendToPoslog(VaccineRequest $vaccineRequest)
