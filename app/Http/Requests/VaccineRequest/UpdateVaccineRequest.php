@@ -30,14 +30,4 @@ class UpdateVaccineRequest extends FormRequest
             'note' => 'required_if:status,' . VaccineRequestStatusEnum::approval_rejected() . ',' . VaccineRequestStatusEnum::verification_rejected()
         ];
     }
-
-    public function noteCondition()
-    {
-        $rule = ['nullable'];
-
-        if (in_array($this->status, [VaccineRequestStatusEnum::approval_rejected(), VaccineRequestStatusEnum::verification_rejected()])) {
-            $rule = ['required'];
-        }
-        return $rule;
-    }
 }
