@@ -13,7 +13,6 @@ use App\Http\Resources\VaccineRequestResource;
 use App\VaccineProductRequest;
 use App\VaccineWmsJabar;
 use DB;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
