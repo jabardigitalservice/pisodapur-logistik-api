@@ -68,24 +68,30 @@ class VaccineRequestController extends Controller
 
     public function update(VaccineRequest $vaccineRequest, UpdateVaccineRequest $request)
     {
-        $user = JWTAuth::user();
         $vaccineRequest->fill($request->validated());
+        if ($request->status == VaccineRequestStatusEnum::finalized()) {
+            return $this->sendToPoslog($vaccineRequest);
+        }
+        $this->setUpdateByStatus($vaccineRequest, $request);
+        return response()->format(Response::HTTP_OK, 'Vaccine request updated');
+    }
+
+    public function setUpdateByStatus($vaccineRequest, $request)
+    {
+        $user = JWTAuth::user();
         if (in_array($request->status, [VaccineRequestStatusEnum::verified(), VaccineRequestStatusEnum::verification_rejected()])) {
             $vaccineRequest->verified_at = Carbon::now();
             $vaccineRequest->verified_by = $user->id;
         } else if (in_array($request->status, [VaccineRequestStatusEnum::approved(), VaccineRequestStatusEnum::approval_rejected()])) {
             $vaccineRequest->approved_at = Carbon::now();
             $vaccineRequest->approved_by = $user->id;
-        } else if ($request->status == VaccineRequestStatusEnum::finalized()) {
-            return $this->sendToPoslog($vaccineRequest, $user);
         }
         $vaccineRequest->save();
-
-        return response()->format(Response::HTTP_OK, 'Vaccine request updated');
     }
 
-    public function sendToPoslog(VaccineRequest $vaccineRequest, $user)
+    public function sendToPoslog($vaccineRequest)
     {
+        $user = JWTAuth::user();
         $response = VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
 
         if ($response->getStatusCode() == Response::HTTP_OK) {
