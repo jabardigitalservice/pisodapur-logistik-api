@@ -30,6 +30,6 @@ class OutboundDetailVaccine extends Model
             $lo_detil['updated_at'] = Carbon::now();
             return $lo_detil;
         })->toArray();
-        OutboundDetail::insert($detil);
+        OutboundDetailVaccine::insert($detil);
     }
 }

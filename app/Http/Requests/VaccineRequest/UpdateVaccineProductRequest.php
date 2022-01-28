@@ -36,7 +36,7 @@ class UpdateVaccineProductRequest extends FormRequest
             'finalized_date' => 'nullable|date',
             'finalized_product_name' => 'nullable|exists:allocation_materials,material_name',
             'finalized_quantity' => 'nullable|numeric',
-            'finalized_UoM' => 'nullable|numeric',
+            'finalized_UoM' => 'nullable',
             'finalized_status' => ['nullable', new EnumRule(VaccineProductRequestStatusEnum::class)]
         ];
     }
