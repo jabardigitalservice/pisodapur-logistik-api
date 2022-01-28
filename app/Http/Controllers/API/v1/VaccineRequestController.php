@@ -63,11 +63,9 @@ class VaccineRequestController extends Controller
         return $response;
     }
 
-    public function update($id, UpdateVaccineRequest $request)
+    public function update(VaccineRequest $vaccineRequest, UpdateVaccineRequest $request)
     {
-        $vaccineRequest = VaccineRequest::findOrFail($id);
-        $vaccineRequest->status = $request->status;
-        $vaccineRequest->note = $request->note;
+        $vaccineRequest->fill($request->validated());
         $vaccineRequest->save();
 
         if ($vaccineRequest->status == 'finalized') {

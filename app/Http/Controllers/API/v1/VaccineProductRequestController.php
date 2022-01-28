@@ -21,7 +21,7 @@ class VaccineProductRequestController extends Controller
 
     public function update(VaccineProductRequest $vaccineProductRequest, UpdateVaccineProductRequest $request)
     {
-        $vaccineProductRequest->fill($request->input());
+        $vaccineProductRequest->fill($request->validated());
         $vaccineProductRequest->save();
         return response()->format(Response::HTTP_OK, 'Vaccine Product Request Updated');
     }
