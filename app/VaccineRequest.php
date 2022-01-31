@@ -86,7 +86,9 @@ class VaccineRequest extends Model
             $query->where('status', $request->input('status'));
         })
         ->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
-            $query->whereBetween('created_at', [$request->input('start_date'), $request->input('end_date')]);
+            $start_date = $request->input('start_date') . ' 00:00:00';
+            $end_date = $request->input('end_date') . ' 23:59:59';
+            $query->whereBetween('created_at', [$start_date, $end_date]);
         })
         ->when($request->input('city_id'), function ($query) use ($request) {
             $query->where('agency_city_id', $request->input('city_id'));
