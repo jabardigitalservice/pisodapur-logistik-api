@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Enums\VaccineRequestStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 use JWTAuth;
 
@@ -83,7 +84,11 @@ class VaccineRequest extends Model
     public function scopeFilter($query, $request)
     {
         $query->when($request->input('status'), function ($query) use ($request) {
-            $query->where('status', $request->input('status'));
+            $query->when($request->input('status') == VaccineRequestStatusEnum::rejected(), function ($query) use ($request) {
+                $query->whereIn('status', [VaccineRequestStatusEnum::verification_rejected(), VaccineRequestStatusEnum::approval_rejected()]);
+            }, function ($query) use ($request) {
+                $query->where('status', $request->input('status'));
+            });
         })
         ->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
             $start_date = $request->input('start_date') . ' 00:00:00';
