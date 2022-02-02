@@ -141,4 +141,19 @@ class VaccineRequest extends Model
     {
         return $this->hasOne('App\Village', 'kemendagri_desa_kode', 'agency_village_id');
     }
+
+    public function verifiedBy()
+    {
+        return $this->hasOne('App\User', 'id', 'verified_by');
+    }
+
+    public function approvedBy()
+    {
+        return $this->hasOne('App\User', 'id', 'approved_by');
+    }
+
+    public function finalizedBy()
+    {
+        return $this->hasOne('App\User', 'id', 'finalized_by');
+    }
 }
