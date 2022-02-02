@@ -27,7 +27,10 @@ class VaccineRequestController extends Controller
         $data = VaccineRequest::with([
             'masterFaskes:id,nama_faskes,is_reference',
             'masterFaskesType:id,name',
-            'village'
+            'village',
+            'verifiedBy:id,name',
+            'approvedBy:id,name',
+            'finalizedBy:id,name'
         ])
         ->filter($request)
         ->sort($request);
