@@ -50,4 +50,9 @@ class Outbound extends Model
     {
         return $this->where('status', 'NEW');
     }
+
+    public function outboundDetails()
+    {
+        return $this->hasMany('App\OutboundDetail', 'lo_id', 'lo_id');
+    }
 }

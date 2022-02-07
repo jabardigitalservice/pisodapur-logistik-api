@@ -62,7 +62,7 @@ class VaccineRequest extends Model
             'letter_file_url' => $request->input('letter_file_url'),
             'applicant_file_url' => $request->input('applicant_file_url'),
             'is_completed' => VaccineRequest::setIsCompleted($request),
-            'created_by' => $user->id
+            'created_by' => $user->id ?? null
         ];
         return VaccineRequest::create($vaccineRequest);
     }
@@ -160,5 +160,10 @@ class VaccineRequest extends Model
     public function finalizedBy()
     {
         return $this->hasOne('App\User', 'id', 'finalized_by');
+    }
+
+    public function outbounds()
+    {
+        return $this->hasMany('App\Outbound', 'req_id', 'id');
     }
 }
