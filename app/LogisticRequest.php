@@ -37,7 +37,7 @@ class LogisticRequest extends Model
             'applicant_name' => 'required|string',
             'primary_phone_number' => 'required|numeric',
             'logistic_request' => 'required',
-            'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
+            'letter_file' => 'required|file|max:10240',
             'application_letter_number' => 'required|string'
         ];
 
@@ -79,7 +79,7 @@ class LogisticRequest extends Model
             $response = response()->format(Response::HTTP_OK, 'success', new LogisticRequestResource($responseData));
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $responseData);
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $exception->getTrace());
         }
         return $response;
     }
