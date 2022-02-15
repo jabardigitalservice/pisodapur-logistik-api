@@ -73,6 +73,10 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     //Master Faskes Type
     Route::apiResource('/master-faskes-type', 'MasterFaskesTypeController');
 
+    // API for Logistic Vaccine
+    Route::apiResource('/medical-facility-type', 'MedicalFacilityTypeController');
+    Route::apiResource('/medical-facility', 'MedicalFacilityController');
+
 
     //Route for Another App that want integrate data
     Route::middleware('auth-key')->group(function () {
