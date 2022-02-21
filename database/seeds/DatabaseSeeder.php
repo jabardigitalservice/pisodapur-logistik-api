@@ -21,5 +21,6 @@ class DatabaseSeeder extends Seeder
         $this->call(MasterFaskesSeeder::class);
         $this->call(UserSeeder::class);
         $this->call(UpdateMasterFaskesTypeSeeder::class);
+        $this->call(VaccineProductSeeder::class);
     }
 }
