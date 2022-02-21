@@ -30,9 +30,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         return $response;
     });
 
-    // API Vaccine Material
-    Route::apiResource('/vaccine-material', 'AllocationMaterialController')->only(['index', 'show']);
-
     // API Report of Logistics Acceptance
     Route::post('/acceptance-report', 'AcceptanceReportController@store');
     Route::get('/logistic-report/realization-item/{id}', 'AcceptanceReportController@realizationLogisticList');
@@ -64,7 +61,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
     //Insert New Logistic Request Public
     Route::post('/logistic-request', 'LogisticRequestController@store');
-    Route::post('/vaccine-request', 'VaccineRequestController@store');
 
     //Master Faskes
     Route::apiResource('/master-faskes', 'MasterFaskesController');
@@ -73,10 +69,14 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     //Master Faskes Type
     Route::apiResource('/master-faskes-type', 'MasterFaskesTypeController');
 
-    // API for Logistic Vaccine
-    Route::apiResource('/medical-facility-type', 'MedicalFacilityTypeController');
-    Route::apiResource('/medical-facility', 'MedicalFacilityController');
-
+    /** API for Logistic Vaccine Public **/
+    Route::apiResource('/medical-facility-type', 'MedicalFacilityTypeController')->only('index');
+    Route::apiResource('/medical-facility', 'MedicalFacilityController')->only('index');
+    Route::post('/vaccine-request', 'VaccineRequestController@store');
+    Route::apiResource('/vaccine-material', 'AllocationMaterialController')->only(['index', 'show']);
+    Route::namespace('Vaccine')->group(function () {
+        Route::get('/vaccine-product', 'VaccineProductController');
+    });
 
     //Route for Another App that want integrate data
     Route::middleware('auth-key')->group(function () {
