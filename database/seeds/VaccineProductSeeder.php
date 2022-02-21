@@ -12,13 +12,14 @@ class VaccineProductSeeder extends Seeder
      */
     public function run()
     {
+        VaccineProduct::truncate();
         $unitForVaccine = [
-            ['unit' => 'VIAL'],
-            ['unit' => 'DOSIS'],
+            ['id' => 'VIAL', 'name' => 'VIAL'],
+            ['id' => 'DOSIS', 'name' => 'DOSIS'],
         ];
 
         $unitVaccineSupport = [
-            ['unit' => 'PCS']
+            ['id' => 'PCS', 'name' => 'PCS']
         ];
         VaccineProduct::create(['name' => 'ASTRAZENECA', 'category' => VaccineProduct::CATEGORY_VACCINE, 'unit' => json_encode($unitForVaccine)]);
         VaccineProduct::create(['name' => 'CORONAVAC', 'category' => VaccineProduct::CATEGORY_VACCINE, 'unit' => json_encode($unitForVaccine)]);
