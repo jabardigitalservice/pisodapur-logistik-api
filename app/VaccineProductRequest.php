@@ -13,6 +13,7 @@ class VaccineProductRequest extends Model
         'unit',
         'description',
         'usage',
+        'note',
         'recommendation_product_id',
         'recommendation_product_name',
         'recommendation_quantity',
@@ -39,6 +40,7 @@ class VaccineProductRequest extends Model
                 'quantity' => $value['quantity'],
                 'unit' => $value['unit'],
                 'usage' => $value['usage'],
+                'note' => $value['note'],
             ];
             $response[] = VaccineProductRequest::create($vaccineProductRequest);
         }
