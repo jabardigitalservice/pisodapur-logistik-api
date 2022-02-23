@@ -72,10 +72,10 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     /** API for Logistic Vaccine Public **/
     Route::apiResource('/medical-facility-type', 'MedicalFacilityTypeController')->only('index');
     Route::apiResource('/medical-facility', 'MedicalFacilityController')->only('index');
-    Route::post('/vaccine-request', 'VaccineRequestController@store');
     Route::apiResource('/vaccine-material', 'AllocationMaterialController')->only(['index', 'show']);
     Route::namespace('Vaccine')->group(function () {
         Route::get('/vaccine-product', 'VaccineProductController');
+        Route::post('/vaccine-request', 'VaccineRequestController@store');
     });
 
     //Route for Another App that want integrate data
@@ -182,8 +182,10 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::apiResource('/allocation-request', 'AllocationRequestController')->only(['index', 'show']);
 
         // API Store Vaccine Request
-        Route::apiResource('/vaccine-request', 'VaccineRequestController')->except('store');
         Route::apiResource('/vaccine-product-request', 'VaccineProductRequestController');
+        Route::namespace('Vaccine')->group(function () {
+            Route::apiResource('/vaccine-request', 'VaccineRequestController')->except('store');
+        });
 
         Route::post('/auth-key/register', 'AuthKeysController@register');
         Route::post('/auth-key/reset', 'AuthKeysController@reset');

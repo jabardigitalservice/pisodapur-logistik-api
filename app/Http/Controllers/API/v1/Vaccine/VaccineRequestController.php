@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\v1;
+namespace App\Http\Controllers\API\v1\Vaccine;
 
 use App\Enums\VaccineRequestStatusEnum;
 use App\FileUpload;

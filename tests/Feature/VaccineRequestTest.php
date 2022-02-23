@@ -57,6 +57,15 @@ class VaccineRequestTest extends TestCase
             'agency_district_id' => $this->village->kemendagri_kecamatan_kode,
             'agency_city_id' => $this->village->kemendagri_kabupaten_kode,
         ]);
+
+        $this->logisticItems[] = [
+            'product_id' => rand(),
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+            'note' => $this->faker->text
+        ];
     }
 
     public function testGetVaccineRequestNoAuth()
@@ -68,13 +77,85 @@ class VaccineRequestTest extends TestCase
     public function testGetVaccineRequest()
     {
         $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-request');
-        $response->assertSuccessful();
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [
+                    [
+                        'id',
+                        'agency_id',
+                        'agency_name',
+                        'agency_type_id',
+                        'agency_type_name',
+                        'agency_phone_number',
+                        'agency_address',
+                        'agency_village_id',
+                        'agency_village_name',
+                        'agency_district_id',
+                        'agency_district_name',
+                        'agency_city_id',
+                        'agency_city_name',
+                        'applicant_fullname',
+                        'applicant_position',
+                        'applicant_email',
+                        'applicant_primary_phone_number',
+                        'applicant_secondary_phone_number',
+                        'applicant_file_url',
+                        'letter_number',
+                        'letter_file_url',
+                        'status',
+                        'created_at',
+                        'updated_at',
+                        'verified_at',
+                        'verified_by',
+                        'approved_at',
+                        'approved_by',
+                        'finalized_at',
+                        'finalized_by',
+                        'is_reference',
+                        'is_completed',
+                        'is_urgency'
+                    ]
+                ],
+                'links' => [
+                    'first',
+                    'last',
+                    'prev',
+                    'next'
+                ],
+                'meta' => [
+                    'current_page',
+                    'from',
+                    'last_page',
+                    'path',
+                    'per_page',
+                    'to',
+                    'total'
+                ]
+            ]);
     }
 
     public function testCreateVaccineRequestFailed()
     {
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request');
-        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $response
+            ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonStructure([
+                'message',
+                'errors' => [
+                    'master_faskes_id' => [],
+                    'agency_type' => [],
+                    'agency_name' => [],
+                    'location_district_code' => [],
+                    'location_subdistrict_code' => [],
+                    'location_village_code' => [],
+                    'applicant_name' => [],
+                    'primary_phone_number' => [],
+                    'logistic_request' => [],
+                    'letter_file' => [],
+                    'application_letter_number' => []
+                ]
+            ]);
     }
 
     public function testCreateVaccineRequestNoJobTitle()
@@ -82,14 +163,6 @@ class VaccineRequestTest extends TestCase
         Storage::fake('photos');
         Mail::fake();
         Notification::fake();
-
-        $logisticItems[] = [
-            'product_id' => rand(),
-            'quantity' => rand(),
-            'unit' => 'PCS',
-            'description' => $this->faker->text,
-            'usage' => $this->faker->text
-        ];
 
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', [
             'master_faskes_id' => $this->faskes->id,
@@ -102,7 +175,7 @@ class VaccineRequestTest extends TestCase
             'email' => $this->faker->email,
             'primary_phone_number' => $this->faker->numerify('081#########'),
             'secondary_phone_number' => $this->faker->numerify('081#########'),
-            'logistic_request' => json_encode($logisticItems),
+            'logistic_request' => json_encode($this->logisticItems),
             'letter_file' => UploadedFile::fake()->image('letter_file.jpg'),
             'applicant_file' => UploadedFile::fake()->image('applicant_file.jpg'),
             'application_letter_number' => $this->faker->numerify('SURAT/' . date('Y/m/d') . '/####')
@@ -116,14 +189,6 @@ class VaccineRequestTest extends TestCase
         Mail::fake();
         Notification::fake();
 
-        $logisticItems[] = [
-            'product_id' => rand(),
-            'quantity' => rand(),
-            'unit' => 'PCS',
-            'description' => $this->faker->text,
-            'usage' => $this->faker->text
-        ];
-
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', [
             'master_faskes_id' => $this->faskes->id,
             'agency_type' => $this->faskes->id_tipe_faskes,
@@ -136,7 +201,7 @@ class VaccineRequestTest extends TestCase
             'email' => $this->faker->email,
             'primary_phone_number' => $this->faker->numerify('081#########'),
             'secondary_phone_number' => $this->faker->numerify('081#########'),
-            'logistic_request' => json_encode($logisticItems),
+            'logistic_request' => json_encode($this->logisticItems),
             'letter_file' => UploadedFile::fake()->image('letter_file.jpg'),
             'applicant_file' => UploadedFile::fake()->image('applicant_file.jpg'),
             'application_letter_number' => $this->faker->numerify('SURAT/' . date('Y/m/d') . '/####')
