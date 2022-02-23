@@ -11,7 +11,11 @@ class MedicalFacilityController extends Controller
 {
     public function index(Request $request)
     {
-        $data = MedicalFacility::when($request->input('name'), function ($query) use ($request) {
+        $data = MedicalFacility::with([
+                'city:kemendagri_kabupaten_kode,kemendagri_kabupaten_nama as name',
+                'district:kemendagri_kecamatan_kode,kemendagri_kecamatan_nama as name',
+                'village:kemendagri_desa_kode,kemendagri_desa_nama as name'
+            ])->when($request->input('name'), function ($query) use ($request) {
                 $query->where('name', 'like', '%' . $request->input('name') . '%');
             })
             ->when($request->input('medical_facility_type_id'), function ($query) use ($request) {
