@@ -13,7 +13,7 @@ use Faker\Generator as Faker;
 |
 */
 
-$factory->define(App\VaccineRequest::class, function (Faker $faker) {
+$factory->define(App\Models\Vaccine\VaccineRequest::class, function (Faker $faker) {
     return [
         'agency_id' =>  factory(App\MasterFaskes::class),
         'agency_type_id' => rand(1, 5),
@@ -30,6 +30,7 @@ $factory->define(App\VaccineRequest::class, function (Faker $faker) {
         'applicant_secondary_phone_number' => $faker->phoneNumber,
         'letter_number' => $faker->numerify('SURAT/' . date('Y/m/d') . '/####'),
         'letter_file_url' => $faker->url,
-        'applicant_file_url' => $faker->url
+        'applicant_file_url' => $faker->url,
+        'is_letter_file_final' => rand(0, 1),
     ];
 });

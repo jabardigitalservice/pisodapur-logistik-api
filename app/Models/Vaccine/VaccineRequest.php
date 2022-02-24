@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models\Vaccine;
 
 use App\Enums\VaccineRequestStatusEnum;
 use Illuminate\Database\Eloquent\Model;
@@ -25,6 +25,7 @@ class VaccineRequest extends Model
         'letter_number',
         'letter_file_url',
         'applicant_file_url',
+        'is_letter_file_final',
         'is_completed',
         'status'
     ];
@@ -60,6 +61,7 @@ class VaccineRequest extends Model
             'applicant_secondary_phone_number' => $request->input('secondary_phone_number'),
             'letter_number' => $request->input('application_letter_number'),
             'letter_file_url' => $request->input('letter_file_url'),
+            'is_letter_file_final' => $request->input('is_letter_file_final'),
             'applicant_file_url' => $request->input('applicant_file_url'),
             'is_completed' => VaccineRequest::setIsCompleted($request),
             'created_by' => $user->id ?? null
