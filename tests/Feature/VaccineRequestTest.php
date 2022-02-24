@@ -64,7 +64,6 @@ class VaccineRequestTest extends TestCase
             'unit' => 'PCS',
             'description' => $this->faker->text,
             'usage' => $this->faker->text,
-            'note' => $this->faker->text
         ];
     }
 
