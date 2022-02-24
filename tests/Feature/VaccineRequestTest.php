@@ -9,7 +9,7 @@ use App\MasterFaskes;
 use App\AllocationMaterial;
 use App\Districtcities;
 use App\Subdistrict;
-use App\VaccineRequest;
+use App\Models\Vaccine\VaccineRequest;
 use App\Village;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -66,6 +66,29 @@ class VaccineRequestTest extends TestCase
             'description' => $this->faker->text,
             'usage' => $this->faker->text,
         ];
+
+        Storage::fake('photos');
+        Mail::fake();
+        Notification::fake();
+
+        $this->vaccineRequestPayload = [
+            'master_faskes_id' => $this->faskes->id,
+            'agency_type' => $this->faskes->id_tipe_faskes,
+            'agency_name' => $this->faskes->nama_faskes,
+            'location_village_code' => $this->village->kemendagri_desa_kode,
+            'location_subdistrict_code' => $this->village->kemendagri_kecamatan_kode,
+            'location_district_code' => $this->village->kemendagri_kabupaten_kode,
+            'applicant_name' => $this->faker->name,
+            'applicants_office' => $this->faker->jobTitle,
+            'email' => $this->faker->email,
+            'primary_phone_number' => $this->faker->numerify('081#########'),
+            'secondary_phone_number' => $this->faker->numerify('081#########'),
+            'logistic_request' => json_encode($this->logisticItems),
+            'letter_file' => UploadedFile::fake()->image('letter_file.jpg'),
+            'applicant_file' => UploadedFile::fake()->image('applicant_file.jpg'),
+            'is_letter_file_final' => rand(0, 1),
+            'application_letter_number' => $this->faker->numerify('SURAT/' . date('Y/m/d') . '/####')
+        ];
     }
 
     public function testGetVaccineRequestNoAuth()
@@ -101,6 +124,7 @@ class VaccineRequestTest extends TestCase
                         'applicant_primary_phone_number',
                         'applicant_secondary_phone_number',
                         'applicant_file_url',
+                        'is_letter_file_final',
                         'letter_number',
                         'letter_file_url',
                         'status',
@@ -160,52 +184,33 @@ class VaccineRequestTest extends TestCase
 
     public function testCreateVaccineRequestNoJobTitle()
     {
-        Storage::fake('photos');
-        Mail::fake();
-        Notification::fake();
-
-        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', [
-            'master_faskes_id' => $this->faskes->id,
-            'agency_type' => $this->faskes->id_tipe_faskes,
-            'agency_name' => $this->faskes->nama_faskes,
-            'location_village_code' => $this->village->kemendagri_desa_kode,
-            'location_subdistrict_code' => $this->village->kemendagri_kecamatan_kode,
-            'location_district_code' => $this->village->kemendagri_kabupaten_kode,
-            'applicant_name' => $this->faker->name,
-            'email' => $this->faker->email,
-            'primary_phone_number' => $this->faker->numerify('081#########'),
-            'secondary_phone_number' => $this->faker->numerify('081#########'),
-            'logistic_request' => json_encode($this->logisticItems),
-            'letter_file' => UploadedFile::fake()->image('letter_file.jpg'),
-            'applicant_file' => UploadedFile::fake()->image('applicant_file.jpg'),
-            'application_letter_number' => $this->faker->numerify('SURAT/' . date('Y/m/d') . '/####')
-        ]);
+        $vaccineRequestPayload = $this->vaccineRequestPayload;
+        unset($vaccineRequestPayload['applicants_office']);
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $vaccineRequestPayload);
         $response->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
     public function testCreateVaccineRequest()
     {
-        Storage::fake('photos');
-        Mail::fake();
-        Notification::fake();
-
-        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', [
-            'master_faskes_id' => $this->faskes->id,
-            'agency_type' => $this->faskes->id_tipe_faskes,
-            'agency_name' => $this->faskes->nama_faskes,
-            'location_village_code' => $this->village->kemendagri_desa_kode,
-            'location_subdistrict_code' => $this->village->kemendagri_kecamatan_kode,
-            'location_district_code' => $this->village->kemendagri_kabupaten_kode,
-            'applicant_name' => $this->faker->name,
-            'applicants_office' => $this->faker->jobTitle,
-            'email' => $this->faker->email,
-            'primary_phone_number' => $this->faker->numerify('081#########'),
-            'secondary_phone_number' => $this->faker->numerify('081#########'),
-            'logistic_request' => json_encode($this->logisticItems),
-            'letter_file' => UploadedFile::fake()->image('letter_file.jpg'),
-            'applicant_file' => UploadedFile::fake()->image('applicant_file.jpg'),
-            'application_letter_number' => $this->faker->numerify('SURAT/' . date('Y/m/d') . '/####')
-        ]);
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
         $response->assertSuccessful();
+    }
+
+    public function testCreateVaccineRequestFailVaccineProduct()
+    {
+        $payload = $this->vaccineRequestPayload;
+
+        $logisticItems[] = [
+            'product_id' => '',
+            'category' => 'vaccinea',
+            'quantity' => 'a',
+            'unit' => null,
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ];
+        $payload['logistic_request'] = json_encode($logisticItems);
+
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 }
