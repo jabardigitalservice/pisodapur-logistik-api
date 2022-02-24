@@ -60,6 +60,7 @@ class VaccineRequestTest extends TestCase
 
         $this->logisticItems[] = [
             'product_id' => rand(),
+            'category' => 'vaccine',
             'quantity' => rand(),
             'unit' => 'PCS',
             'description' => $this->faker->text,

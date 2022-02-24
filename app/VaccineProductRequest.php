@@ -9,6 +9,7 @@ class VaccineProductRequest extends Model
     protected $fillable = [
         'vaccine_request_id',
         'product_id',
+        'category',
         'quantity',
         'unit',
         'description',
@@ -35,6 +36,7 @@ class VaccineProductRequest extends Model
             $vaccineProductRequest = [
                 'vaccine_request_id' => $request->input('vaccine_request_id'),
                 'product_id' => $value['product_id'],
+                'category' => $value['category'],
                 'description' => $value['description'],
                 'quantity' => $value['quantity'],
                 'unit' => $value['unit'],
