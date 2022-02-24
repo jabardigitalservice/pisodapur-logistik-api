@@ -22,18 +22,26 @@ class VaccineProductSeeder extends Seeder
         $unitVaccineSupport = [
             ['id' => 'PCS', 'name' => 'PCS']
         ];
-        VaccineProduct::create(['name' => 'ASTRAZENECA', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine)]);
-        VaccineProduct::create(['name' => 'CORONAVAC', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine)]);
-        VaccineProduct::create(['name' => 'MODERNA', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine)]);
-        VaccineProduct::create(['name' => 'PFIZER', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine)]);
-        VaccineProduct::create(['name' => 'SINOPHARM', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine)]);
-        VaccineProduct::create(['name' => 'COVAX', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine)]);
-        VaccineProduct::create(['name' => 'VAKSIN LAINNYA', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine)]);
 
-        VaccineProduct::create(['name' => 'ADS', 'category' => VaccineProductCategoryEnum::vaccine_support(), 'unit' => json_encode($unitVaccineSupport)]);
-        VaccineProduct::create(['name' => 'ALCOHOL SWAB', 'category' => VaccineProductCategoryEnum::vaccine_support(), 'unit' => json_encode($unitVaccineSupport)]);
-        VaccineProduct::create(['name' => 'SAFETY BOX', 'category' => VaccineProductCategoryEnum::vaccine_support(), 'unit' => json_encode($unitVaccineSupport)]);
-        VaccineProduct::create(['name' => 'THERMAL SHIPPER PFIZER', 'category' => VaccineProductCategoryEnum::vaccine_support(), 'unit' => json_encode($unitVaccineSupport)]);
-        VaccineProduct::create(['name' => 'PENDUKUNG VAKSIN LAINNYA', 'category' => VaccineProductCategoryEnum::vaccine_support(), 'unit' => json_encode($unitVaccineSupport)]);
+        $purposes = [
+            ['id' => 'DOSIS 1', 'name' => 'DOSIS 1'],
+            ['id' => 'DOSIS 2', 'name' => 'DOSIS 2'],
+            ['id' => 'DOSIS 3', 'name' => 'DOSIS 3'],
+            ['id' => 'LAINNYA', 'name' => 'LAINNYA'],
+        ];
+
+        VaccineProduct::create(['name' => 'ASTRAZENECA', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine), 'purposes' => json_encode($purposes)]);
+        VaccineProduct::create(['name' => 'CORONAVAC', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine), 'purposes' => json_encode($purposes)]);
+        VaccineProduct::create(['name' => 'MODERNA', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine), 'purposes' => json_encode($purposes)]);
+        VaccineProduct::create(['name' => 'PFIZER', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine), 'purposes' => json_encode($purposes)]);
+        VaccineProduct::create(['name' => 'SINOPHARM', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine), 'purposes' => json_encode($purposes)]);
+        VaccineProduct::create(['name' => 'COVAX', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine), 'purposes' => json_encode($purposes)]);
+        VaccineProduct::create(['name' => 'VAKSIN LAINNYA', 'category' => VaccineProductCategoryEnum::vaccine(), 'unit' => json_encode($unitForVaccine), 'purposes' => json_encode($purposes)]);
+
+        VaccineProduct::create(['name' => 'ADS', 'category' => VaccineProductCategoryEnum::vaccine_support(), 'unit' => json_encode($unitVaccineSupport), 'purposes' => json_encode($purposes)]);
+        VaccineProduct::create(['name' => 'ALCOHOL SWAB', 'category' => VaccineProductCategoryEnum::vaccine_support(), 'unit' => json_encode($unitVaccineSupport), 'purposes' => json_encode($purposes)]);
+        VaccineProduct::create(['name' => 'SAFETY BOX', 'category' => VaccineProductCategoryEnum::vaccine_support(), 'unit' => json_encode($unitVaccineSupport), 'purposes' => json_encode($purposes)]);
+        VaccineProduct::create(['name' => 'THERMAL SHIPPER PFIZER', 'category' => VaccineProductCategoryEnum::vaccine_support(), 'unit' => json_encode($unitVaccineSupport), 'purposes' => json_encode($purposes)]);
+        VaccineProduct::create(['name' => 'PENDUKUNG VAKSIN LAINNYA', 'category' => VaccineProductCategoryEnum::vaccine_support(), 'unit' => json_encode($unitVaccineSupport), 'purposes' => json_encode($purposes)]);
     }
 }
