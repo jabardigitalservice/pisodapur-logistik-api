@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\Vaccine\VaccineProductCategoryEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreVaccineRequest extends FormRequest
@@ -32,9 +33,31 @@ class StoreVaccineRequest extends FormRequest
             'location_village_code' => 'required|string|exists:villages,kemendagri_desa_kode',
             'applicant_name' => 'required|string',
             'primary_phone_number' => 'required|numeric',
-            'logistic_request' => 'required|json',
+            'logistic_request' => [
+                'required',
+                'json',
+                function ($attribute, $value, $fail) {
+                    foreach (json_decode($value, true) as $key => $param) {
+                        if (!is_numeric($param['product_id'])) {
+                        }
+
+                        if (!is_numeric($param['quantity'])) {
+                            $fail('logistic_request.quantity is must be numeric.');
+                        }
+
+                        if (!$param['unit']) {
+                            $fail('logistic_request.unit is required.');
+                        }
+
+                        if (!in_array($param['category'], [VaccineProductCategoryEnum::vaccine(), VaccineProductCategoryEnum::vaccine_support()])) {
+                            $fail('logistic_request.category is invalid.');
+                        }
+                    }
+                },
+            ],
             'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
             'applicant_file' => 'mimes:jpeg,jpg,png,pdf|max:10240',
+            'is_letter_file_final' => 'required|boolean',
             'application_letter_number' => 'required|string'
         ];
     }
