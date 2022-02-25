@@ -47,7 +47,7 @@ class StoreVaccineRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     foreach (json_decode($value, true) as $key => $param) {
                         $result = StoreVaccineRequest::logisticRequestRules($param);
-                        if ($result['valid']) {
+                        if (!$result['valid']) {
                             $fail($result['fails']);
                         }
                     }
