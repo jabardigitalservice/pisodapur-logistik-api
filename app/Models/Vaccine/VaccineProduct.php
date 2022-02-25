@@ -10,4 +10,9 @@ class VaccineProduct extends Model
     {
         return json_decode($value);
     }
+
+    public function getPurposesAttribute($value)
+    {
+        return json_decode($value);
+    }
 }

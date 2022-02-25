@@ -4,7 +4,7 @@ namespace App\Http\Controllers\API\v1\Vaccine;
 
 use App\Enums\VaccineRequestStatusEnum;
 use App\FileUpload;
-use App\VaccineRequest;
+use App\Models\Vaccine\VaccineRequest;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreVaccineRequest;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models\Vaccine;
 
 use App\Enums\VaccineRequestStatusEnum;
 use Illuminate\Database\Eloquent\Model;
@@ -25,6 +25,7 @@ class VaccineRequest extends Model
         'letter_number',
         'letter_file_url',
         'applicant_file_url',
+        'is_letter_file_final',
         'is_completed',
         'status'
     ];
@@ -60,6 +61,7 @@ class VaccineRequest extends Model
             'applicant_secondary_phone_number' => $request->input('secondary_phone_number'),
             'letter_number' => $request->input('application_letter_number'),
             'letter_file_url' => $request->input('letter_file_url'),
+            'is_letter_file_final' => $request->input('is_letter_file_final'),
             'applicant_file_url' => $request->input('applicant_file_url'),
             'is_completed' => VaccineRequest::setIsCompleted($request),
             'created_by' => $user->id ?? null
@@ -83,37 +85,50 @@ class VaccineRequest extends Model
 
     public function scopeFilter($query, $request)
     {
-        $query->when($request->input('status'), function ($query) use ($request) {
-            $query->when($request->input('status') == VaccineRequestStatusEnum::rejected(), function ($query) use ($request) {
-                $query->whereIn('status', [VaccineRequestStatusEnum::verification_rejected(), VaccineRequestStatusEnum::approval_rejected()]);
-            }, function ($query) use ($request) {
-                $query->where('status', $request->input('status'));
-            });
-        })
-        ->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
+        return $query
+                    ->when($request->input('status'), function ($query) use ($request) {
+                        $query->when($request->input('status') == VaccineRequestStatusEnum::rejected(), function ($query) use ($request) {
+                            $query->whereIn('status', [VaccineRequestStatusEnum::verification_rejected(), VaccineRequestStatusEnum::approval_rejected()]);
+                        }, function ($query) use ($request) {
+                            $query->where('status', $request->input('status'));
+                        });
+                    })
+                    ->whenHasDate($request)
+                    ->when($request->input('city_id'), function ($query) use ($request) {
+                        $query->where('agency_city_id', $request->input('city_id'));
+                    })
+                    ->when($request->has('is_completed'), function ($query) use ($request) {
+                        $query->where('is_completed', $request->input('is_completed'));
+                    })
+                    ->when($request->has('is_urgency'), function ($query) use ($request) {
+                        $query->where('is_urgency', $request->input('is_urgency'));
+                    })
+                    ->when($request->input('faskes_type'), function ($query) use ($request) {
+                        $query->where('agency_type_id', $request->input('faskes_type'));
+                    })
+                    ->whereHasMasterFaskes($request);
+    }
+
+    public function scopeWhenHasDate($query, $request)
+    {
+        $query->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
             $start_date = $request->input('start_date') . ' 00:00:00';
             $end_date = $request->input('end_date') . ' 23:59:59';
             $query->whereBetween('created_at', [$start_date, $end_date]);
-        })
-        ->when($request->input('city_id'), function ($query) use ($request) {
-            $query->where('agency_city_id', $request->input('city_id'));
-        })
-        ->when($request->has('is_completed'), function ($query) use ($request) {
-            $query->where('is_completed', $request->input('is_completed'));
-        })
-        ->when($request->has('is_urgency'), function ($query) use ($request) {
-            $query->where('is_urgency', $request->input('is_urgency'));
-        })
-        ->when($request->input('faskes_type'), function ($query) use ($request) {
-            $query->where('agency_type_id', $request->input('faskes_type'));
         });
+        return $query;
+    }
 
+    public function scopeWhereHasMasterFaskes($query, $request)
+    {
         $query->whereHas('masterFaskes', function ($query) use ($request) {
-            $query->when($request->has('is_reference'), function ($query) use ($request) {
-                $query->where('is_reference', $request->input('is_reference'));
-            })->when($request->input('search'), function ($query) use ($request) {
-                $query->where('nama_faskes', 'like', '%' . $request->input('search') . '%');
-            });
+            $query
+                ->when($request->has('is_reference'), function ($query) use ($request) {
+                    $query->where('is_reference', $request->input('is_reference'));
+                })
+                ->when($request->input('search'), function ($query) use ($request) {
+                    $query->where('nama_faskes', 'like', '%' . $request->input('search') . '%');
+                });
         });
         return $query;
     }

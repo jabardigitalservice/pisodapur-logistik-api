@@ -35,6 +35,7 @@ class VaccineRequestResource extends JsonResource
         'applicant_primary_phone_number' => $this->applicant_primary_phone_number,
         'applicant_secondary_phone_number' => $this->applicant_secondary_phone_number,
         'applicant_file_url' => $this->applicant_file_url,
+        'is_letter_file_final' => $this->is_letter_file_final,
 
         'letter_number' => $this->letter_number,
         'letter_file_url' => $this->letter_file_url,
