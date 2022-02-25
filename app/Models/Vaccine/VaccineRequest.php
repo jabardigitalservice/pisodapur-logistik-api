@@ -85,33 +85,37 @@ class VaccineRequest extends Model
 
     public function scopeFilter($query, $request)
     {
-        $query
-            ->when($request->input('status'), function ($query) use ($request) {
-                $query->when($request->input('status') == VaccineRequestStatusEnum::rejected(), function ($query) use ($request) {
-                    $query->whereIn('status', [VaccineRequestStatusEnum::verification_rejected(), VaccineRequestStatusEnum::approval_rejected()]);
-                }, function ($query) use ($request) {
-                    $query->where('status', $request->input('status'));
-                });
-            })
-            ->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
-                $start_date = $request->input('start_date') . ' 00:00:00';
-                $end_date = $request->input('end_date') . ' 23:59:59';
-                $query->whereBetween('created_at', [$start_date, $end_date]);
-            })
-            ->when($request->input('city_id'), function ($query) use ($request) {
-                $query->where('agency_city_id', $request->input('city_id'));
-            })
-            ->when($request->has('is_completed'), function ($query) use ($request) {
-                $query->where('is_completed', $request->input('is_completed'));
-            })
-            ->when($request->has('is_urgency'), function ($query) use ($request) {
-                $query->where('is_urgency', $request->input('is_urgency'));
-            })
-            ->when($request->input('faskes_type'), function ($query) use ($request) {
-                $query->where('agency_type_id', $request->input('faskes_type'));
-            });
+        return $query
+                    ->when($request->input('status'), function ($query) use ($request) {
+                        $query->when($request->input('status') == VaccineRequestStatusEnum::rejected(), function ($query) use ($request) {
+                            $query->whereIn('status', [VaccineRequestStatusEnum::verification_rejected(), VaccineRequestStatusEnum::approval_rejected()]);
+                        }, function ($query) use ($request) {
+                            $query->where('status', $request->input('status'));
+                        });
+                    })
+                    ->whenHasDate($request)
+                    ->when($request->input('city_id'), function ($query) use ($request) {
+                        $query->where('agency_city_id', $request->input('city_id'));
+                    })
+                    ->when($request->has('is_completed'), function ($query) use ($request) {
+                        $query->where('is_completed', $request->input('is_completed'));
+                    })
+                    ->when($request->has('is_urgency'), function ($query) use ($request) {
+                        $query->where('is_urgency', $request->input('is_urgency'));
+                    })
+                    ->when($request->input('faskes_type'), function ($query) use ($request) {
+                        $query->where('agency_type_id', $request->input('faskes_type'));
+                    })
+                    ->whereHasMasterFaskes($request);
+    }
 
-        $query->whereHasMasterFaskes($request);
+    public function scopeWhenHasDate($query, $request)
+    {
+        $query->when($request->input('start_date') && $request->input('end_date'), function ($query) use ($request) {
+            $start_date = $request->input('start_date') . ' 00:00:00';
+            $end_date = $request->input('end_date') . ' 23:59:59';
+            $query->whereBetween('created_at', [$start_date, $end_date]);
+        });
         return $query;
     }
 
