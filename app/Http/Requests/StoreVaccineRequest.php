@@ -46,20 +46,9 @@ class StoreVaccineRequest extends FormRequest
                 'json',
                 function ($attribute, $value, $fail) {
                     foreach (json_decode($value, true) as $key => $param) {
-                        if (!is_numeric($param['product_id'])) {
-                            $fail('logistic_request.product_id is required.');
-                        }
-
-                        if (!is_numeric($param['quantity'])) {
-                            $fail('logistic_request.quantity is must be numeric.');
-                        }
-
-                        if (!$param['unit']) {
-                            $fail('logistic_request.unit is required.');
-                        }
-
-                        if (!in_array($param['category'], [VaccineProductCategoryEnum::vaccine(), VaccineProductCategoryEnum::vaccine_support()])) {
-                            $fail('logistic_request.category is invalid.');
+                        $result = StoreVaccineRequest::logisticRequestRules($param);
+                        if ($result['valid']) {
+                            $fail($result['fails']);
                         }
                     }
                 },
@@ -67,5 +56,35 @@ class StoreVaccineRequest extends FormRequest
         ];
 
         return $rules;
+    }
+
+    static public function logisticRequestRules($param)
+    {
+        $fails = '';
+        $valid = true;
+        if (!is_numeric($param['product_id'])) {
+            $fails .= 'logistic_request.product_id is required. ';
+            $valid = false;
+        }
+
+        if (!is_numeric($param['quantity'])) {
+            $fails .= 'logistic_request.quantity is must be numeric. ';
+            $valid = false;
+        }
+
+        if (!$param['unit']) {
+            $fails .= 'logistic_request.unit is required. ';
+            $valid = false;
+        }
+
+        if (!in_array($param['category'], [VaccineProductCategoryEnum::vaccine(), VaccineProductCategoryEnum::vaccine_support()])) {
+            $fails .= 'logistic_request.category is invalid. ';
+            $valid = false;
+        }
+
+        return [
+            'valid' => $valid,
+            'fails' => $fails,
+        ];
     }
 }
