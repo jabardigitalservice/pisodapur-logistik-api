@@ -2,16 +2,13 @@
 
 namespace App\Http\Controllers\API\v1;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\LogisticRealizationItems;
-use App\Validation;
-use DB;
-use JWTAuth;
-use App\Applicant;
+use App\Http\Requests\LogisticRealizationItem\AddRequest;
 use App\Http\Requests\LogisticRealizationItem\GetRequest;
 use App\Http\Requests\LogisticRealizationItem\StoreRequest;
 use App\PoslogProduct;
+use Illuminate\Http\Response;
 use Log;
 
 class LogisticRealizationItemController extends Controller
@@ -34,28 +31,10 @@ class LogisticRealizationItemController extends Controller
         return $response;
     }
 
-    public function add(Request $request)
+    public function add(AddRequest $request)
     {
-        $params = [
-            'agency_id' => 'numeric', 
-            'applicant_id' => 'numeric', 
-            'product_id' => 'string',
-            'usage' => 'string',
-            'priority' => 'string',
-            'status' => 'string'
-        ];
-        $cleansingData = $this->cleansingData($request, $params);
-        $params = $cleansingData['param'];
-        $request = $cleansingData['request'];
-        $response = Validation::validate($request, $params);        
-        if ($response->getStatusCode() === 200) {
-            $applicant = Applicant::select('id')->where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->first();
-            //Get Material from PosLog by Id
-            $request = $this->getPosLogData($request);
-            $realization = $this->realizationStore($request);
-            $response = response()->format(200, 'success');
-        }
-        return $response;
+        $request = $this->getPosLogData($request);
+        return $this->realizationStore($request);
     }
 
     /**

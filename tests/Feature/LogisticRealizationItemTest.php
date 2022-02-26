@@ -38,6 +38,23 @@ class LogisticRealizationItemTest extends TestCase
             ->json('GET', '/api/v1/logistic-admin-realization', ['agency_id' => $this->agency->id])
             ->assertStatus(401);
 
+    public function testAddNoParam()
+    {
+        $this
+            ->actingAs($this->admin, 'api')
+            ->json('POST', '/api/v1/logistic-admin-realization')
+            ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonStructure([
+                'message',
+                'errors' => [
+                    'agency_id' => [],
+                    'product_id' => [],
+                    'status' => [],
+                    'store_type' => [],
+                ]
+            ]);
+    }
+
     public function testSetRecommendationForNeedId()
     {
         $param = $this->param;
@@ -69,6 +86,33 @@ class LogisticRealizationItemTest extends TestCase
             ->json('POST', '/api/v1/logistic-request/realization', $param)
             ->assertSuccessful();
     }
+
+    public function testAddRecommendationByAdmin()
+    {
+        $param = $this->param;
+        $param['store_type'] = 'recommendation';
+        $param['recommendation_quantity'] = rand(1, 1000);
+        $param['recommendation_date'] = date('Y-m-d');
+        $param['recommendation_unit'] = 'PCS';
+
+        $response = $this
+            ->actingAs($this->admin, 'api')
+            ->json('POST', '/api/v1/logistic-admin-realization', $param)
+            ->assertSuccessful();
+    }
+
+    public function testAddRealizationByAdmin()
+    {
+        $param = $this->param;
+        $param['store_type'] = 'realization';
+        $param['realization_quantity'] = rand(1, 1000);
+        $param['realization_date'] = date('Y-m-d');
+        $param['realization_unit'] = 'PCS';
+
+        $response = $this
+            ->actingAs($this->admin, 'api')
+            ->json('POST', '/api/v1/logistic-admin-realization', $param)
+            ->assertSuccessful();
     }
 
     public function testGetByAgencyId()

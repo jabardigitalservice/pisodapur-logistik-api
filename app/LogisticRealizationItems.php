@@ -4,9 +4,6 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use DB;
-use JWTAuth;
-use Illuminate\Http\Response;
 
 class LogisticRealizationItems extends Model
 {
@@ -120,19 +117,6 @@ class LogisticRealizationItems extends Model
     public function getFinalUnitAttribute($value)
     {
         return $value ? $value : 'PCS';
-    }
-
-    static function storeData($store_type)
-    {
-        DB::beginTransaction();
-        try {
-            $realization = self::create($store_type);
-            DB::commit();
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            $realization = $exception->getMessage();
-        }
-        return $realization;
     }
 
     static function withPICData($data)
