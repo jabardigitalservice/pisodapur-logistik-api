@@ -31,7 +31,7 @@ class VaccineProductTest extends TestCase
                         ]
                     ],
                     'api',
-                    'purposes',
+                    'purposes' => [],
                     'created_at',
                     'updated_at',
                     'deleted_at',
