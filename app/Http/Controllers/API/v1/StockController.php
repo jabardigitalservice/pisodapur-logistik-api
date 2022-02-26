@@ -49,12 +49,12 @@ class StockController extends Controller
         } else if ($request->has('id')) {
             $product = Product::getFirst($request->input('id'));
             $result['field_poslog'] = 'matg_id';
-            $result['value_poslog'] = $product->material_group;
-            if (strpos($product->name, 'VTM') !== false) {
+            $result['value_poslog'] = optional($product)->material_group;
+            if (strpos(optional($product)->name, 'VTM') !== false) {
                 $result['material_name'] = 'VTM';
             }
         }
-        $result['material_name'] = $request->material_name ? $request->material_name : $result['material_name'];
+        $result['material_name'] = $request->material_name ?? $result['material_name'];
         return $result;
     }
 

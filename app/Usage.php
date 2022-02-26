@@ -135,14 +135,18 @@ class Usage
 
     static function syncWmsJabar()
     {
-        $data = [];
-        $sohLocation = SohLocation::all();
-        $baseApi = PoslogProduct::API_POSLOG;
-        foreach ($sohLocation as $val) {
-            $materials = static::getLogisticStockByLocation($val['location_id']);
-            $data = static::setPoslogProduct($materials, $baseApi, $data);
+        try {
+            $data = [];
+            $sohLocation = SohLocation::all();
+            $baseApi = PoslogProduct::API_POSLOG;
+            foreach ($sohLocation as $val) {
+                $materials = static::getLogisticStockByLocation($val['location_id']);
+                $data = static::setPoslogProduct($materials, $baseApi, $data);
+            }
+            PoslogProduct::updatingPoslogProduct($data, $baseApi);
+        } catch (\Throwable $th) {
+            //throw $th;
         }
-        PoslogProduct::updatingPoslogProduct($data, $baseApi);
     }
 
     static function setPoslogProduct($materials, $baseApi, $data)
