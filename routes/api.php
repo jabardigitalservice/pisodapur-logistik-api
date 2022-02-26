@@ -129,7 +129,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::post('/logistic-request/applicant-identity/{id}', 'LogisticRequestController@update');
 
         // Logistic Realization Items by Admin
-        Route::get('/logistic-admin-realization', 'LogisticRealizationItemController@list');
+        Route::get('/logistic-admin-realization', 'LogisticRealizationItemController@index');
         Route::post('/logistic-admin-realization', 'LogisticRealizationItemController@add');
         Route::put('/logistic-admin-realization/{id}', 'LogisticRealizationItemController@update');
         Route::delete('/logistic-admin-realization/{id}', 'LogisticRealizationItemController@destroy');

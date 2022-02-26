@@ -9,6 +9,7 @@ use App\Validation;
 use DB;
 use JWTAuth;
 use App\Applicant;
+use App\Http\Requests\LogisticRealizationItem\GetRequest;
 use App\PoslogProduct;
 use Log;
 
@@ -80,17 +81,11 @@ class LogisticRealizationItemController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function list(Request $request)
+    public function index(GetRequest $request)
     {
-        $params = [
-            'agency_id' => 'required'
-        ];
-        $response = Validation::validate($request, $params);        
-        if ($response->getStatusCode() === 200) {
-            $limit = $request->input('limit', 3);
-            $data = LogisticRealizationItems::getList($request);
-            $response = response()->format(200, 'success', $data);
-        }
+        $limit = $request->input('limit', 3);
+        $data = LogisticRealizationItems::getList($request);
+        $response = response()->format(200, 'success', $data);
         return $response;
     }
 
