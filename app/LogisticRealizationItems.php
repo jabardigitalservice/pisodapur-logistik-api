@@ -4,9 +4,6 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use DB;
-use JWTAuth;
-use Illuminate\Http\Response;
 
 class LogisticRealizationItems extends Model
 {
@@ -64,29 +61,6 @@ class LogisticRealizationItems extends Model
         'final_at',
     ];
 
-    static function deleteData($id)
-    {
-        $result = [
-            'code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-            'message' => 'Gagal Terhapus',
-            'data' => $id
-        ];
-        DB::beginTransaction();
-        try {
-            $deleteRealization = self::where('id', $id)->delete();
-            DB::commit();
-            $result = [
-                'code' => Response::HTTP_OK,
-                'message' => 'success',
-                'data' => $id
-            ];
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            $result['message'] = $exception->getMessage();
-        }
-        return $result;
-    }
-
     public function agency()
     {
         return $this->belongsToMany('App\Agency', 'id', 'agency_id');
@@ -122,19 +96,6 @@ class LogisticRealizationItems extends Model
         return $value ? $value : 'PCS';
     }
 
-    static function storeData($store_type)
-    {
-        DB::beginTransaction();
-        try {
-            $realization = self::create($store_type);
-            DB::commit();
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            $realization = $exception->getMessage();
-        }
-        return $realization;
-    }
-
     static function withPICData($data)
     {
         return $data->with([
@@ -149,7 +110,7 @@ class LogisticRealizationItems extends Model
         if ($request->input('store_type') === 'recommendation') {
             $request['realization_quantity'] = $request->input('recommendation_quantity');
             $request['realization_date'] = $request->input('recommendation_date');
-            $request['recommendation_by'] = JWTAuth::user()->id;
+            $request['recommendation_by'] = auth()->user()->id;
             $request['recommendation_at'] = date('Y-m-d H:i:s');
         } else {
             $request['final_product_id'] = $request->input('product_id');
@@ -158,7 +119,7 @@ class LogisticRealizationItems extends Model
             $request['final_unit'] = $request['realization_unit'];
             $request['final_date'] = $request->input('realization_date');
             $request['final_status'] = $request->input('status');
-            $request['final_by'] = JWTAuth::user()->id;
+            $request['final_by'] = auth()->user()->id;
             $request['final_at'] = date('Y-m-d H:i:s');
             $request = self::setValueIfFindOneExists($request, $findOne);
         }
