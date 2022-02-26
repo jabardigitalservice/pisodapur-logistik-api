@@ -7,8 +7,6 @@ use Illuminate\Http\Response;
 
 use App\Http\Controllers\Controller;
 use App\Product;
-use App\Applicant;
-use App\Enums\ProductCategoryEnum;
 use App\Needs;
 use DB;
 
