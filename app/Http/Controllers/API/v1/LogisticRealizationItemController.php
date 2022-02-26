@@ -10,44 +10,26 @@ use DB;
 use JWTAuth;
 use App\Applicant;
 use App\Http\Requests\LogisticRealizationItem\GetRequest;
+use App\Http\Requests\LogisticRealizationItem\StoreRequest;
 use App\PoslogProduct;
 use Log;
 
 class LogisticRealizationItemController extends Controller
 {
-    public function store(Request $request)
+    public function store(StoreRequest $request)
     {
-        $params = [
-            'agency_id' => 'numeric',
-            'applicant_id' => 'numeric',
-            'need_id' => 'numeric',
-            'status' => 'string'
-        ];
-        $cleansingData = $this->cleansingData($request, $params);
-        $params = $cleansingData['param'];
-        $request = $cleansingData['request'];
-        $response = Validation::validate($request, $params);
-        if ($response->getStatusCode() === 200) {
-            if ($this->isApplicantExists($request, 'store')) {
-                try {
-                    $model = new LogisticRealizationItems();
-                    $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
-                    $resultset = $this->setValue($request, $findOne);
-                    $findOne = $resultset['findOne'];
-                    $request = $resultset['request'];
-                    $model->fill($request->input());
-                    $model->save();
-                    if ($findOne) { //updating latest log realization record
-                        $findOne->realization_ref_id = $model->id;
-                        $findOne->deleted_at = date('Y-m-d H:i:s');
-                        $findOne->save();
-                    }
-                    $response = response()->format(200, 'success', $model);
-                } catch (\Exception $exception) { //Return Error Exception
-                    $response = response()->format(400, $exception->getMessage());
-                }
-            }
+        $model = new LogisticRealizationItems();
+        $resultset = $this->setValue($request);
+        $findOne = $resultset['findOne'];
+        $request = $resultset['request'];
+        $model->fill($request->input());
+        $model->save();
+        if ($findOne) { //updating latest log realization record
+            $findOne->realization_ref_id = $model->id;
+            $findOne->deleted_at = date('Y-m-d H:i:s');
+            $findOne->save();
         }
+        $response = response()->format(Response::HTTP_OK, 'success', $model);
         Log::channel('dblogging')->debug('post:v1/logistic-request/realization', $request->all());
         return $response;
     }
@@ -197,8 +179,9 @@ class LogisticRealizationItemController extends Controller
         return $request;
     }
 
-    public function setValue($request, $findOne)
+    public function setValue($request)
     {
+        $findOne = LogisticRealizationItems::where('need_id', $request->need_id)->orderBy('created_at', 'desc')->first();
         unset($request['id']);
         if ($request->input('status') !== LogisticRealizationItems::STATUS_NOT_AVAILABLE) {
             //Get Material from PosLog by Id
