@@ -82,35 +82,46 @@ class LogisticRealizationItemController extends Controller
 
     public function realizationStore($request)
     {
+        $store_type = $this->setFinalData($request);
+        if ($request->input('store_type') === 'recommendation') {
+            $store_type = $this->setRecommendationData($request);
+        }
         $store_type['agency_id'] = $request->input('agency_id');
         $store_type['created_by'] = auth()->user()->id;
-        $store_type['final_product_id'] = $request->input('product_id');
-        $store_type['final_product_name'] = $request->input('product_name');
-        $store_type['final_quantity'] = $request->input('realization_quantity');
-        $store_type['final_unit'] = $request->input('realization_unit');
-        $store_type['final_date'] = $request->input('realization_date');
-        $store_type['final_status'] = $request->input('status');
-        $store_type['final_by'] = auth()->user()->id;
-        $store_type['final_at'] = date('Y-m-d H:i:s');
-        if ($request->input('store_type') === 'recommendation') {
-            $store_type = [
-                'agency_id' => $request->input('agency_id'),
-                'product_id' => $request->input('product_id'),
-                'product_name' => $request->input('product_name'),
-                'realization_unit' => $request->input('recommendation_unit'),
-                'material_group' => $request->input('material_group'),
-                'realization_quantity' => $request->input('recommendation_quantity'),
-                'realization_date' => $request->input('recommendation_date'),
-                'status' => $request->input('status'),
-                'created_by' => auth()->user()->id,
-                'recommendation_by' => auth()->user()->id,
-                'recommendation_at' => date('Y-m-d H:i:s')
-            ];
-        }
         return LogisticRealizationItems::create($store_type);
     }
 
     public function realizationUpdate($request, $findOne)
+    {
+        $store_type = $this->setFinalData($request);
+        if ($request->input('store_type') === 'recommendation') {
+            $store_type = $this->setRecommendationData($request);
+        }
+        $store_type['updated_by'] = auth()->user()->id;
+
+        $findOne->fill($store_type);
+        $findOne->save();
+        return $findOne;
+    }
+
+    public function setRecommendationData($request)
+    {
+        return [
+            'agency_id' => $request->input('agency_id'),
+            'applicant_id' => $request->input('applicant_id'),
+            'product_id' => $request->input('product_id'),
+            'product_name' => $request->input('product_name'),
+            'realization_unit' => $request->input('recommendation_unit'),
+            'material_group' => $request->input('material_group'),
+            'realization_quantity' => $request->input('recommendation_quantity'),
+            'realization_date' => $request->input('recommendation_date'),
+            'status' => $request->input('status'),
+            'recommendation_by' => auth()->user()->id,
+            'recommendation_at' => date('Y-m-d H:i:s')
+        ];
+    }
+
+    public function setFinalData($request)
     {
         $store_type['final_product_id'] = $request->input('product_id');
         $store_type['final_product_name'] = $request->input('product_name');
@@ -120,26 +131,7 @@ class LogisticRealizationItemController extends Controller
         $store_type['final_status'] = $request->input('status');
         $store_type['final_by'] = auth()->user()->id;
         $store_type['final_at'] = date('Y-m-d H:i:s');
-        if ($request->input('store_type') === 'recommendation') {
-            $store_type = [
-                'agency_id' => $request->input('agency_id'),
-                'applicant_id' => $request->input('applicant_id'),
-                'product_id' => $request->input('product_id'),
-                'product_name' => $request->input('product_name'),
-                'realization_unit' => $request->input('recommendation_unit'),
-                'material_group' => $request->input('material_group'),
-                'realization_quantity' => $request->input('recommendation_quantity'),
-                'realization_date' => $request->input('recommendation_date'),
-                'status' => $request->input('status'),
-                'updated_by' => auth()->user()->id,
-                'recommendation_by' => auth()->user()->id,
-                'recommendation_at' => date('Y-m-d H:i:s')
-            ];
-        }
-
-        $findOne->fill($store_type);
-        $findOne->save();
-        return $findOne;
+        return $store_type;
     }
 
     public function getPosLogData($request)
