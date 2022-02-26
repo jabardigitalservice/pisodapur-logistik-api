@@ -110,7 +110,7 @@ class LogisticRealizationItems extends Model
         if ($request->input('store_type') === 'recommendation') {
             $request['realization_quantity'] = $request->input('recommendation_quantity');
             $request['realization_date'] = $request->input('recommendation_date');
-            $request['recommendation_by'] = JWTAuth::user()->id;
+            $request['recommendation_by'] = auth()->user()->id;
             $request['recommendation_at'] = date('Y-m-d H:i:s');
         } else {
             $request['final_product_id'] = $request->input('product_id');
@@ -119,7 +119,7 @@ class LogisticRealizationItems extends Model
             $request['final_unit'] = $request['realization_unit'];
             $request['final_date'] = $request->input('realization_date');
             $request['final_status'] = $request->input('status');
-            $request['final_by'] = JWTAuth::user()->id;
+            $request['final_by'] = auth()->user()->id;
             $request['final_at'] = date('Y-m-d H:i:s');
             $request = self::setValueIfFindOneExists($request, $findOne);
         }
