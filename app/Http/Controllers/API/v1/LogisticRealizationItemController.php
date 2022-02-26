@@ -46,7 +46,7 @@ class LogisticRealizationItemController extends Controller
     {
         $limit = $request->input('limit', 3);
         $data = LogisticRealizationItems::getList($request);
-        $response = response()->format(200, 'success', $data);
+        $response = response()->format(Response::HTTP_OK, 'success', $data);
         return $response;
     }
 
@@ -55,39 +55,15 @@ class LogisticRealizationItemController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(AddRequest $request, $id)
     {
-        $params = [
-            'agency_id' => 'numeric',
-            'product_id' => 'string',
-            'status' => 'string'
-        ];
-        $cleansingData = $this->cleansingData($request, $params);
-        $params = $cleansingData['param'];
-        $request = $cleansingData['request'];
-        $response = Validation::validate($request, $params);        
-        if ($response->getStatusCode() === 200) {
-            $response = $this->isValidStatus($request);
-            if ($response->getStatusCode() === 200) {
-                DB::beginTransaction();
-                try {
-                    $request['applicant_id'] = $request->input('applicant_id', $request->input('agency_id'));
-        
-                    //Get Material from PosLog by Id
-                    $request = $this->getPosLogData($request);
-                    $realization = $this->realizationUpdate($request, $id);
+        //Get Material from PosLog by Id
+        $request = $this->getPosLogData($request);
+        $findOne = LogisticRealizationItems::findOrFail($id);
+        $realization = $this->realizationUpdate($request, $findOne);
+        $data['realization']  = $realization;
 
-                    $data = array( 
-                        'realization' => $realization
-                    );
-                    DB::commit();
-                    $response = response()->format(200, 'success', $data);
-                } catch (\Exception $exception) {
-                    DB::rollBack();
-                    $response = response()->format(400, $exception->getMessage());
-                }
-            }
-        }
+        $response = response()->format(Response::HTTP_OK, 'success', $data);
         return $response;
     }
 
@@ -105,45 +81,64 @@ class LogisticRealizationItemController extends Controller
     // Utilities Function Below Here
 
     public function realizationStore($request)
-    {   
-        $store_type = $this->setStoreType($request);
-        return LogisticRealizationItems::storeData($store_type);
+    {
+        $store_type['agency_id'] = $request->input('agency_id');
+        $store_type['created_by'] = auth()->user()->id;
+        $store_type['final_product_id'] = $request->input('product_id');
+        $store_type['final_product_name'] = $request->input('product_name');
+        $store_type['final_quantity'] = $request->input('realization_quantity');
+        $store_type['final_unit'] = $request->input('realization_unit');
+        $store_type['final_date'] = $request->input('realization_date');
+        $store_type['final_status'] = $request->input('status');
+        $store_type['final_by'] = auth()->user()->id;
+        $store_type['final_at'] = date('Y-m-d H:i:s');
+        if ($request->input('store_type') === 'recommendation') {
+            $store_type = [
+                'agency_id' => $request->input('agency_id'),
+                'product_id' => $request->input('product_id'),
+                'product_name' => $request->input('product_name'),
+                'realization_unit' => $request->input('recommendation_unit'),
+                'material_group' => $request->input('material_group'),
+                'realization_quantity' => $request->input('recommendation_quantity'),
+                'realization_date' => $request->input('recommendation_date'),
+                'status' => $request->input('status'),
+                'created_by' => auth()->user()->id,
+                'recommendation_by' => auth()->user()->id,
+                'recommendation_at' => date('Y-m-d H:i:s')
+            ];
+        }
+        return LogisticRealizationItems::create($store_type);
     }
 
-    public function realizationUpdate($request, $id)
-    { 
-        $findOne = LogisticRealizationItems::find($id);
-        if ($findOne) {                
-            //updating latest log realization record
-            if ($request->input('store_type') === 'recommendation') {
-                $store_type = [  
-                    'agency_id' => $request->input('agency_id'),
-                    'applicant_id' => $request->input('applicant_id'),
-                    'product_id' => $request->input('product_id'), 
-                    'product_name' => $request->input('product_name'), 
-                    'realization_unit' => $request->input('recommendation_unit'), 
-                    'material_group' => $request->input('material_group'), 
-                    'realization_quantity' => $request->input('recommendation_quantity'),
-                    'realization_date' => $request->input('recommendation_date'),
-                    'status' => $request->input('status'),
-                    'updated_by' => JWTAuth::user()->id,
-                    'recommendation_by' => JWTAuth::user()->id,
-                    'recommendation_at' => date('Y-m-d H:i:s')
-                ];
-            } else {
-                $store_type['final_product_id'] = $request->input('product_id');
-                $store_type['final_product_name'] = $request->input('product_name');
-                $store_type['final_quantity'] = $request->input('realization_quantity');
-                $store_type['final_unit'] = $request['realization_unit'];
-                $store_type['final_date'] = $request->input('realization_date');
-                $store_type['final_status'] = $request->input('status');
-                $store_type['final_by'] = JWTAuth::user()->id;
-                $store_type['final_at'] = date('Y-m-d H:i:s');
-            }
-
-            $findOne->fill($store_type);  
-            $findOne->save();
+    public function realizationUpdate($request, $findOne)
+    {
+        $store_type['final_product_id'] = $request->input('product_id');
+        $store_type['final_product_name'] = $request->input('product_name');
+        $store_type['final_quantity'] = $request->input('realization_quantity');
+        $store_type['final_unit'] = $request->input('realization_unit');
+        $store_type['final_date'] = $request->input('realization_date');
+        $store_type['final_status'] = $request->input('status');
+        $store_type['final_by'] = auth()->user()->id;
+        $store_type['final_at'] = date('Y-m-d H:i:s');
+        if ($request->input('store_type') === 'recommendation') {
+            $store_type = [
+                'agency_id' => $request->input('agency_id'),
+                'applicant_id' => $request->input('applicant_id'),
+                'product_id' => $request->input('product_id'),
+                'product_name' => $request->input('product_name'),
+                'realization_unit' => $request->input('recommendation_unit'),
+                'material_group' => $request->input('material_group'),
+                'realization_quantity' => $request->input('recommendation_quantity'),
+                'realization_date' => $request->input('recommendation_date'),
+                'status' => $request->input('status'),
+                'updated_by' => auth()->user()->id,
+                'recommendation_by' => auth()->user()->id,
+                'recommendation_at' => date('Y-m-d H:i:s')
+            ];
         }
+
+        $findOne->fill($store_type);
+        $findOne->save();
         return $findOne;
     }
 
