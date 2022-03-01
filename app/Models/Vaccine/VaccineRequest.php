@@ -4,7 +4,6 @@ namespace App\Models\Vaccine;
 
 use App\Enums\VaccineRequestStatusEnum;
 use Illuminate\Database\Eloquent\Model;
-use JWTAuth;
 
 class VaccineRequest extends Model
 {
@@ -44,7 +43,7 @@ class VaccineRequest extends Model
 
     static function add($request)
     {
-        $user = JWTAuth::user();
+        $user = auth()->user();
         $vaccineRequest = [
             'agency_id' => $request->input('master_faskes_id'),
             'agency_type_id' => $request->input('agency_type'),

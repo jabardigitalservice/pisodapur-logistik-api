@@ -46,7 +46,7 @@ class AllocationMaterialController extends Controller
             VaccineWmsJabar::getVaccineByIDMaterial($request, $id);
         }
 
-        $type = $param['type'] ?? 'vaccine';
+        $type = $request->input('type', 'vaccine');
         $data = AllocationMaterial::where('type', $type)->where('material_id', $id)->firstOrFail();
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
@@ -55,16 +55,9 @@ class AllocationMaterialController extends Controller
     {
         $result = false;
         $updateTime = AllocationMaterial::orderBy('created_at', 'desc')->value('created_at');
-        $result = $this->isOutdated($updateTime);
-        // $result = $updateTime ? $this->isOutdated($updateTime) : true;
-        return $result;
-    }
-
-    public function isOutdated($updateTime)
-    {
         $time = date('Y-m-d H:i:s');
         $baseApi = PoslogProduct::API_POSLOG;
         $updateTime = SyncApiSchedules::getIntervalTimeByAPI($baseApi, $updateTime);
-        return $updateTime < $time ?? false;
+        return $updateTime < $time;
     }
 }

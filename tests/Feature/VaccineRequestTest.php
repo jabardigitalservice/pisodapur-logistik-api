@@ -8,8 +8,10 @@ use App\MasterFaskesType;
 use App\MasterFaskes;
 use App\AllocationMaterial;
 use App\Districtcities;
+use App\Enums\VaccineRequestStatusEnum;
 use App\Subdistrict;
 use App\Models\Vaccine\VaccineRequest;
+use App\VaccineProductRequest;
 use App\Village;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -159,6 +161,76 @@ class VaccineRequestTest extends TestCase
             ]);
     }
 
+    public function testGetVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-request/' . $this->vaccineRequest->id);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'status',
+                'message',
+                'data' => [
+                  'id',
+                  'agency_id',
+                  'agency_type_id',
+                  'agency_name',
+                  'agency_phone_number',
+                  'agency_address',
+                  'agency_village_id',
+                  'agency_district_id',
+                  'agency_city_id',
+                  'applicant_fullname',
+                  'applicant_position',
+                  'applicant_email',
+                  'applicant_primary_phone_number',
+                  'applicant_secondary_phone_number',
+                  'letter_number',
+                  'letter_file_url',
+                  'is_letter_file_final',
+                  'applicant_file_url',
+                  'status',
+                  'note',
+                  'created_at',
+                  'updated_at',
+                  'created_by',
+                  'is_completed',
+                  'is_urgency',
+                  'verified_at',
+                  'verified_by',
+                  'approved_at',
+                  'approved_by',
+                  'finalized_at',
+                  'finalized_by',
+                  'rejected_note',
+                  'is_integrated',
+                  'master_faskes' => [
+                    'id',
+                    'nama_faskes',
+                    'is_reference',
+                  ],
+                  'master_faskes_type' => [
+                    'id',
+                    'name',
+                  ],
+                  'village' => [
+                    'id',
+                    'kemendagri_desa_nama',
+                    'kemendagri_kabupaten_kode',
+                    'kemendagri_provinsi_nama',
+                    'kemendagri_desa_kode',
+                    'kemendagri_provinsi_kode',
+                    'kemendagri_kabupaten_nama',
+                    'kemendagri_kecamatan_kode',
+                    'kemendagri_kecamatan_nama',
+                    'is_desa',
+                    'created_at',
+                    'updated_at',
+                  ],
+                  'outbounds' => [],
+                ]
+              ]);
+    }
+
     public function testCreateVaccineRequestFailed()
     {
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request');
@@ -196,6 +268,31 @@ class VaccineRequestTest extends TestCase
         $response->assertSuccessful();
     }
 
+    public function testVerifiedStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::verified()
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testApproveStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::approved()
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testRejectStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::rejected(),
+            'note' => $this->faker->text
+        ]);
+        $response->assertSuccessful();
+    }
+
     public function testCreateVaccineRequestFailVaccineProduct()
     {
         $payload = $this->vaccineRequestPayload;
@@ -212,5 +309,38 @@ class VaccineRequestTest extends TestCase
 
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $payload);
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    public function testGetProductRequest()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request', [
+            'vaccine_request_id' => $this->vaccineRequest->id
+        ]);
+        $response
+            ->assertStatus(200)
+            ->assertJsonStructure([
+                'current_page',
+                'data' => [],
+                'first_page_url',
+                'from',
+                'last_page',
+                'last_page_url',
+                'next_page_url',
+                'path',
+                'per_page',
+                'prev_page_url',
+                'to',
+                'total',
+              ]);
+    }
+
+    public function testUpdateProductRequest()
+    {
+        $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
+
+        $vaccineProductRequest = VaccineProductRequest::first()->toArray();
+        $vaccineProductRequest['quantity'] = rand(100, 1000);
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-product-request/' . $vaccineProductRequest['id'], $vaccineProductRequest);
+        $response->assertSuccessful();
     }
 }

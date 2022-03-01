@@ -15,7 +15,6 @@ use App\VaccineProductRequest;
 use App\VaccineWmsJabar;
 use Carbon\Carbon;
 use DB;
-use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -85,7 +84,7 @@ class VaccineRequestController extends Controller
 
     public function setUpdateByStatus($vaccineRequest, $request)
     {
-        $user = JWTAuth::user();
+        $user = auth()->user();
         if (in_array($request->status, [VaccineRequestStatusEnum::verified(), VaccineRequestStatusEnum::verification_rejected()])) {
             $vaccineRequest->verified_at = Carbon::now();
             $vaccineRequest->verified_by = $user->id;
@@ -98,7 +97,7 @@ class VaccineRequestController extends Controller
 
     public function sendToPoslog($vaccineRequest)
     {
-        $user = JWTAuth::user();
+        $user = auth()->user();
         $response = VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
 
         if ($response->getStatusCode() == Response::HTTP_OK) {

@@ -8,10 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Validation;
-use JWTAuth;
 use DB;
 use App\LogisticRealizationItems;
 use App\FileUpload;
+use App\Http\Requests\OutgoingLetter\StoreRequest;
 use Illuminate\Support\Facades\Storage;
 
 class OutgoingLetterController extends Controller
@@ -26,20 +26,18 @@ class OutgoingLetterController extends Controller
         $data = [];
         $limit = $request->input('limit', 10);
         $sortType = $request->input('sort', 'DESC');
-        $data = OutgoingLetter::where(function ($query) use ($request) {
-            if ($request->has('letter_number')) {
-                $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
-            }
-
-            if ($request->has('letter_date')) {
-                $query->where('letter_date', $request->input('letter_date'));
-            }
-
-            if (!in_array(JWTAuth::user()->username, OutgoingLetter::VALID_USER)) {
-                $query->where('user_id',  JWTAuth::user()->id);
-            }
-        });
-        $data = $data->orderBy('letter_date', $sortType)->orderBy('created_at', $sortType)->paginate($limit);
+        $data = OutgoingLetter::when($request->has('letter_number'), function ($query) use ($request) {
+            $query->where('letter_number', 'LIKE', "%{$request->input('letter_number')}%");
+        })
+        ->when($request->has('letter_date'), function ($query) use ($request) {
+            $query->where('letter_date', $request->input('letter_date'));
+        })
+        ->when(!in_array(auth()->user()->username, OutgoingLetter::VALID_USER), function ($query) use ($request) {
+            $query->where('user_id',  auth()->user()->id);
+        })
+        ->orderBy('letter_date', $sortType)
+        ->orderBy('created_at', $sortType)
+        ->paginate($limit);
         $response = response()->format(Response::HTTP_OK, 'success', $data);
         return $response;
     }
@@ -50,17 +48,24 @@ class OutgoingLetterController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreRequest $request)
     {
-        $response = [];
-        $param = [
-            'letter_name' => 'required',
-            'letter_date' => 'required',
-            'letter_request' => 'required',
-        ];
-        $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === Response::HTTP_OK) {
-            $response = $this->outgoingLetterStore($request);
+        DB::beginTransaction();
+        try {
+            $request->merge(['user_id' => auth()->user()->id]);
+            $request->merge(['status' =>  OutgoingLetter::NOT_APPROVED]);
+            $outgoing_letter = OutgoingLetter::create($request->all());
+            $request->merge(['outgoing_letter_id' => $outgoing_letter->id]);
+            $request_letter = $this->requestLetterStore($request);
+            $response = [
+                'outgoing_letter' => $outgoing_letter,
+                'request_letter' => $request_letter,
+            ];
+            DB::commit();
+            $response = response()->format(Response::HTTP_CREATED, 'success', $response);
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            $response = response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage());
         }
         return $response;
     }
@@ -89,26 +94,22 @@ class OutgoingLetterController extends Controller
     public function print($id)
     {
         $data = [];
-        try {
-            $requestLetter = RequestLetter::getForPrint($id);
-            $materials = $this->getAllMaterials($requestLetter);
-            $data = [
-                'image' => $this->getImageBlog(),
-                'outgoing_letter' => OutgoingLetter::getPrintOutgoingLetter($id),
-                'request_letter' => $requestLetter,
-                'material' => $materials,
-            ];
-        } catch (\Exception $exception) {
-            return response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
-        }
+        $requestLetter = RequestLetter::getForPrint($id);
+        $materials = $this->getAllMaterials($requestLetter);
+        $data = [
+            'image' => $this->getImageBlog(),
+            'outgoing_letter' => OutgoingLetter::getPrintOutgoingLetter($id),
+            'request_letter' => $requestLetter,
+            'material' => $materials,
+        ];
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function getImageBlog()
     {
         //Return Image to base64 format
-        $pathPemprov = config('aws.url') . 'logo/pemprov_jabar.png';
-        $pathDivLog = config('aws.url') . 'logo/divisi_managemen_logistik.png';
+        $pathPemprov = public_path('img/pemprov_jabar.png');
+        $pathDivLog = public_path('img/divisi_managemen_logistik.png');
         $dataPemprov = file_get_contents($pathPemprov);
         $dataDivlog = file_get_contents($pathDivLog);
         $pemprovLogo = 'data:image/png;base64,' . base64_encode($dataPemprov);
@@ -129,49 +130,15 @@ class OutgoingLetterController extends Controller
         ];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === Response::HTTP_OK) {
-            try {
-                $path = Storage::put('registration/outgoing_letter', $request->file);
-                $fileUpload = FileUpload::create(['name' => $path]);
-                $fileUploadId = $fileUpload->id;
-                $update = OutgoingLetter::where('id', $request->id)->update([//Update file to Outgoing Letter by ID
-                    'file' => $fileUploadId,
-                    'letter_number' => $request->letter_number,
-                    'status' => OutgoingLetter::APPROVED //Asumsi bahwa file yang diupload sudah bertandatangan basah
-                ]);
-                $response = response()->format(Response::HTTP_OK, 'success', $data);
-            } catch (\Exception $exception) {
-                //Return Error Exception
-                $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
-            }
-        }
-        return $response;
-    }
-
-
-    /**
-     * Store Outgoing Letter
-     *
-     * @param  \App\OutgoingLetter  $outgoingLetter
-     * @return \Illuminate\Http\Response
-     */
-    public function outgoingLetterStore($request)
-    {
-        DB::beginTransaction();
-        try {
-            $request->merge(['user_id' => JWTAuth::user()->id]);
-            $request->merge(['status' =>  OutgoingLetter::NOT_APPROVED]);
-            $outgoing_letter = OutgoingLetter::create($request->all());
-            $request->merge(['outgoing_letter_id' => $outgoing_letter->id]);
-            $request_letter = $this->requestLetterStore($request);
-            $response = [
-                'outgoing_letter' => $outgoing_letter,
-                'request_letter' => $request_letter,
-            ];
-            DB::commit();
-            $response = response()->format(Response::HTTP_OK, 'success', $response);
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
+            $path = Storage::put('registration/outgoing_letter', $request->file);
+            $fileUpload = FileUpload::create(['name' => $path]);
+            $fileUploadId = $fileUpload->id;
+            $update = OutgoingLetter::where('id', $request->id)->update([//Update file to Outgoing Letter by ID
+                'file' => $fileUploadId,
+                'letter_number' => $request->letter_number,
+                'status' => OutgoingLetter::APPROVED //Asumsi bahwa file yang diupload sudah bertandatangan basah
+            ]);
+            $response = response()->format(Response::HTTP_OK, 'success', $data);
         }
         return $response;
     }
