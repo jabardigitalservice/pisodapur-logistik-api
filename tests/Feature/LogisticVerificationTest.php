@@ -44,6 +44,13 @@ class LogisticVerificationTest extends TestCase
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    public function testVerificationCodeRegistrationFound()
+    {
+        $agencyId = $this->agency->id;
+        $response = $this->json('POST', '/api/v1/verification-registration', ['register_id' => $agencyId]);
+        $response->assertSuccessful();
+    }
+
     public function testVerificationConfirmationFail()
     {
         $response = $this->json('POST', '/api/v1/verification-confirmation', [

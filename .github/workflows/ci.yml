@@ -78,7 +78,7 @@ jobs:
         DB_PORT: 33306
         DB_USERNAME: root
 
-      run: vendor/bin/phpunit --testdox
+      run: vendor/bin/phpunit --testdox --coverage-clover=report/clover.xml
 # Code Climate Coverage
     - name: Set Up Codeclimate and Send Report Codeclimate
       uses: paambaati/codeclimate-action@v2.7.5

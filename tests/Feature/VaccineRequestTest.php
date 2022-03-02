@@ -17,7 +17,6 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Notification;
 
@@ -70,7 +69,6 @@ class VaccineRequestTest extends TestCase
         ];
 
         Storage::fake('photos');
-        Mail::fake();
         Notification::fake();
 
         $this->vaccineRequestPayload = [
