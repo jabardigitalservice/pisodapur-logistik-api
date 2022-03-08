@@ -26,6 +26,7 @@ class VaccineRequest extends Model
         'applicant_file_url',
         'is_letter_file_final',
         'is_completed',
+        'is_urgency',
         'status'
     ];
 
