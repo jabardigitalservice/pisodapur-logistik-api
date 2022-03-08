@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Spatie\Enum\Laravel\Rules\EnumRule;
+use App\Enums\UserAppEnum;
 
 class RegisterUserRequest extends FormRequest
 {
@@ -33,6 +35,7 @@ class RegisterUserRequest extends FormRequest
             'code_district_city' => 'required',
             'name_district_city' => 'required',
             'phase' => 'required',
+            'app' => [new EnumRule(UserAppEnum::class)]
         ];
     }
 }
