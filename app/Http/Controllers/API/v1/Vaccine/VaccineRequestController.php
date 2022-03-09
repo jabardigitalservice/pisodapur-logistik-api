@@ -22,7 +22,7 @@ class VaccineRequestController extends Controller
 {
     public function index(GetVaccineRequest $request)
     {
-        $limit = $request->input('limit', 10);
+        $limit = $request->input('limit', 5);
         $data = VaccineRequest::with([
             'masterFaskes:id,nama_faskes,is_reference',
             'masterFaskesType:id,name',
@@ -32,6 +32,7 @@ class VaccineRequestController extends Controller
             'finalizedBy:id,name'
         ])
         ->filter($request)
+        ->latest()
         ->sort($request);
         return VaccineRequestResource::collection($data->paginate($limit));
     }
