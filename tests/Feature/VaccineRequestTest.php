@@ -159,6 +159,30 @@ class VaccineRequestTest extends TestCase
             ]);
     }
 
+    public function testGetVaccineRequestFilterByIsLetterFileFinal()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-request', [
+            'is_letter_file_final' => rand(0, 1)
+        ]);
+        $response
+            ->assertSuccessful();
+    }
+
+    public function testGetVaccineRequestFilterByIsLetterFileFinalFailed()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-request', [
+            'is_letter_file_final' => 2
+        ]);
+        $response
+            ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonStructure([
+                "message",
+                "errors" => [
+                  "is_letter_file_final" => []
+                ]
+              ]);
+    }
+
     public function testGetVaccineRequestById()
     {
         $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-request/' . $this->vaccineRequest->id);
