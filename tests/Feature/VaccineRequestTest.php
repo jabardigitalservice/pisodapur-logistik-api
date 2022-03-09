@@ -165,62 +165,7 @@ class VaccineRequestTest extends TestCase
             'is_letter_file_final' => rand(0, 1)
         ]);
         $response
-            ->assertSuccessful()
-            ->assertJsonStructure([
-                'data' => [
-                    [
-                        'id',
-                        'agency_id',
-                        'agency_name',
-                        'agency_type_id',
-                        'agency_type_name',
-                        'agency_phone_number',
-                        'agency_address',
-                        'agency_village_id',
-                        'agency_village_name',
-                        'agency_district_id',
-                        'agency_district_name',
-                        'agency_city_id',
-                        'agency_city_name',
-                        'applicant_fullname',
-                        'applicant_position',
-                        'applicant_email',
-                        'applicant_primary_phone_number',
-                        'applicant_secondary_phone_number',
-                        'applicant_file_url',
-                        'is_letter_file_final',
-                        'letter_number',
-                        'letter_file_url',
-                        'status',
-                        'created_at',
-                        'updated_at',
-                        'verified_at',
-                        'verified_by',
-                        'approved_at',
-                        'approved_by',
-                        'finalized_at',
-                        'finalized_by',
-                        'is_reference',
-                        'is_completed',
-                        'is_urgency'
-                    ]
-                ],
-                'links' => [
-                    'first',
-                    'last',
-                    'prev',
-                    'next'
-                ],
-                'meta' => [
-                    'current_page',
-                    'from',
-                    'last_page',
-                    'path',
-                    'per_page',
-                    'to',
-                    'total'
-                ]
-            ]);
+            ->assertSuccessful();
     }
 
     public function testGetVaccineRequestFilterByIsLetterFileFinalFailed()

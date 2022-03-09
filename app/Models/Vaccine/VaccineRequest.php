@@ -122,7 +122,7 @@ class VaccineRequest extends Model
 
     public function scopeIsLetterFileFinal($query, $request)
     {
-        $query->when($request->input('is_letter_file_final'), function ($query) use ($request) {
+        $query->when($request->has('is_letter_file_final'), function ($query) use ($request) {
             $query->where('is_letter_file_final', $request->input('is_letter_file_final'));
         });
         return $query;
