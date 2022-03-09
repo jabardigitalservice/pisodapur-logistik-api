@@ -106,6 +106,7 @@ class VaccineRequest extends Model
                     ->when($request->input('faskes_type'), function ($query) use ($request) {
                         $query->where('agency_type_id', $request->input('faskes_type'));
                     })
+                    ->isLetterFileFinal($request)
                     ->whereHasMasterFaskes($request);
     }
 
@@ -115,6 +116,14 @@ class VaccineRequest extends Model
             $start_date = $request->input('start_date') . ' 00:00:00';
             $end_date = $request->input('end_date') . ' 23:59:59';
             $query->whereBetween('created_at', [$start_date, $end_date]);
+        });
+        return $query;
+    }
+
+    public function scopeIsLetterFileFinal($query, $request)
+    {
+        $query->when($request->input('is_letter_file_final'), function ($query) use ($request) {
+            $query->where('is_letter_file_final', $request->input('is_letter_file_final'));
         });
         return $query;
     }
