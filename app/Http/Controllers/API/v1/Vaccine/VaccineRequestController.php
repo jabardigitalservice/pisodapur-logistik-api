@@ -32,6 +32,7 @@ class VaccineRequestController extends Controller
             'finalizedBy:id,name'
         ])
         ->filter($request)
+        ->latest()
         ->sort($request);
         return VaccineRequestResource::collection($data->paginate($limit));
     }
