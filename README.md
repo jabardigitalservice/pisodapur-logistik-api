@@ -34,7 +34,7 @@ $ php artisan serve
 ### Installation with Docker
 ```sh
 $ docker-compose up -d
-$ docker exec -it api_logistik bash
+$ docker exec -it api_logistik sh
 $ php composer install
 $ php artisan key:generate
 $ php artisan jwt:secret
