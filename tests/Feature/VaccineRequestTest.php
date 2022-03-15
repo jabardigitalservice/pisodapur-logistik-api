@@ -339,7 +339,7 @@ class VaccineRequestTest extends TestCase
             'vaccine_request_id' => $this->vaccineRequest->id
         ]);
         $response
-            ->assertStatus(200)
+            ->assertSuccessful()
             ->assertJsonStructure([
                 'current_page',
                 'data' => [],

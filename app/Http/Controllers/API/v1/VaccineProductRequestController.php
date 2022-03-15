@@ -14,7 +14,7 @@ class VaccineProductRequestController extends Controller
     public function index(GetVaccineProductRequest $request)
     {
         $limit = $request->input('limit', 3);
-        $data = VaccineProductRequest::with(['product', 'unit'])->where('vaccine_request_id', $request->input('vaccine_request_id'))
+        $data = VaccineProductRequest::where('vaccine_request_id', $request->input('vaccine_request_id'))
             ->paginate($limit);
         return response()->json($data, Response::HTTP_OK);
     }
