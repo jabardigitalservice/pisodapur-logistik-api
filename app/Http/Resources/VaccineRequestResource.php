@@ -17,9 +17,9 @@ class VaccineRequestResource extends JsonResource
       return [
         'id' => $this->id,
         'agency_id' => $this->agency_id,
-        'agency_name' => $this->masterFaskes->nama_faskes,
+        'agency_name' => $this->medicalFacility->name,
         'agency_type_id' => $this->agency_type_id,
-        'agency_type_name' => $this->masterFaskesType->name,
+        'agency_type_name' => $this->medicalFacilityType->name,
         'agency_phone_number' => $this->agency_phone_number,
         'agency_address' => $this->agency_address,
         'agency_village_id' => $this->agency_village_id,
@@ -48,7 +48,6 @@ class VaccineRequestResource extends JsonResource
         'approved_by' => $this->approvedBy,
         'finalized_at' => $this->finalized_at,
         'finalized_by' => $this->finalizedBy,
-        'is_reference' => $this->masterFaskes->is_reference,
         'is_completed' => $this->is_completed,
         'is_urgency' => $this->is_urgency,
       ];
