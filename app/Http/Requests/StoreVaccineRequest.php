@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreVaccineRequest extends FormRequest
 {
     const RULES = [
-        'master_faskes_id' => 'required|numeric|exists:master_faskes,id',
+        'master_faskes_id' => 'required|numeric|exists:medical_facilities,id',
         'agency_type' => 'required|numeric|exists:medical_facility_types,id',
         'agency_name' => 'required|string',
         'location_district_code' => 'required|string|exists:districtcities,kemendagri_kabupaten_kode',
