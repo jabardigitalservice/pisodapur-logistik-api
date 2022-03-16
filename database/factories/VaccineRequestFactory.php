@@ -24,7 +24,7 @@ $factory->define(App\Models\Vaccine\VaccineRequest::class, function (Faker $fake
         'agency_district_id' => $faker->numerify('32.##.##'),
         'agency_city_id' => $faker->numerify('32.##'),
         'applicant_fullname' => $faker->name,
-        'applicant_position' => $faker->jobTitle,
+        'applicant_position' => $faker->title,
         'applicant_email' => $faker->email,
         'applicant_primary_phone_number' => $faker->phoneNumber,
         'applicant_secondary_phone_number' => $faker->phoneNumber,
