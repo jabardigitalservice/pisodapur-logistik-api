@@ -9,6 +9,8 @@ use App\MasterFaskes;
 use App\AllocationMaterial;
 use App\Districtcities;
 use App\Enums\VaccineRequestStatusEnum;
+use App\Models\MedicalFacility;
+use App\Models\MedicalFacilityType;
 use App\Subdistrict;
 use App\Models\Vaccine\VaccineRequest;
 use App\VaccineProductRequest;
@@ -17,6 +19,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Notification;
 
@@ -47,13 +50,15 @@ class VaccineRequestTest extends TestCase
             'kemendagri_kecamatan_kode' => $this->subdistricts->kemendagri_kecamatan_kode,
             'kemendagri_kecamatan_nama' => $this->subdistricts->kemendagri_kecamatan_nama,
         ]);
-        $this->faskes = factory(MasterFaskes::class)->create(['id_tipe_faskes' => rand(1, 3)]);
         $this->allocationMaterial = factory(AllocationMaterial::class)->create();
-        $this->nonFaskes = factory(MasterFaskes::class)->create(['id_tipe_faskes' => rand(4, 5)]);
+
+
+        Artisan::call('db:seed --class=MedicalFacilityTypeSeeder');
+        $this->medicalFacility = factory(MedicalFacility::class)->create();
         $this->vaccineRequest = factory(VaccineRequest::class)->create([
-            'agency_id' => $this->faskes->id,
-            'agency_name' => $this->faskes->nama_faskes,
-            'agency_type_id' => $this->faskes->id_tipe_faskes,
+            'agency_id' => $this->medicalFacility->id,
+            'agency_name' => $this->medicalFacility->name,
+            'agency_type_id' => $this->medicalFacility->medical_facility_type_id,
             'agency_village_id' => $this->village->kemendagri_desa_kode,
             'agency_district_id' => $this->village->kemendagri_kecamatan_kode,
             'agency_city_id' => $this->village->kemendagri_kabupaten_kode,
@@ -72,9 +77,9 @@ class VaccineRequestTest extends TestCase
         Notification::fake();
 
         $this->vaccineRequestPayload = [
-            'master_faskes_id' => $this->faskes->id,
-            'agency_type' => $this->faskes->id_tipe_faskes,
-            'agency_name' => $this->faskes->nama_faskes,
+            'master_faskes_id' => $this->medicalFacility->id,
+            'agency_name' => $this->medicalFacility->name,
+            'agency_type' => $this->medicalFacility->medical_facility_type_id,
             'location_village_code' => $this->village->kemendagri_desa_kode,
             'location_subdistrict_code' => $this->village->kemendagri_kecamatan_kode,
             'location_district_code' => $this->village->kemendagri_kabupaten_kode,
@@ -136,7 +141,6 @@ class VaccineRequestTest extends TestCase
                         'approved_by',
                         'finalized_at',
                         'finalized_by',
-                        'is_reference',
                         'is_completed',
                         'is_urgency'
                     ]
@@ -192,63 +196,39 @@ class VaccineRequestTest extends TestCase
                 'status',
                 'message',
                 'data' => [
-                  'id',
-                  'agency_id',
-                  'agency_type_id',
-                  'agency_name',
-                  'agency_phone_number',
-                  'agency_address',
-                  'agency_village_id',
-                  'agency_district_id',
-                  'agency_city_id',
-                  'applicant_fullname',
-                  'applicant_position',
-                  'applicant_email',
-                  'applicant_primary_phone_number',
-                  'applicant_secondary_phone_number',
-                  'letter_number',
-                  'letter_file_url',
-                  'is_letter_file_final',
-                  'applicant_file_url',
-                  'status',
-                  'note',
-                  'created_at',
-                  'updated_at',
-                  'created_by',
-                  'is_completed',
-                  'is_urgency',
-                  'verified_at',
-                  'verified_by',
-                  'approved_at',
-                  'approved_by',
-                  'finalized_at',
-                  'finalized_by',
-                  'rejected_note',
-                  'is_integrated',
-                  'master_faskes' => [
                     'id',
-                    'nama_faskes',
-                    'is_reference',
-                  ],
-                  'master_faskes_type' => [
-                    'id',
-                    'name',
-                  ],
-                  'village' => [
-                    'id',
-                    'kemendagri_desa_nama',
-                    'kemendagri_kabupaten_kode',
-                    'kemendagri_provinsi_nama',
-                    'kemendagri_desa_kode',
-                    'kemendagri_provinsi_kode',
-                    'kemendagri_kabupaten_nama',
-                    'kemendagri_kecamatan_kode',
-                    'kemendagri_kecamatan_nama',
-                    'is_desa',
+                    'agency_id',
+                    'agency_name',
+                    'agency_type_id',
+                    'agency_type_name',
+                    'agency_phone_number',
+                    'agency_address',
+                    'agency_village_id',
+                    'agency_village_name',
+                    'agency_district_id',
+                    'agency_district_name',
+                    'agency_city_id',
+                    'agency_city_name',
+                    'applicant_fullname',
+                    'applicant_position',
+                    'applicant_email',
+                    'applicant_primary_phone_number',
+                    'applicant_secondary_phone_number',
+                    'applicant_file_url',
+                    'is_letter_file_final',
+                    'letter_number',
+                    'letter_file_url',
+                    'status',
                     'created_at',
                     'updated_at',
-                  ],
-                  'outbounds' => [],
+                    'verified_at',
+                    'verified_by',
+                    'approved_at',
+                    'approved_by',
+                    'finalized_at',
+                    'finalized_by',
+                    'is_completed',
+                    'is_urgency'
                 ]
               ]);
     }
