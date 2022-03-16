@@ -2,10 +2,13 @@
 
 namespace App;
 
+use App\Models\Vaccine\VaccineProduct;
 use Illuminate\Database\Eloquent\Model;
 
 class VaccineProductRequest extends Model
 {
+    protected $with = ['vaccineProduct:id,name,category'];
+
     protected $fillable = [
         'vaccine_request_id',
         'product_id',
@@ -47,9 +50,9 @@ class VaccineProductRequest extends Model
         return $response;
     }
 
-    public function product()
+    public function vaccineProduct()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(VaccineProduct::class, 'product_id');
     }
 
     public function unit()

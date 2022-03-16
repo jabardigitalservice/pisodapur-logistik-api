@@ -23,34 +23,19 @@ class VaccineRequestController extends Controller
     public function index(GetVaccineRequest $request)
     {
         $limit = $request->input('limit', 5);
-        $data = VaccineRequest::with([
-            'masterFaskes:id,nama_faskes,is_reference',
-            'masterFaskesType:id,name',
-            'village',
-            'verifiedBy:id,name',
-            'approvedBy:id,name',
-            'finalizedBy:id,name'
-        ])
-        ->filter($request)
-        ->latest()
-        ->sort($request);
+        $data = VaccineRequest::filter($request)
+            ->latest()
+            ->sort($request);
         return VaccineRequestResource::collection($data->paginate($limit));
     }
 
     public function show($id, Request $request)
     {
         $data = VaccineRequest::with([
-            'masterFaskes:id,nama_faskes,is_reference',
-            'masterFaskesType:id,name',
-            'village',
-            'verifiedBy:id,name',
-            'approvedBy:id,name',
-            'finalizedBy:id,name',
-            'outbounds.outboundDetails'
-        ])
-        ->where('id', $id)
-        ->firstOrFail();
-        return response()->format(Response::HTTP_OK, 'success', $data);
+                'outbounds.outboundDetails'
+            ])
+            ->findOrFail($id);
+        return response()->format(Response::HTTP_OK, 'success', new VaccineRequestResource($data));
     }
 
     public function store(StoreVaccineRequest $request)

@@ -7,6 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class VaccineRequest extends Model
 {
+    protected $with = [
+        'medicalFacility:id,name',
+        'medicalFacilityType:id,name',
+        'village',
+        'verifiedBy:id,name',
+        'approvedBy:id,name',
+        'finalizedBy:id,name'
+    ];
+
     protected $fillable = [
         'agency_id',
         'agency_type_id',
@@ -107,7 +116,7 @@ class VaccineRequest extends Model
                         $query->where('agency_type_id', $request->input('faskes_type'));
                     })
                     ->isLetterFileFinal($request)
-                    ->whereHasMasterFaskes($request);
+                    ->whereHasMedicalFacility($request);
     }
 
     public function scopeWhenHasDate($query, $request)
@@ -128,15 +137,12 @@ class VaccineRequest extends Model
         return $query;
     }
 
-    public function scopeWhereHasMasterFaskes($query, $request)
+    public function scopeWhereHasMedicalFacility($query, $request)
     {
-        $query->whereHas('masterFaskes', function ($query) use ($request) {
+        $query->whereHas('medicalFacility', function ($query) use ($request) {
             $query
-                ->when($request->has('is_reference'), function ($query) use ($request) {
-                    $query->where('is_reference', $request->input('is_reference'));
-                })
                 ->when($request->input('search'), function ($query) use ($request) {
-                    $query->where('nama_faskes', 'like', '%' . $request->input('search') . '%');
+                    $query->where('name', 'like', '%' . $request->input('search') . '%');
                 });
         });
         return $query;
@@ -155,14 +161,14 @@ class VaccineRequest extends Model
         return $this->hasMany('App\VaccineProductRequest');
     }
 
-    public function masterFaskesType()
+    public function medicalFacilityType()
     {
-        return $this->hasOne('App\MasterFaskesType', 'id', 'agency_type_id');
+        return $this->hasOne('App\Models\MedicalFacilityType', 'id', 'agency_type_id');
     }
 
-    public function masterFaskes()
+    public function medicalFacility()
     {
-        return $this->hasOne('App\MasterFaskes', 'id', 'agency_id');
+        return $this->hasOne('App\Models\MedicalFacility', 'id', 'agency_id');
     }
 
     public function village()
