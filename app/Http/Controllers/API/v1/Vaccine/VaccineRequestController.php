@@ -35,7 +35,7 @@ class VaccineRequestController extends Controller
                 'outbounds.outboundDetails'
             ])
             ->findOrFail($id);
-        return new VaccineRequestResource($data);
+        return response()->format(Response::HTTP_OK, 'success', new VaccineRequestResource($data));
     }
 
     public function store(StoreVaccineRequest $request)
