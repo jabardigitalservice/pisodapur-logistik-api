@@ -51,8 +51,7 @@ class VaccineRequestResource extends JsonResource
         'finalized_by' => $this->finalizedBy,
         'is_completed' => $this->is_completed,
         'is_urgency' => $this->is_urgency,
-        'vaccine_request_status_notes' => VaccineRequestStatusNoteResource::collection($this->vaccineRequestStatusNotes),
-        // 'vaccine_request_status_notes' => $this->vaccineRequestStatusNotes,
+        'vaccine_request_status_notes' => VaccineRequestStatusNoteResource::collection($this->vaccineRequestStatusNotes)
       ];
   }
 }
