@@ -40,6 +40,7 @@ class VaccineRequestResource extends JsonResource
         'letter_number' => $this->letter_number,
         'letter_file_url' => $this->letter_file_url,
         'status' => $this->status,
+        'note' => $this->note,
         'created_at' => $this->created_at,
         'updated_at' => $this->updated_at,
         'verified_at' => $this->verified_at,

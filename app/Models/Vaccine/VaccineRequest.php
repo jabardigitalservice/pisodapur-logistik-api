@@ -36,7 +36,8 @@ class VaccineRequest extends Model
         'is_letter_file_final',
         'is_completed',
         'is_urgency',
-        'status'
+        'status',
+        'note'
     ];
 
     public function getLetterFileUrlAttribute($value)

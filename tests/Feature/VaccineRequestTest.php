@@ -52,8 +52,6 @@ class VaccineRequestTest extends TestCase
         ]);
         $this->allocationMaterial = factory(AllocationMaterial::class)->create();
 
-
-        Artisan::call('db:seed --class=MedicalFacilityTypeSeeder');
         $this->medicalFacility = factory(MedicalFacility::class)->create();
         $this->vaccineRequest = factory(VaccineRequest::class)->create([
             'agency_id' => $this->medicalFacility->id,
@@ -273,7 +271,8 @@ class VaccineRequestTest extends TestCase
     public function testVerifiedStatusVaccineRequestById()
     {
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
-            'status' => VaccineRequestStatusEnum::verified()
+            'status' => VaccineRequestStatusEnum::verified(),
+            'note' => $this->faker->text
         ]);
         $response->assertSuccessful();
     }
