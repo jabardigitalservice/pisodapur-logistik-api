@@ -276,9 +276,10 @@ class VaccineRequestTest extends TestCase
             'usage' => $this->faker->text,
             'note' => $this->faker->text,
         ];
-        $this->vaccineRequestPayload['logistic_request'] = json_encode($logisticItems);
+        $vaccineRequestPayload = $this->vaccineRequestPayload;
+        $vaccineRequestPayload['logistic_request'] = json_encode($logisticItems);
 
-        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $vaccineRequestPayload);
         $response->assertSuccessful();
     }
 

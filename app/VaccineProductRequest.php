@@ -45,7 +45,7 @@ class VaccineProductRequest extends Model
                 'quantity' => $value['quantity'],
                 'unit' => $value['unit'],
                 'usage' => $value['usage'],
-                // 'note' => optional($value['note']),
+                'note' => isset($value['note']) ? $value['note'] : null
             ];
             $response[] = VaccineProductRequest::create($vaccineProductRequest);
         }
