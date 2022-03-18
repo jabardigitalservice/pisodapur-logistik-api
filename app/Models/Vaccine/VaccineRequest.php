@@ -13,7 +13,8 @@ class VaccineRequest extends Model
         'village',
         'verifiedBy:id,name',
         'approvedBy:id,name',
-        'finalizedBy:id,name'
+        'finalizedBy:id,name',
+        'vaccineRequestStatusNotes:vaccine_request_id,vaccine_status_note_id'
     ];
 
     protected $fillable = [
@@ -186,6 +187,11 @@ class VaccineRequest extends Model
     public function finalizedBy()
     {
         return $this->hasOne('App\User', 'id', 'finalized_by');
+    }
+
+    public function vaccineRequestStatusNotes()
+    {
+        return $this->hasMany('App\Models\Vaccine\VaccineRequestStatusNote');
     }
 
     public function outbounds()

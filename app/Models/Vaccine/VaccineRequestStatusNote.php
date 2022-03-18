@@ -8,5 +8,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class VaccineRequestStatusNote extends Model
 {
     use SoftDeletes;
-    protected $fillable = ['vaccine_request_id', 'status', 'vaccine_status_note_id', 'vaccine_status_note_nama'];
+
+    protected $with = ['vaccineStatusNote:id,name'];
+
+    protected $fillable = ['vaccine_request_id', 'status', 'vaccine_status_note_id', 'note'];
+
+    public function vaccineStatusNote()
+    {
+        return $this->hasOne('App\Models\Vaccine\VaccineStatusNote', 'id', 'vaccine_status_note_id');
+    }
 }

@@ -67,7 +67,7 @@ class VaccineRequestController extends Controller
                 'vaccine_request_id' => $vaccineRequest->id,
                 'status' => $request->status,
                 'vaccine_status_note_id' => $note['id'],
-                'vaccine_status_note_nama' => $note['nama'] ?? '',
+                'vaccine_status_note_name' => $note['name'] ?? '',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ];

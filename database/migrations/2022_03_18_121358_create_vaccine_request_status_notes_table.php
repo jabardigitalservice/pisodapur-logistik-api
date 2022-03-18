@@ -18,7 +18,7 @@ class CreateVaccineRequestStatusNotesTable extends Migration
             $table->integer('vaccine_request_id')->index();
             $table->string('status', 30)->index();
             $table->integer('vaccine_status_note_id')->index();
-            $table->string('vaccine_status_note_nama')->nullable();
+            $table->string('vaccine_status_note_name')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
