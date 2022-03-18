@@ -185,6 +185,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::apiResource('/vaccine-product-request', 'VaccineProductRequestController');
         Route::namespace('Vaccine')->group(function () {
             Route::apiResource('/vaccine-request', 'VaccineRequestController')->except('store');
+            Route::get('/vaccine-status-note', 'VaccineStatusNoteController');
         });
 
         Route::post('/auth-key/register', 'AuthKeysController@register');
