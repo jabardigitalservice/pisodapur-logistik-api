@@ -280,7 +280,19 @@ class VaccineRequestTest extends TestCase
         $vaccineRequestPayload['logistic_request'] = json_encode($logisticItems);
 
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $vaccineRequestPayload);
-        $response->assertSuccessful();
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                "status",
+                "message",
+                "data" => [
+                "need" => [
+                    [
+                        "note",
+                    ]
+                ]
+                ]
+            ]);
     }
 
     public function testVerifiedStatusVaccineRequestById()
