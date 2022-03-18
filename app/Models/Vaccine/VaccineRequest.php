@@ -13,7 +13,8 @@ class VaccineRequest extends Model
         'village',
         'verifiedBy:id,name',
         'approvedBy:id,name',
-        'finalizedBy:id,name'
+        'finalizedBy:id,name',
+        'vaccineRequestStatusNotes:vaccine_request_id,vaccine_status_note_id'
     ];
 
     protected $fillable = [
@@ -36,7 +37,8 @@ class VaccineRequest extends Model
         'is_letter_file_final',
         'is_completed',
         'is_urgency',
-        'status'
+        'status',
+        'note'
     ];
 
     public function getLetterFileUrlAttribute($value)
@@ -96,11 +98,7 @@ class VaccineRequest extends Model
     {
         return $query
                     ->when($request->input('status'), function ($query) use ($request) {
-                        $query->when($request->input('status') == VaccineRequestStatusEnum::rejected(), function ($query) use ($request) {
-                            $query->whereIn('status', [VaccineRequestStatusEnum::verification_rejected(), VaccineRequestStatusEnum::approval_rejected()]);
-                        }, function ($query) use ($request) {
-                            $query->where('status', $request->input('status'));
-                        });
+                        $query->where('status', $request->input('status'));
                     })
                     ->whenHasDate($request)
                     ->when($request->input('city_id'), function ($query) use ($request) {
@@ -189,6 +187,11 @@ class VaccineRequest extends Model
     public function finalizedBy()
     {
         return $this->hasOne('App\User', 'id', 'finalized_by');
+    }
+
+    public function vaccineRequestStatusNotes()
+    {
+        return $this->hasMany('App\Models\Vaccine\VaccineRequestStatusNote');
     }
 
     public function outbounds()

@@ -6,7 +6,7 @@ use App\Enums\VaccineRequestStatusEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Spatie\Enum\Laravel\Rules\EnumRule;
 
-class UpdateVaccineRequest extends FormRequest
+class UpdateStatusVaccineRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,7 +27,11 @@ class UpdateVaccineRequest extends FormRequest
     {
         return [
             'status' => ['required', new EnumRule(VaccineRequestStatusEnum::class)],
-            'note' => 'required_if:status,' . VaccineRequestStatusEnum::approval_rejected() . ',' . VaccineRequestStatusEnum::verification_rejected()
+            'vaccine_status_note' => [
+                'nullable',
+                'array',
+            ],
+            'note' => 'nullable'
         ];
     }
 }

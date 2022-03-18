@@ -5,12 +5,10 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\User;
 use App\MasterFaskesType;
-use App\MasterFaskes;
 use App\AllocationMaterial;
 use App\Districtcities;
 use App\Enums\VaccineRequestStatusEnum;
 use App\Models\MedicalFacility;
-use App\Models\MedicalFacilityType;
 use App\Subdistrict;
 use App\Models\Vaccine\VaccineRequest;
 use App\VaccineProductRequest;
@@ -19,7 +17,6 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Notification;
 
@@ -52,8 +49,6 @@ class VaccineRequestTest extends TestCase
         ]);
         $this->allocationMaterial = factory(AllocationMaterial::class)->create();
 
-
-        Artisan::call('db:seed --class=MedicalFacilityTypeSeeder');
         $this->medicalFacility = factory(MedicalFacility::class)->create();
         $this->vaccineRequest = factory(VaccineRequest::class)->create([
             'agency_id' => $this->medicalFacility->id,
@@ -93,6 +88,18 @@ class VaccineRequestTest extends TestCase
             'applicant_file' => UploadedFile::fake()->image('applicant_file.jpg'),
             'is_letter_file_final' => rand(0, 1),
             'application_letter_number' => $this->faker->numerify('SURAT/' . date('Y/m/d') . '/####')
+        ];
+
+        $this->statusNoteChoice = [
+            [
+                'id' => 1,
+            ],
+            [
+                'id' => 2,
+            ],
+            [
+                'id' => 3,
+            ]
         ];
     }
 
@@ -270,7 +277,37 @@ class VaccineRequestTest extends TestCase
         $response->assertSuccessful();
     }
 
-    public function testVerifiedStatusVaccineRequestById()
+    public function testCreateVaccineRequestWithNoteProduct()
+    {
+        $logisticItems[] = [
+            'product_id' => rand(),
+            'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+            'note' => $this->faker->text,
+        ];
+        $vaccineRequestPayload = $this->vaccineRequestPayload;
+        $vaccineRequestPayload['logistic_request'] = json_encode($logisticItems);
+
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $vaccineRequestPayload);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                "status",
+                "message",
+                "data" => [
+                "need" => [
+                    [
+                        "note",
+                    ]
+                ]
+                ]
+            ]);
+    }
+
+    public function testVerifiedStatusVaccineRequestByIdStatusOnly()
     {
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
             'status' => VaccineRequestStatusEnum::verified()
@@ -278,7 +315,17 @@ class VaccineRequestTest extends TestCase
         $response->assertSuccessful();
     }
 
-    public function testApproveStatusVaccineRequestById()
+    public function testVerifiedStatusVaccineRequestByIdWithNote()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::verified(),
+            'vaccine_status_note' => $this->statusNoteChoice,
+            'note' => $this->faker->text
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testApproveStatusVaccineRequestByIdStatusOnly()
     {
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
             'status' => VaccineRequestStatusEnum::approved()
@@ -286,10 +333,11 @@ class VaccineRequestTest extends TestCase
         $response->assertSuccessful();
     }
 
-    public function testRejectStatusVaccineRequestById()
+    public function testApproveStatusVaccineRequestByIdWithNote()
     {
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
-            'status' => VaccineRequestStatusEnum::rejected(),
+            'status' => VaccineRequestStatusEnum::approved(),
+            'vaccine_status_note' => $this->statusNoteChoice,
             'note' => $this->faker->text
         ]);
         $response->assertSuccessful();
