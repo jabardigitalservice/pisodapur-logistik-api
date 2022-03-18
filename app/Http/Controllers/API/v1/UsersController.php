@@ -48,6 +48,7 @@ class UsersController extends ApiController
             'code_district_city' => $request->code_district_city,
             'name_district_city' => $request->name_district_city,
             'phase' => $request->phase,
+            'app' => $request->input('app', 'medical'),
         ]);
         $response = response()->format(200, true, [
             'token' => JWTAuth::fromUser($user),

@@ -89,6 +89,18 @@ class VaccineRequestTest extends TestCase
             'is_letter_file_final' => rand(0, 1),
             'application_letter_number' => $this->faker->numerify('SURAT/' . date('Y/m/d') . '/####')
         ];
+
+        $this->statusNoteChoice = [
+            [
+                'id' => 1,
+            ],
+            [
+                'id' => 2,
+            ],
+            [
+                'id' => 3,
+            ]
+        ];
     }
 
     public function testGetVaccineRequestNoAuth()
@@ -295,19 +307,37 @@ class VaccineRequestTest extends TestCase
             ]);
     }
 
-    public function testVerifiedStatusVaccineRequestById()
+    public function testVerifiedStatusVaccineRequestByIdStatusOnly()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::verified()
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testVerifiedStatusVaccineRequestByIdWithNote()
     {
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
             'status' => VaccineRequestStatusEnum::verified(),
+            'vaccine_status_note' => $this->statusNoteChoice,
             'note' => $this->faker->text
         ]);
         $response->assertSuccessful();
     }
 
-    public function testApproveStatusVaccineRequestById()
+    public function testApproveStatusVaccineRequestByIdStatusOnly()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::approved()
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testApproveStatusVaccineRequestByIdWithNote()
     {
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
             'status' => VaccineRequestStatusEnum::approved(),
+            'vaccine_status_note' => $this->statusNoteChoice,
             'note' => $this->faker->text
         ]);
         $response->assertSuccessful();

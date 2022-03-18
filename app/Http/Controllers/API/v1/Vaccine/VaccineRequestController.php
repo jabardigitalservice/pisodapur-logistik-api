@@ -11,6 +11,7 @@ use App\Http\Requests\StoreVaccineRequest;
 use App\Http\Requests\VaccineRequest\GetVaccineRequest;
 use App\Http\Requests\VaccineRequest\UpdateStatusVaccineRequest;
 use App\Http\Resources\VaccineRequestResource;
+use App\Models\Vaccine\VaccineRequestStatusNote;
 use App\VaccineProductRequest;
 use App\VaccineWmsJabar;
 use Carbon\Carbon;
@@ -60,6 +61,26 @@ class VaccineRequestController extends Controller
 
     public function update(VaccineRequest $vaccineRequest, UpdateStatusVaccineRequest $request)
     {
+        $vaccineRequestStatusNote = [];
+        foreach ($request->input('vaccine_status_note', []) as $note) {
+            $vaccineRequestStatusNote[] = [
+                'vaccine_request_id' => $vaccineRequest->id,
+                'status' => $request->status,
+                'vaccine_status_note_id' => $note['id'],
+                'vaccine_status_note_nama' => $note['nama'] ?? '',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ];
+        }
+
+        if ($vaccineRequestStatusNote) {
+            VaccineRequestStatusNote::where([
+                'vaccine_request_id' => $vaccineRequest->id,
+                'status' => $request->status,
+            ])->delete();
+            VaccineRequestStatusNote::insert($vaccineRequestStatusNote);
+        }
+
         $vaccineRequest->fill($request->validated());
         if ($request->status == VaccineRequestStatusEnum::finalized()) {
             return $this->sendToPoslog($vaccineRequest);

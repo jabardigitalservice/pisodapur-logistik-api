@@ -27,6 +27,10 @@ class UpdateStatusVaccineRequest extends FormRequest
     {
         return [
             'status' => ['required', new EnumRule(VaccineRequestStatusEnum::class)],
+            'vaccine_status_note' => [
+                'nullable',
+                'array',
+            ],
             'note' => 'nullable'
         ];
     }
