@@ -281,15 +281,7 @@ class VaccineRequestTest extends TestCase
     public function testApproveStatusVaccineRequestById()
     {
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
-            'status' => VaccineRequestStatusEnum::approved()
-        ]);
-        $response->assertSuccessful();
-    }
-
-    public function testRejectStatusVaccineRequestById()
-    {
-        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
-            'status' => VaccineRequestStatusEnum::rejected(),
+            'status' => VaccineRequestStatusEnum::approved(),
             'note' => $this->faker->text
         ]);
         $response->assertSuccessful();

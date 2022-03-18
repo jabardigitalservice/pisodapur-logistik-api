@@ -9,7 +9,7 @@ use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreVaccineRequest;
 use App\Http\Requests\VaccineRequest\GetVaccineRequest;
-use App\Http\Requests\VaccineRequest\UpdateVaccineRequest;
+use App\Http\Requests\VaccineRequest\UpdateStatusVaccineRequest;
 use App\Http\Resources\VaccineRequestResource;
 use App\VaccineProductRequest;
 use App\VaccineWmsJabar;
@@ -58,7 +58,7 @@ class VaccineRequestController extends Controller
         return $response;
     }
 
-    public function update(VaccineRequest $vaccineRequest, UpdateVaccineRequest $request)
+    public function update(VaccineRequest $vaccineRequest, UpdateStatusVaccineRequest $request)
     {
         $vaccineRequest->fill($request->validated());
         if ($request->status == VaccineRequestStatusEnum::finalized()) {
@@ -71,10 +71,10 @@ class VaccineRequestController extends Controller
     public function setUpdateByStatus($vaccineRequest, $request)
     {
         $user = auth()->user();
-        if (in_array($request->status, [VaccineRequestStatusEnum::verified(), VaccineRequestStatusEnum::verification_rejected()])) {
+        if ($request->status == VaccineRequestStatusEnum::verified()) {
             $vaccineRequest->verified_at = Carbon::now();
             $vaccineRequest->verified_by = $user->id;
-        } else if (in_array($request->status, [VaccineRequestStatusEnum::approved(), VaccineRequestStatusEnum::approval_rejected()])) {
+        } else if ($request->status == VaccineRequestStatusEnum::approved()) {
             $vaccineRequest->approved_at = Carbon::now();
             $vaccineRequest->approved_by = $user->id;
         }

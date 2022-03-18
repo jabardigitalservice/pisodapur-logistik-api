@@ -96,11 +96,7 @@ class VaccineRequest extends Model
     {
         return $query
                     ->when($request->input('status'), function ($query) use ($request) {
-                        $query->when($request->input('status') == VaccineRequestStatusEnum::rejected(), function ($query) use ($request) {
-                            $query->whereIn('status', [VaccineRequestStatusEnum::verification_rejected(), VaccineRequestStatusEnum::approval_rejected()]);
-                        }, function ($query) use ($request) {
-                            $query->where('status', $request->input('status'));
-                        });
+                        $query->where('status', $request->input('status'));
                     })
                     ->whenHasDate($request)
                     ->when($request->input('city_id'), function ($query) use ($request) {
