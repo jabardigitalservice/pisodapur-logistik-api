@@ -5,12 +5,10 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\User;
 use App\MasterFaskesType;
-use App\MasterFaskes;
 use App\AllocationMaterial;
 use App\Districtcities;
 use App\Enums\VaccineRequestStatusEnum;
 use App\Models\MedicalFacility;
-use App\Models\MedicalFacilityType;
 use App\Subdistrict;
 use App\Models\Vaccine\VaccineRequest;
 use App\VaccineProductRequest;
@@ -19,7 +17,6 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Notification;
 
@@ -264,6 +261,23 @@ class VaccineRequestTest extends TestCase
 
     public function testCreateVaccineRequest()
     {
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
+        $response->assertSuccessful();
+    }
+
+    public function testCreateVaccineRequestWithNoteProduct()
+    {
+        $logisticItems[] = [
+            'product_id' => rand(),
+            'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+            'note' => $this->faker->text,
+        ];
+        $this->vaccineRequestPayload['logistic_request'] = json_encode($logisticItems);
+
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
         $response->assertSuccessful();
     }
