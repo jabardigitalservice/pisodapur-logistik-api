@@ -191,7 +191,7 @@ class VaccineRequest extends Model
 
     public function vaccineRequestStatusNotes()
     {
-        return $this->hasMany('App\Models\Vaccine\VaccineRequestStatusNote');
+        return $this->hasMany('App\Models\Vaccine\VaccineRequestStatusNote', 'vaccine_request_id', 'id');
     }
 
     public function outbounds()
