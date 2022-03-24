@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\VaccineRequestStatusEnum;
 use Faker\Generator as Faker;
 
 /*
@@ -15,8 +16,8 @@ use Faker\Generator as Faker;
 
 $factory->define(App\Models\Vaccine\VaccineRequest::class, function (Faker $faker) {
     return [
-        'agency_id' =>  factory(App\MasterFaskes::class),
-        'agency_type_id' => rand(1, 5),
+        'agency_id' =>  factory(App\Models\MedicalFacility::class),
+        'agency_type_id' => factory(App\Models\MedicalFacilityType::class),
         'agency_name' => $faker->company,
         'agency_phone_number' => $faker->phoneNumber,
         'agency_address' => $faker->address,
@@ -32,5 +33,17 @@ $factory->define(App\Models\Vaccine\VaccineRequest::class, function (Faker $fake
         'letter_file_url' => $faker->url,
         'applicant_file_url' => $faker->url,
         'is_letter_file_final' => rand(0, 1),
+        'delivery_plan_date' => $faker->date(),
+        'vaccine_sprint_id' => null,
+        'status' => VaccineRequestStatusEnum::not_verified(),
+        'verified_at' => null,
+        'verified_by' => null,
+        'approved_by' => null,
+        'approved_at' => null,
+        'finalized_by' => null,
+        'finalized_at' => null,
+        'is_integrated' => 0,
+        'is_urgency' => 0,
+        'is_completed' => 0,
     ];
 });
