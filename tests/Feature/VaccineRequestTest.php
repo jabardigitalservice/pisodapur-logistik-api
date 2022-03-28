@@ -388,6 +388,64 @@ class VaccineRequestTest extends TestCase
               ]);
     }
 
+    public function testGetProductRequestFilterByStatusRecommendation()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request', [
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'category' => 'vaccine',
+            'status' => 'recommendation'
+        ]);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [],
+                'links' => [
+                    'first',
+                    'last',
+                    'prev',
+                    'next',
+                ],
+                'meta' => [
+                    'current_page',
+                    'from',
+                    'last_page',
+                    'path',
+                    'per_page',
+                    'to',
+                    'total'
+                ],
+              ]);
+    }
+
+    public function testGetProductRequestFilterByStatusFinalization()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request', [
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'category' => 'vaccine_support',
+            'status' => 'finalization'
+        ]);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [],
+                'links' => [
+                    'first',
+                    'last',
+                    'prev',
+                    'next',
+                ],
+                'meta' => [
+                    'current_page',
+                    'from',
+                    'last_page',
+                    'path',
+                    'per_page',
+                    'to',
+                    'total'
+                ],
+              ]);
+    }
+
     public function testUpdateProductRequest()
     {
         $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
