@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\API\v1;
+namespace App\Http\Controllers\API\v1\Vaccine;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VaccineRequest\GetVaccineProductRequest;
 use App\Http\Requests\VaccineRequest\UpdateVaccineProductRequest;
+use App\Http\Resources\Vaccine\VaccineProductRequestResource;
 use App\VaccineProductRequest;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class VaccineProductRequestController extends Controller
@@ -19,7 +19,7 @@ class VaccineProductRequestController extends Controller
                 $query->where('category', $request->input('category'));
             })
             ->paginate($limit);
-        return response()->json($data, Response::HTTP_OK);
+        return VaccineProductRequestResource::collection($data);
     }
 
     public function update(VaccineProductRequest $vaccineProductRequest, UpdateVaccineProductRequest $request)

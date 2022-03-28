@@ -182,11 +182,11 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::apiResource('/allocation-request', 'AllocationRequestController')->only(['index', 'show']);
 
         // API Store Vaccine Request
-        Route::apiResource('/vaccine-product-request', 'VaccineProductRequestController');
         Route::namespace('Vaccine')->group(function () {
             Route::apiResource('/vaccine-request', 'VaccineRequestController')->except('store');
             Route::apiResource('/delivery-plan', 'DeliveryPlanController')->only('index');
             Route::get('/vaccine-status-note', 'VaccineStatusNoteController');
+            Route::apiResource('/vaccine-product-request', 'VaccineProductRequestController');
         });
 
         Route::post('/auth-key/register', 'AuthKeysController@register');
