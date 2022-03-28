@@ -15,6 +15,9 @@ class VaccineProductRequestController extends Controller
     {
         $limit = $request->input('limit', 3);
         $data = VaccineProductRequest::where('vaccine_request_id', $request->input('vaccine_request_id'))
+            ->when($request->input('category'), function ($query) use ($request) {
+                $query->where('category', $request->input('category'));
+            })
             ->paginate($limit);
         return response()->json($data, Response::HTTP_OK);
     }
