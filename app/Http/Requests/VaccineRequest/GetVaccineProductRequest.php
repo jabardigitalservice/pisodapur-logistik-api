@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\VaccineRequest;
 
+use App\Enums\Vaccine\VaccineProductCategoryEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Spatie\Enum\Laravel\Rules\EnumRule;
 
 class GetVaccineProductRequest extends FormRequest
 {
@@ -24,7 +26,8 @@ class GetVaccineProductRequest extends FormRequest
     public function rules()
     {
         return [
-            'vaccine_request_id' => 'required|exists:vaccine_requests,id'
+            'vaccine_request_id' => 'required|exists:vaccine_requests,id',
+            'category' => [new EnumRule(VaccineProductCategoryEnum::class)],
         ];
     }
 }
