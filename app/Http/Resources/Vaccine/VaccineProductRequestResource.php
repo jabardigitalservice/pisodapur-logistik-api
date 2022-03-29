@@ -16,27 +16,6 @@ class VaccineProductRequestResource extends JsonResource
   {
     $status = $request->input('status');
 
-    $data = $this->setData($status);
-
-    return [
-        'id' => $this->id,
-        'vaccine_request_id' => $this->vaccine_request_id,
-        'product_id' => $data['productId'],
-        'category' => $this->category,
-        'product_name' => $data['productName'],
-        'quantity' => $data['quantity'],
-        'unit' => $data['unit'],
-        'usage' => $this->usage,
-        'description' => $this->description,
-        'product_status' => $data['productStatus'],
-        'note' => $this->note,
-        'created_at' => $this->created_at,
-        'updated_at' => $this->updated_at
-    ];
-  }
-
-  public function setData($status)
-  {
     $data['productId'] = $this->product_id;
     $data['productName'] = $this->vaccineProduct->name ?? "-";
     $data['quantity'] = $this->quantity;
@@ -57,6 +36,20 @@ class VaccineProductRequestResource extends JsonResource
         $data['productStatus'] = $this->finalization_status;
     }
 
-    return $data;
+    return [
+        'id' => $this->id,
+        'vaccine_request_id' => $this->vaccine_request_id,
+        'product_id' => $data['productId'],
+        'category' => $this->category,
+        'product_name' => $data['productName'],
+        'quantity' => $data['quantity'],
+        'unit' => $data['unit'],
+        'usage' => $this->usage,
+        'description' => $this->description,
+        'product_status' => $data['productStatus'],
+        'note' => $this->note,
+        'created_at' => $this->created_at,
+        'updated_at' => $this->updated_at
+    ];
   }
 }
