@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\User;
-use App\MasterFaskesType;
 use App\AllocationMaterial;
 use App\Districtcities;
 use App\Enums\VaccineRequestStatusEnum;
@@ -29,11 +28,6 @@ class VaccineRequestTest extends TestCase
     {
         parent::setUp();
         $this->admin = factory(User::class)->create();
-        factory(MasterFaskesType::class)->create(['id' => 1, 'name' => 'Rumah Sakit']);
-        factory(MasterFaskesType::class)->create(['id' => 2, 'name' => 'Puskesmas']);
-        factory(MasterFaskesType::class)->create(['id' => 3, 'name' => 'Klinik']);
-        factory(MasterFaskesType::class)->create(['id' => 4, 'name' => 'Masyarakat Umum']);
-        factory(MasterFaskesType::class)->create(['id' => 5, 'name' => 'Instansi Lainnya']);
         $this->districtcities = factory(Districtcities::class)->create();
         $this->subdistricts = factory(Subdistrict::class)->create([
             'kemendagri_kabupaten_kode' => $this->districtcities->kemendagri_kabupaten_kode,
@@ -62,6 +56,15 @@ class VaccineRequestTest extends TestCase
         $this->logisticItems[] = [
             'product_id' => rand(),
             'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ];
+
+        $this->logisticItems[] = [
+            'product_id' => rand(),
+            'category' => 'vaccine_support',
             'quantity' => rand(),
             'unit' => 'PCS',
             'description' => $this->faker->text,
@@ -363,6 +366,24 @@ class VaccineRequestTest extends TestCase
 
     public function testGetProductRequest()
     {
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine_support',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
         $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request', [
             'vaccine_request_id' => $this->vaccineRequest->id
         ]);
@@ -390,6 +411,24 @@ class VaccineRequestTest extends TestCase
 
     public function testGetProductRequestFilterByStatusRecommendation()
     {
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine_support',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
         $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request', [
             'vaccine_request_id' => $this->vaccineRequest->id,
             'category' => 'vaccine',
@@ -419,6 +458,24 @@ class VaccineRequestTest extends TestCase
 
     public function testGetProductRequestFilterByStatusFinalization()
     {
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine_support',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
         $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request', [
             'vaccine_request_id' => $this->vaccineRequest->id,
             'category' => 'vaccine_support',

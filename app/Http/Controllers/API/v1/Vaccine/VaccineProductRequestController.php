@@ -5,6 +5,8 @@ namespace App\Http\Controllers\API\v1\Vaccine;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VaccineRequest\GetVaccineProductRequest;
 use App\Http\Requests\VaccineRequest\UpdateVaccineProductRequest;
+use App\Http\Resources\Vaccine\VaccineProductFinalizationResource;
+use App\Http\Resources\Vaccine\VaccineProductRecommendationResource;
 use App\Http\Resources\Vaccine\VaccineProductRequestResource;
 use App\VaccineProductRequest;
 use Illuminate\Http\Response;
@@ -17,9 +19,17 @@ class VaccineProductRequestController extends Controller
         $data = VaccineProductRequest::where('vaccine_request_id', $request->input('vaccine_request_id'))
             ->when($request->input('category'), function ($query) use ($request) {
                 $query->where('category', $request->input('category'));
-            })
-            ->paginate($limit);
-        return VaccineProductRequestResource::collection($data);
+            });
+        $resource = $data;
+        $status = $request->input('status', 'request');
+        if ($status == 'request') {
+            $resource = VaccineProductRequestResource::collection($data->paginate($limit));
+        } elseif ($status == 'recommendation') {
+            $resource = VaccineProductRecommendationResource::collection($data->paginate($limit));
+        } elseif ($status == 'finalization') {
+            $resource = VaccineProductFinalizationResource::collection($data->paginate($limit));
+        }
+        return $resource;
     }
 
     public function update(VaccineProductRequest $vaccineProductRequest, UpdateVaccineProductRequest $request)

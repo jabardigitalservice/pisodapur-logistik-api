@@ -4,7 +4,7 @@ namespace App\Http\Resources\Vaccine;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class VaccineProductRequestResource extends JsonResource
+class VaccineProductFinalizationResource extends JsonResource
 {
   /**
    * Transform the resource into an array.
@@ -18,11 +18,11 @@ class VaccineProductRequestResource extends JsonResource
     return [
         'id' => $this->id,
         'vaccine_request_id' => $this->vaccine_request_id,
-        'product_id' => $this->product_id,
-        'product_name' => optional($this->vaccineProduct)->name,
-        'quantity' => $this->quantity,
-        'unit' => $this->unit,
-        'product_status' =>null,
+        'product_id' => $this->finalized_product_id ?? $this->recommendation_product_id,
+        'product_name' => $this->finalized_product_name ?? $this->recommendation_product_name,
+        'quantity' => $this->finalized_quantity ?? $this->recommendation_quantity,
+        'unit' => $this->finalized_UoM ?? $this->recommendation_UoM,
+        'product_status' => $this->finalized_status,
         'category' => $this->category,
         'usage' => $this->usage,
         'description' => $this->description,
