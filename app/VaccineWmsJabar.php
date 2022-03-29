@@ -8,6 +8,7 @@
 namespace App;
 
 use App\Enums\AllocationRequestTypeEnum;
+use App\Models\Vaccine\VaccineRequest;
 use Illuminate\Http\Response;
 use DB;
 
