@@ -24,11 +24,8 @@ class DeliveryPlanResource extends JsonResource
         'agency_type_name' => $this->medicalFacilityType->name,
         'is_urgency' => $this->is_urgency,
 
-        'finalized_at' => $this->finalized_at,
-        'finalized_by' => $this->finalizedBy,
-
-        'integrated_at' => $this->integrated_at,
-        'integrated_by' => $this->integratedBy,
+        'delivered_at' => $this->delivered_at,
+        'delivered_by' => $this->deliveredBy,
 
         'updated_at' => $this->updated_at,
         'vaccine_sprint_id' => $this->vaccine_sprint_id,

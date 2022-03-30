@@ -6,18 +6,9 @@ class DeliveryPlan extends VaccineRequest
 {
     protected $table = 'vaccine_requests';
 
-    public function scopeDeliveryPlan($query)
+    public function scopeDeliveryPlan($query, $request)
     {
-        return $query
-            ->whereNotNull('verified_at')
-            ->whereNotNull('approved_at')
-            ->whereNotNull('finalized_at')
-            ->whereNull('integrated_at')
-            ->whereNull('delivered_at');
-    }
-
-    public function integratedBy()
-    {
-        return $this->hasOne('App\User', 'id', 'integrated_by');
+        $query->where('is_integrated', $request->input('is_integrated'));
+        return $query;
     }
 }
