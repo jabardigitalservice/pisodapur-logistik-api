@@ -42,8 +42,10 @@ $factory->define(App\Models\Vaccine\VaccineRequest::class, function (Faker $fake
         'approved_at' => null,
         'finalized_by' => null,
         'finalized_at' => null,
-        'is_integrated' => 0,
+        'integrated_by' => null,
+        'integrated_at' => null,
+        'delivered_by' => null,
+        'delivered_at' => null,
         'is_urgency' => 0,
-        'is_completed' => 0,
     ];
 });

@@ -66,26 +66,25 @@ class VaccineDeliveryPlanTest extends TestCase
             'agency_village_id' => $this->village->kemendagri_desa_kode,
             'agency_district_id' => $this->village->kemendagri_kecamatan_kode,
             'agency_city_id' => $this->village->kemendagri_kabupaten_kode,
-            'is_integrated' => 0,
             'status' => VaccineRequestStatusEnum::finalized(),
+            'verified_at' => $this->faker->dateTime(),
+            'verified_by' => $this->admin->id,
+            'approved_by' => $this->admin->id,
+            'approved_at' => $this->faker->dateTime(),
+            'finalized_by' => $this->admin->id,
+            'finalized_at' => $this->faker->dateTime()
         ]);
     }
 
     public function testGetVaccineDeliveryPlanNoAuth()
     {
-        $response = $this->json('GET', '/api/v1/delivery-plan', [
-            'status' => VaccineRequestStatusEnum::finalized(),
-            'is_integrated' => 0,
-        ]);
+        $response = $this->json('GET', '/api/v1/delivery-plan');
         $response->assertUnauthorized();
     }
 
     public function testGetVaccineDeliveryPlan()
     {
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/delivery-plan', [
-            'status' => VaccineRequestStatusEnum::finalized(),
-            'is_integrated' => 0,
-        ]);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/delivery-plan');
         $response
             ->assertSuccessful()
             ->assertJsonStructure([

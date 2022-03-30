@@ -151,7 +151,6 @@ class VaccineRequestTest extends TestCase
                         'approved_by',
                         'finalized_at',
                         'finalized_by',
-                        'is_completed',
                         'is_urgency'
                     ]
                 ],
@@ -237,7 +236,6 @@ class VaccineRequestTest extends TestCase
                     'approved_by',
                     'finalized_at',
                     'finalized_by',
-                    'is_completed',
                     'is_urgency'
                 ]
               ]);
@@ -342,6 +340,30 @@ class VaccineRequestTest extends TestCase
             'status' => VaccineRequestStatusEnum::approved(),
             'vaccine_status_note' => $this->statusNoteChoice,
             'note' => $this->faker->text
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testFinalizedStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::finalized()
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testIntegratedStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::integrated()
+        ]);
+        $response->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR); // This is because need integration with third party.
+    }
+
+    public function testDeliveredStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::delivered()
         ]);
         $response->assertSuccessful();
     }
