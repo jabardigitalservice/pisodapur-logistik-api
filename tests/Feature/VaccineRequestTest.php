@@ -151,6 +151,7 @@ class VaccineRequestTest extends TestCase
                         'approved_by',
                         'finalized_at',
                         'finalized_by',
+                        'is_completed',
                         'is_urgency'
                     ]
                 ],
@@ -236,6 +237,7 @@ class VaccineRequestTest extends TestCase
                     'approved_by',
                     'finalized_at',
                     'finalized_by',
+                    'is_completed',
                     'is_urgency'
                 ]
               ]);

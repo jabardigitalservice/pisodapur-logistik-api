@@ -34,6 +34,7 @@ class VaccineRequest extends Model
         'letter_file_url',
         'applicant_file_url',
         'is_letter_file_final',
+        'is_completed',
         'is_urgency',
         'status',
         'note',
@@ -78,9 +79,24 @@ class VaccineRequest extends Model
             'letter_file_url' => $request->input('letter_file_url'),
             'is_letter_file_final' => $request->input('is_letter_file_final'),
             'applicant_file_url' => $request->input('applicant_file_url'),
+            'is_completed' => VaccineRequest::setIsCompleted($request),
             'created_by' => $user->id ?? null
         ];
         return VaccineRequest::create($vaccineRequest);
+    }
+
+    public static function setIsCompleted($request)
+    {
+        $isCompleted = 0;
+        if ($request->input('applicant_file_url')
+            && $request->input('primary_phone_number')
+            && $request->input('email')
+            && $request->input('location_address')
+        ) {
+            $isCompleted = 1;
+        }
+
+        return $isCompleted;
     }
 
     public function scopeFilter($query, $request)
@@ -92,6 +108,9 @@ class VaccineRequest extends Model
                     ->whenHasDate($request)
                     ->when($request->input('city_id'), function ($query) use ($request) {
                         $query->where('agency_city_id', $request->input('city_id'));
+                    })
+                    ->when($request->has('is_completed'), function ($query) use ($request) {
+                        $query->where('is_completed', $request->input('is_completed'));
                     })
                     ->when($request->has('is_urgency'), function ($query) use ($request) {
                         $query->where('is_urgency', $request->input('is_urgency'));

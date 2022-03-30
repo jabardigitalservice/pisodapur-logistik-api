@@ -14,9 +14,6 @@ class ChangeIntegratedFilterColumnToVaccineRequestsTable extends Migration
     public function up()
     {
         Schema::table('vaccine_requests', function (Blueprint $table) {
-            $table->dropColumn('is_integrated');
-            $table->dropColumn('is_completed');
-            $table->dropColumn('rejected_note');
             $table->dateTime('integrated_at')->nullable();
             $table->integer('integrated_by')->nullable()->index();
             $table->dateTime('delivered_at')->nullable();
@@ -32,9 +29,6 @@ class ChangeIntegratedFilterColumnToVaccineRequestsTable extends Migration
     public function down()
     {
         Schema::table('vaccine_requests', function (Blueprint $table) {
-            $table->tinyInteger('is_integrated')->default(0);
-            $table->tinyInteger('is_completed')->default(0);
-            $table->text('rejected_note')->nullable();
             $table->dropColumn('integrated_at');
             $table->dropColumn('integrated_by');
             $table->dropColumn('delivered_at');

@@ -12,8 +12,7 @@ class DeliveryPlanController extends Controller
     public function index(GetVaccineRequest $request)
     {
         $limit = $request->input('limit', 5);
-        $data = DeliveryPlan::query()
-            ->deliveryPlan()
+        $data = DeliveryPlan::deliveryPlan()
             ->filter($request)
             ->orderBy('delivery_plan_date', 'desc')
             ->sort($request);

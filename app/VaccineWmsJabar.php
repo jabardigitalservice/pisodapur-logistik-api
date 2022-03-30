@@ -90,7 +90,7 @@ class VaccineWmsJabar extends WmsJabar
             'location_district_code' => $vaccineRequest->agency_city_id,
             'location_address' => $vaccineRequest->agency_address,
             'master_faskes' => [
-                'poslog_id' => $vaccineRequest->medicalFacility->poslog_id
+                'poslog_id' => $vaccineRequest->medicalFacility->poslog_id ?? null
             ],
             'applicant' => [
                 'id' => $vaccineRequest->id,
