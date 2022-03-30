@@ -347,7 +347,8 @@ class VaccineRequestTest extends TestCase
     public function testFinalizedStatusVaccineRequestById()
     {
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
-            'status' => VaccineRequestStatusEnum::finalized()
+            'status' => VaccineRequestStatusEnum::finalized(),
+            'delivery_plan_date' => $this->faker->date()
         ]);
         $response->assertSuccessful();
     }
