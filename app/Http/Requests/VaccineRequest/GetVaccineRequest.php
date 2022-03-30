@@ -31,7 +31,6 @@ class GetVaccineRequest extends FormRequest
             'page' => 'nullable|numeric',
             'status' => ['nullable', new EnumRule(VaccineRequestStatusEnum::class)],
             'sort' => ['nullable', new EnumRule(OrderEnum::class)],
-            'is_completed' => 'boolean',
             'is_urgency' => 'boolean',
             'start_date' => 'nullable|required_with:end_date|date',
             'end_date' => 'nullable|required_with:start_date|date',

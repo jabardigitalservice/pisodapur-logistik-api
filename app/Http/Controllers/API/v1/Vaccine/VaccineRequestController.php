@@ -82,7 +82,7 @@ class VaccineRequestController extends Controller
         }
 
         $vaccineRequest->fill($request->validated());
-        if ($request->status == VaccineRequestStatusEnum::finalized()) {
+        if ($request->status == VaccineRequestStatusEnum::integrated()) {
             return $this->sendToPoslog($vaccineRequest);
         }
         $this->setUpdateByStatus($vaccineRequest, $request);
@@ -91,27 +91,29 @@ class VaccineRequestController extends Controller
 
     public function setUpdateByStatus($vaccineRequest, $request)
     {
-        $user = auth()->user();
         if ($request->status == VaccineRequestStatusEnum::verified()) {
             $vaccineRequest->verified_at = Carbon::now();
-            $vaccineRequest->verified_by = $user->id;
+            $vaccineRequest->verified_by = auth()->user()->id;
         } else if ($request->status == VaccineRequestStatusEnum::approved()) {
             $vaccineRequest->approved_at = Carbon::now();
-            $vaccineRequest->approved_by = $user->id;
+            $vaccineRequest->approved_by = auth()->user()->id;
+        } else if ($request->status == VaccineRequestStatusEnum::finalized()) {
+            $vaccineRequest->finalized_at = Carbon::now();
+            $vaccineRequest->finalized_by = auth()->user()->id;
+        } else if ($request->status == VaccineRequestStatusEnum::delivered()) {
+            $vaccineRequest->delivered_at = Carbon::now();
+            $vaccineRequest->delivered_by = auth()->user()->id;
         }
         $vaccineRequest->save();
     }
 
     public function sendToPoslog($vaccineRequest)
     {
-        $user = auth()->user();
         $response = VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
 
         if ($response->getStatusCode() == Response::HTTP_OK) {
-            $vaccineRequest->finalized_at = Carbon::now();
-            $vaccineRequest->finalized_by = $user->id;
-            $vaccineRequest->is_integrated = 1;
-            $vaccineRequest->is_completed = 1;
+            $vaccineRequest->integrated_at = Carbon::now();
+            $vaccineRequest->integrated_by = auth()->user()->id;
             $vaccineRequest->save();
         }
         return $response;
