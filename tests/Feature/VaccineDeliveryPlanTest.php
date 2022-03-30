@@ -67,7 +67,7 @@ class VaccineDeliveryPlanTest extends TestCase
             'agency_district_id' => $this->village->kemendagri_kecamatan_kode,
             'agency_city_id' => $this->village->kemendagri_kabupaten_kode,
             'is_integrated' => 0,
-            'status' => VaccineRequestStatusEnum::finalized()
+            'status' => VaccineRequestStatusEnum::finalized(),
         ]);
     }
 
