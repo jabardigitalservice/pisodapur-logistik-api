@@ -15,4 +15,9 @@ class DeliveryPlan extends VaccineRequest
             ->whereNull('integrated_at')
             ->whereNull('delivered_at');
     }
+
+    public function integratedBy()
+    {
+        return $this->hasOne('App\User', 'id', 'integrated_by');
+    }
 }
