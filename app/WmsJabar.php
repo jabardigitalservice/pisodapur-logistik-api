@@ -11,6 +11,7 @@ use App\Enums\AllocationRequestTypeEnum;
 use App\Outbound;
 use App\OutboundDetail;
 use App\MasterFaskes;
+use App\Models\MedicalFacility;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use DB;
@@ -79,7 +80,12 @@ class WmsJabar extends Usage
                     $lo['req_type'] = $req_type;
                     Outbound::updateData($lo);
                     OutboundDetail::massInsert($lo['lo_detil'], $req_type);
-                    self::updateFaskes($lo);
+
+                    if ($req_type == 'vaccine') {
+                        self::updateMedicalFacility($lo);
+                    } else {
+                        self::updateFaskes($lo);
+                    }
 
                     $vaccineRequestIds[] = $lo['req_id'];
                 }
@@ -152,6 +158,14 @@ class WmsJabar extends Usage
             $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $exception->getTrace());
         }
         return $response;
+    }
+
+    static function updateMedicalFacility($outboundPlan)
+    {
+        return MedicalFacility::where('id', $outboundPlan['send_to_extid'])->update([
+            'poslog_id' => $outboundPlan['send_to_id'],
+            'poslog_name' => $outboundPlan['send_to_name']
+        ]);
     }
 
     static function updateFaskes($outboundPlan)
