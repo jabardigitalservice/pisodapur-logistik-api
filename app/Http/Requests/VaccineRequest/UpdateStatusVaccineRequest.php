@@ -31,7 +31,8 @@ class UpdateStatusVaccineRequest extends FormRequest
                 'nullable',
                 'array',
             ],
-            'note' => 'nullable'
+            'note' => 'nullable',
+            'delivery_plan_date' => 'required_if:status,finalized|date'
         ];
     }
 }

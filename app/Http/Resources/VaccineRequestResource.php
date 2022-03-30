@@ -49,7 +49,6 @@ class VaccineRequestResource extends JsonResource
         'approved_by' => $this->approvedBy,
         'finalized_at' => $this->finalized_at,
         'finalized_by' => $this->finalizedBy,
-        'is_completed' => $this->is_completed,
         'is_urgency' => $this->is_urgency,
         'vaccine_request_status_notes' => VaccineRequestStatusNoteResource::collection($this->vaccineRequestStatusNotes)
       ];
