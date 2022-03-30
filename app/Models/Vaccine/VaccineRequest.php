@@ -2,13 +2,12 @@
 
 namespace App\Models\Vaccine;
 
-use App\Enums\VaccineRequestStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class VaccineRequest extends Model
 {
     protected $with = [
-        'medicalFacility:id,name',
+        'medicalFacility:id,name,poslog_id,poslog_name',
         'medicalFacilityType:id,name',
         'village',
         'verifiedBy:id,name',
@@ -38,7 +37,13 @@ class VaccineRequest extends Model
         'is_completed',
         'is_urgency',
         'status',
-        'note'
+        'note',
+        'delivery_plan_date',
+        'verified_at', 'verified_by',
+        'approved_at', 'approved_by',
+        'finalized_at', 'finalized_by',
+        'integrated_at', 'integrated_by',
+        'delivered_at', 'delivered_by',
     ];
 
     public function getLetterFileUrlAttribute($value)

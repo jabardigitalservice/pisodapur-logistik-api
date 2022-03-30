@@ -61,59 +61,24 @@ class VaccineRequestController extends Controller
 
     public function update(VaccineRequest $vaccineRequest, UpdateStatusVaccineRequest $request)
     {
-        $vaccineRequestStatusNote = [];
-        foreach ($request->input('vaccine_status_note', []) as $note) {
-            $vaccineRequestStatusNote[] = [
-                'vaccine_request_id' => $vaccineRequest->id,
-                'status' => $request->status,
-                'vaccine_status_note_id' => $note['id'],
-                'vaccine_status_note_name' => $note['name'] ?? '',
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
-            ];
-        }
+        switch ($request->status) {
+            case VaccineRequestStatusEnum::verified():
+                VaccineRequestStatusNote::insertData($request, $vaccineRequest->id);
+                break;
 
-        if ($vaccineRequestStatusNote) {
-            VaccineRequestStatusNote::where([
-                'vaccine_request_id' => $vaccineRequest->id,
-                'status' => $request->status,
-            ])->delete();
-            VaccineRequestStatusNote::insert($vaccineRequestStatusNote);
+            case VaccineRequestStatusEnum::integrated():
+                $response = VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
+                if ($response->getStatusCode() != Response::HTTP_OK) {
+                    return $response;
+                }
+                break;
         }
 
         $vaccineRequest->fill($request->validated());
-        if ($request->status == VaccineRequestStatusEnum::finalized()) {
-            return $this->sendToPoslog($vaccineRequest);
-        }
-        $this->setUpdateByStatus($vaccineRequest, $request);
+        $data[$request->status . '_at'] = Carbon::now();
+        $data[$request->status . '_by'] = auth()->user()->id;
+        $vaccineRequest->update($data);
+
         return response()->format(Response::HTTP_OK, 'Vaccine request updated');
-    }
-
-    public function setUpdateByStatus($vaccineRequest, $request)
-    {
-        $user = auth()->user();
-        if ($request->status == VaccineRequestStatusEnum::verified()) {
-            $vaccineRequest->verified_at = Carbon::now();
-            $vaccineRequest->verified_by = $user->id;
-        } else if ($request->status == VaccineRequestStatusEnum::approved()) {
-            $vaccineRequest->approved_at = Carbon::now();
-            $vaccineRequest->approved_by = $user->id;
-        }
-        $vaccineRequest->save();
-    }
-
-    public function sendToPoslog($vaccineRequest)
-    {
-        $user = auth()->user();
-        $response = VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
-
-        if ($response->getStatusCode() == Response::HTTP_OK) {
-            $vaccineRequest->finalized_at = Carbon::now();
-            $vaccineRequest->finalized_by = $user->id;
-            $vaccineRequest->is_integrated = 1;
-            $vaccineRequest->is_completed = 1;
-            $vaccineRequest->save();
-        }
-        return $response;
     }
 }

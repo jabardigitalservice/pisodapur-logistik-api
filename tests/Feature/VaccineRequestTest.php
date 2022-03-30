@@ -346,6 +346,31 @@ class VaccineRequestTest extends TestCase
         $response->assertSuccessful();
     }
 
+    public function testFinalizedStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::finalized(),
+            'delivery_plan_date' => $this->faker->date()
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testIntegratedStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::integrated()
+        ]);
+        $response->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR); // This is because need integration with third party.
+    }
+
+    public function testDeliveredStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::delivered()
+        ]);
+        $response->assertSuccessful();
+    }
+
     public function testCreateVaccineRequestFailVaccineProduct()
     {
         $payload = $this->vaccineRequestPayload;
