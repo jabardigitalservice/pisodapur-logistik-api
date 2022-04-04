@@ -41,6 +41,7 @@ class LeaderTest extends TestCase
         $response
             ->assertSuccessful()
             ->assertJsonStructure([
+                'status',
                 'data' => [
                     'fullname',
                     'role',

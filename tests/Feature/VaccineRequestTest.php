@@ -528,6 +528,52 @@ class VaccineRequestTest extends TestCase
               ]);
     }
 
+    public function testGetVaccineProductRequestById()
+    {
+        $vaccine = VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request/'. $vaccine->id);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [
+                    'request' => [],
+                    'recommendation' => [],
+                    'finalization' => [],
+                ]
+            ]);
+    }
+
+    public function testGetVaccineSupportProductRequestById()
+    {
+        $vaccineSupport = VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine_support',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request/'. $vaccineSupport->id);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [
+                    'request' => [],
+                    'recommendation' => [],
+                    'finalization' => [],
+                ]
+            ]);
+    }
+
     public function testUpdateProductRequest()
     {
         $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
