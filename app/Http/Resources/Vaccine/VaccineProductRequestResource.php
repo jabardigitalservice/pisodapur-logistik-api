@@ -14,7 +14,6 @@ class VaccineProductRequestResource extends JsonResource
    */
   public function toArray($request)
   {
-    $status = $request->input('status', 'request');
     return [
         'id' => $this->id,
         'vaccine_request_id' => $this->vaccine_request_id,

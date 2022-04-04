@@ -9,6 +9,7 @@ use App\Http\Resources\Vaccine\VaccineProductFinalizationResource;
 use App\Http\Resources\Vaccine\VaccineProductRecommendationResource;
 use App\Http\Resources\Vaccine\VaccineProductRequestResource;
 use App\VaccineProductRequest;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class VaccineProductRequestController extends Controller
@@ -30,6 +31,14 @@ class VaccineProductRequestController extends Controller
             $resource = VaccineProductFinalizationResource::collection($data->paginate($limit));
         }
         return $resource;
+    }
+
+    public function show(VaccineProductRequest $vaccineProductRequest, Request $request)
+    {
+        $data['request'] = new VaccineProductRequestResource($vaccineProductRequest);
+        $data['recommendation'] = new VaccineProductRecommendationResource($vaccineProductRequest);
+        $data['finalization'] = new VaccineProductFinalizationResource($vaccineProductRequest);
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     public function update(VaccineProductRequest $vaccineProductRequest, UpdateVaccineProductRequest $request)
