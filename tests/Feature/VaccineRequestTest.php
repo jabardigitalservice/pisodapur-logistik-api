@@ -6,6 +6,8 @@ use Tests\TestCase;
 use App\User;
 use App\AllocationMaterial;
 use App\Districtcities;
+use App\Enums\Vaccine\VaccineProductCategoryEnum;
+use App\Enums\VaccineProductRequestStatusEnum;
 use App\Enums\VaccineRequestStatusEnum;
 use App\Models\MedicalFacility;
 use App\Subdistrict;
@@ -582,5 +584,24 @@ class VaccineRequestTest extends TestCase
         $vaccineProductRequest['quantity'] = rand(100, 1000);
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-product-request/' . $vaccineProductRequest['id'], $vaccineProductRequest);
         $response->assertSuccessful();
+    }
+
+    public function testCreateVaccineProductRequestById()
+    {
+        $vaccineSupport = [
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'recommendation_product_id' => $this->allocationMaterial->material_id,
+            'recommendation_product_name' => $this->allocationMaterial->material_name,
+            'category' => VaccineProductCategoryEnum::vaccine(),
+            'recommendation_quantity' => rand(),
+            'recommendation_date' => $this->faker->date(),
+            'recommendation_UoM' => $this->allocationMaterial->UoM,
+            'recommendation_status' => VaccineProductRequestStatusEnum::approved(),
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ];
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-product-request', $vaccineSupport);
+        $response
+            ->assertSuccessful();
     }
 }
