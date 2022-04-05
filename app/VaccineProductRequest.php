@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class VaccineProductRequest extends Model
 {
-    protected $with = ['vaccineProduct:id,name,category', 'createdBy:id,name,handphone'];
+    protected $with = ['vaccineProduct:id,name,category'];
 
     protected $fillable = [
         'vaccine_request_id',
@@ -63,11 +63,6 @@ class VaccineProductRequest extends Model
     public function unit()
     {
         return $this->belongsTo(MasterUnit::class, 'unit');
-    }
-
-    public function createdBy()
-    {
-        return $this->belongsTo(User::class, 'created_by', 'id');
     }
 
     public function getRecommendationFileUrlAttribute($value)
