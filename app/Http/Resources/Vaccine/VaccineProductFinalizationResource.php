@@ -23,6 +23,7 @@ class VaccineProductFinalizationResource extends JsonResource
         'quantity' => $this->finalized_quantity ?? $this->recommendation_quantity,
         'unit' => $this->finalized_UoM ?? $this->recommendation_UoM,
         'product_status' => $this->finalized_status,
+        'recommendation_note' => $this->recommendation_note,
         'category' => $this->category,
         'usage' => $this->usage,
         'description' => $this->description,

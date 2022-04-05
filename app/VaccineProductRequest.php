@@ -24,6 +24,7 @@ class VaccineProductRequest extends Model
         'recommendation_UoM',
         'recommendation_date',
         'recommendation_status',
+        'recommendation_note',
         'recommendation_by',
         'recommendation_reason',
         'recommendation_file_url',

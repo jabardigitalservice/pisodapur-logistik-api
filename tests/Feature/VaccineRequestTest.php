@@ -417,7 +417,23 @@ class VaccineRequestTest extends TestCase
         $response
             ->assertSuccessful()
             ->assertJsonStructure([
-                'data' => [],
+                'data' => [
+                    [
+                        "id",
+                        "vaccine_request_id",
+                        "product_id",
+                        "product_name",
+                        "quantity",
+                        "unit",
+                        "product_status",
+                        "category",
+                        "usage",
+                        "description",
+                        "note",
+                        "created_at",
+                        "updated_at"
+                    ]
+                ],
                 'links' => [
                     'first',
                     'last',
@@ -464,7 +480,26 @@ class VaccineRequestTest extends TestCase
         $response
             ->assertSuccessful()
             ->assertJsonStructure([
-                'data' => [],
+                'data' => [
+                    [
+                        "id",
+                        "vaccine_request_id",
+                        "product_id",
+                        "product_name",
+                        "quantity",
+                        "unit",
+                        "product_status",
+                        "recommendation_note",
+                        "category",
+                        "usage",
+                        "description",
+                        "note",
+                        "reason",
+                        "file_url",
+                        "created_at",
+                        "updated_at"
+                    ]
+                ],
                 'links' => [
                     'first',
                     'last',
@@ -511,7 +546,26 @@ class VaccineRequestTest extends TestCase
         $response
             ->assertSuccessful()
             ->assertJsonStructure([
-                'data' => [],
+                'data' => [
+                    [
+                        "id",
+                        "vaccine_request_id",
+                        "product_id",
+                        "product_name",
+                        "quantity",
+                        "unit",
+                        "product_status",
+                        "recommendation_note",
+                        "category",
+                        "usage",
+                        "description",
+                        "note",
+                        "reason",
+                        "file_url",
+                        "created_at",
+                        "updated_at"
+                    ]
+                ],
                 'links' => [
                     'first',
                     'last',
@@ -582,6 +636,7 @@ class VaccineRequestTest extends TestCase
 
         $vaccineProductRequest = VaccineProductRequest::first()->toArray();
         $vaccineProductRequest['quantity'] = rand(100, 1000);
+        $vaccineProductRequest['recommendaton_note'] = $this->faker->text();
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-product-request/' . $vaccineProductRequest['id'], $vaccineProductRequest);
         $response->assertSuccessful();
     }

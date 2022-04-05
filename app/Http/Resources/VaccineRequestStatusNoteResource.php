@@ -16,7 +16,7 @@ class VaccineRequestStatusNoteResource extends JsonResource
   {
       return [
         'id' => $this->vaccine_status_note_id,
-        'name' => $this->vaccineStatusNote->name
+        'name' => optional($this->vaccineStatusNote)->name
       ];
   }
 }
