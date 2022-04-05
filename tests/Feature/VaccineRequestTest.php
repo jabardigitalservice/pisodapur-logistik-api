@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\User;
-use App\MasterFaskesType;
 use App\AllocationMaterial;
 use App\Districtcities;
 use App\Enums\VaccineRequestStatusEnum;
@@ -29,11 +28,6 @@ class VaccineRequestTest extends TestCase
     {
         parent::setUp();
         $this->admin = factory(User::class)->create();
-        factory(MasterFaskesType::class)->create(['id' => 1, 'name' => 'Rumah Sakit']);
-        factory(MasterFaskesType::class)->create(['id' => 2, 'name' => 'Puskesmas']);
-        factory(MasterFaskesType::class)->create(['id' => 3, 'name' => 'Klinik']);
-        factory(MasterFaskesType::class)->create(['id' => 4, 'name' => 'Masyarakat Umum']);
-        factory(MasterFaskesType::class)->create(['id' => 5, 'name' => 'Instansi Lainnya']);
         $this->districtcities = factory(Districtcities::class)->create();
         $this->subdistricts = factory(Subdistrict::class)->create([
             'kemendagri_kabupaten_kode' => $this->districtcities->kemendagri_kabupaten_kode,
@@ -62,6 +56,15 @@ class VaccineRequestTest extends TestCase
         $this->logisticItems[] = [
             'product_id' => rand(),
             'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ];
+
+        $this->logisticItems[] = [
+            'product_id' => rand(),
+            'category' => 'vaccine_support',
             'quantity' => rand(),
             'unit' => 'PCS',
             'description' => $this->faker->text,
@@ -343,6 +346,31 @@ class VaccineRequestTest extends TestCase
         $response->assertSuccessful();
     }
 
+    public function testFinalizedStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::finalized(),
+            'delivery_plan_date' => $this->faker->date()
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testIntegratedStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::integrated()
+        ]);
+        $response->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR); // This is because need integration with third party.
+    }
+
+    public function testDeliveredStatusVaccineRequestById()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::delivered()
+        ]);
+        $response->assertSuccessful();
+    }
+
     public function testCreateVaccineRequestFailVaccineProduct()
     {
         $payload = $this->vaccineRequestPayload;
@@ -363,25 +391,187 @@ class VaccineRequestTest extends TestCase
 
     public function testGetProductRequest()
     {
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine_support',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
         $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request', [
             'vaccine_request_id' => $this->vaccineRequest->id
         ]);
         $response
             ->assertSuccessful()
             ->assertJsonStructure([
-                'current_page',
                 'data' => [],
-                'first_page_url',
-                'from',
-                'last_page',
-                'last_page_url',
-                'next_page_url',
-                'path',
-                'per_page',
-                'prev_page_url',
-                'to',
-                'total',
+                'links' => [
+                    'first',
+                    'last',
+                    'prev',
+                    'next',
+                ],
+                'meta' => [
+                    'current_page',
+                    'from',
+                    'last_page',
+                    'path',
+                    'per_page',
+                    'to',
+                    'total'
+                ],
               ]);
+    }
+
+    public function testGetProductRequestFilterByStatusRecommendation()
+    {
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine_support',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request', [
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'category' => 'vaccine',
+            'status' => 'recommendation'
+        ]);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [],
+                'links' => [
+                    'first',
+                    'last',
+                    'prev',
+                    'next',
+                ],
+                'meta' => [
+                    'current_page',
+                    'from',
+                    'last_page',
+                    'path',
+                    'per_page',
+                    'to',
+                    'total'
+                ],
+              ]);
+    }
+
+    public function testGetProductRequestFilterByStatusFinalization()
+    {
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine_support',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request', [
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'category' => 'vaccine_support',
+            'status' => 'finalization'
+        ]);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [],
+                'links' => [
+                    'first',
+                    'last',
+                    'prev',
+                    'next',
+                ],
+                'meta' => [
+                    'current_page',
+                    'from',
+                    'last_page',
+                    'path',
+                    'per_page',
+                    'to',
+                    'total'
+                ],
+              ]);
+    }
+
+    public function testGetVaccineProductRequestById()
+    {
+        $vaccine = VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request/'. $vaccine->id);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [
+                    'request' => [],
+                    'recommendation' => [],
+                    'finalization' => [],
+                ]
+            ]);
+    }
+
+    public function testGetVaccineSupportProductRequestById()
+    {
+        $vaccineSupport = VaccineProductRequest::create([
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'product_id' => rand(),
+            'category' => 'vaccine_support',
+            'quantity' => rand(),
+            'unit' => 'PCS',
+            'description' => $this->faker->text,
+            'usage' => $this->faker->text,
+        ]);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request/'. $vaccineSupport->id);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [
+                    'request' => [],
+                    'recommendation' => [],
+                    'finalization' => [],
+                ]
+            ]);
     }
 
     public function testUpdateProductRequest()

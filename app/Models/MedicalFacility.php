@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class MedicalFacility extends Model
 {
-    //
+    protected $fillable = [
+        'name', 'medical_facility_type_id', 'city_id', 'district_id', 'village_id', 'address', 'phone', 'poslog_id', 'poslog_name'
+    ];
 
     public function city()
     {
