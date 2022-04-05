@@ -11,12 +11,14 @@ use App\Http\Requests\StoreVaccineRequest;
 use App\Http\Requests\VaccineRequest\GetVaccineRequest;
 use App\Http\Requests\VaccineRequest\UpdateStatusVaccineRequest;
 use App\Http\Resources\VaccineRequestResource;
+use App\Mail\Vaccine\ConfirmEmailNotification;
 use App\Models\Vaccine\VaccineRequestStatusNote;
 use App\VaccineProductRequest;
 use App\VaccineWmsJabar;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class VaccineRequestController extends Controller
@@ -51,6 +53,7 @@ class VaccineRequestController extends Controller
             $request->merge(['vaccine_request_id' => $data->id]);
             $data['need'] = VaccineProductRequest::add($request);
             $response = response()->format(Response::HTTP_CREATED, 'success', $data);
+            Mail::to($request->input('email'))->send(new ConfirmEmailNotification($data));
             DB::commit();
         } catch (\Exception $exception) {
             DB::rollBack();
