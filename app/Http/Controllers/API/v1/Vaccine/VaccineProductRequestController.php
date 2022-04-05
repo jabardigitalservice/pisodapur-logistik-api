@@ -50,7 +50,7 @@ class VaccineProductRequestController extends Controller
         $request->merge(['recommendation_file_url' => Storage::put(FileUpload::LETTER_PATH, $request->file('recommendation_file'))]);
         $vaccineProductRequest = new VaccineProductRequest();
         $vaccineProductRequest->fill($request->validated());
-        $vaccineProductRequest->recommendation_file_url = $request->file_url;
+        $vaccineProductRequest->recommendation_file_url = $request->recommendation_file_url;
         $vaccineProductRequest->recommendation_by = auth()->user()->id;
         $vaccineProductRequest->recommendation_date = Carbon::now();
         $vaccineProductRequest->save();
