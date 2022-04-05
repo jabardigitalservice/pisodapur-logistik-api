@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class VaccineProductRequest extends Model
 {
-    protected $with = ['vaccineProduct:id,name,category'];
+    protected $with = ['vaccineProduct:id,name,category', 'createdBy:id,name,handphone'];
 
     protected $fillable = [
         'vaccine_request_id',
@@ -31,7 +31,8 @@ class VaccineProductRequest extends Model
         'finalized_UoM',
         'finalized_date',
         'finalized_status',
-        'finalized_by'
+        'finalized_by',
+        'created_by',
     ];
 
     static function add($request)
@@ -60,5 +61,10 @@ class VaccineProductRequest extends Model
     public function unit()
     {
         return $this->belongsTo(MasterUnit::class, 'unit');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id');
     }
 }

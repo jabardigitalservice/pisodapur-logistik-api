@@ -28,6 +28,7 @@ class VaccineProductRecommendationResource extends JsonResource
         'description' => $this->description,
         'note' => $this->note,
         'created_at' => $this->created_at,
+        'created_by' => $this->createdBy,
         'updated_at' => $this->updated_at
     ];
   }

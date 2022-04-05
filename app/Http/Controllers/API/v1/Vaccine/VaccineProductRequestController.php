@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\v1\Vaccine;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VaccineRequest\GetVaccineProductRequest;
+use App\Http\Requests\VaccineRequest\StoreVaccineProductRequest;
 use App\Http\Requests\VaccineRequest\UpdateVaccineProductRequest;
 use App\Http\Resources\Vaccine\VaccineProductFinalizationResource;
 use App\Http\Resources\Vaccine\VaccineProductRecommendationResource;
@@ -39,6 +40,15 @@ class VaccineProductRequestController extends Controller
         $data['recommendation'] = new VaccineProductRecommendationResource($vaccineProductRequest);
         $data['finalization'] = new VaccineProductFinalizationResource($vaccineProductRequest);
         return response()->format(Response::HTTP_OK, 'success', $data);
+    }
+
+    public function store(StoreVaccineProductRequest $request)
+    {
+        $vaccineProductRequest = new VaccineProductRequest();
+        $vaccineProductRequest->fill($request->validated());
+        $vaccineProductRequest->created_by = auth()->user()->id;
+        $vaccineProductRequest->save();
+        return response()->format(Response::HTTP_CREATED, 'Vaccine Product Request Created');
     }
 
     public function update(VaccineProductRequest $vaccineProductRequest, UpdateVaccineProductRequest $request)
