@@ -240,4 +240,5 @@ return [
     */
 
     'hotline' => env('HOTLINE_PIKOBAR', 'hotline'),
+    'hotline_vaccine' => env('HOTLINE_PIKOBAR_VACCINE', 'hotline_vaccine'),
 ];
