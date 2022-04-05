@@ -25,6 +25,8 @@ class VaccineProductRequest extends Model
         'recommendation_date',
         'recommendation_status',
         'recommendation_by',
+        'recommendation_reason',
+        'recommendation_file_url',
         'finalized_product_id',
         'finalized_product_name',
         'finalized_quantity',
@@ -66,5 +68,11 @@ class VaccineProductRequest extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by', 'id');
+    }
+
+    public function getRecommendationFileUrlAttribute($value)
+    {
+        $awsUrl = config('aws.url');
+        return $value ? $awsUrl . $value : "";
     }
 }

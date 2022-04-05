@@ -588,6 +588,7 @@ class VaccineRequestTest extends TestCase
 
     public function testCreateVaccineProductRequestById()
     {
+        Storage::fake('photos');
         $vaccineSupport = [
             'vaccine_request_id' => $this->vaccineRequest->id,
             'recommendation_product_id' => $this->allocationMaterial->material_id,
@@ -596,9 +597,11 @@ class VaccineRequestTest extends TestCase
             'recommendation_quantity' => rand(),
             'recommendation_date' => $this->faker->date(),
             'recommendation_UoM' => $this->allocationMaterial->UoM,
-            'recommendation_status' => VaccineProductRequestStatusEnum::approved(),
-            'description' => $this->faker->text,
+            'recommendation_status' => VaccineProductRequestStatusEnum::urgent(),
             'usage' => $this->faker->text,
+            'recommendation_reason' => $this->faker->text,
+            'recommendation_file' => UploadedFile::fake()->image('file_permintaan_tambahan.jpg')
+
         ];
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-product-request', $vaccineSupport);
         $response

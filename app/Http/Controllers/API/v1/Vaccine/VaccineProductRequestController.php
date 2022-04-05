@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\v1\Vaccine;
 
+use App\FileUpload;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VaccineRequest\GetVaccineProductRequest;
 use App\Http\Requests\VaccineRequest\StoreVaccineProductRequest;
@@ -10,8 +11,10 @@ use App\Http\Resources\Vaccine\VaccineProductFinalizationResource;
 use App\Http\Resources\Vaccine\VaccineProductRecommendationResource;
 use App\Http\Resources\Vaccine\VaccineProductRequestResource;
 use App\VaccineProductRequest;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 
 class VaccineProductRequestController extends Controller
 {
@@ -44,9 +47,12 @@ class VaccineProductRequestController extends Controller
 
     public function store(StoreVaccineProductRequest $request)
     {
+        $request->merge(['recommendation_file_url' => Storage::put(FileUpload::LETTER_PATH, $request->file('recommendation_file'))]);
         $vaccineProductRequest = new VaccineProductRequest();
         $vaccineProductRequest->fill($request->validated());
-        $vaccineProductRequest->created_by = auth()->user()->id;
+        $vaccineProductRequest->recommendation_file_url = $request->file_url;
+        $vaccineProductRequest->recommendation_by = auth()->user()->id;
+        $vaccineProductRequest->recommendation_date = Carbon::now();
         $vaccineProductRequest->save();
         return response()->format(Response::HTTP_CREATED, 'Vaccine Product Request Created');
     }

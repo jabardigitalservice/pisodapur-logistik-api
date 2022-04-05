@@ -17,7 +17,9 @@ class AddCreatedByColumnToVaccineProductRequestsTable extends Migration
             $table->integer('product_id')->nullable()->change();
             $table->integer('quantity')->nullable()->change();
             $table->string('unit')->nullable()->change();
-            $table->integer('created_by')->nullable()->index()->after('created_at');
+            $table->text('description')->nullable()->change();
+            $table->text('recommendation_reason')->nullable()->after('recommendation_status');
+            $table->string('recommendation_file_url')->nullable()->after('recommendation_status');
         });
     }
 
@@ -29,7 +31,8 @@ class AddCreatedByColumnToVaccineProductRequestsTable extends Migration
     public function down()
     {
         Schema::table('vaccine_product_requests', function (Blueprint $table) {
-            $table->dropColumn('created_by');
+            $table->dropColumn('recommendation_reason');
+            $table->dropColumn('recommendation_file_url');
         });
     }
 }
