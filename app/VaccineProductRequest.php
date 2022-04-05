@@ -33,8 +33,7 @@ class VaccineProductRequest extends Model
         'finalized_UoM',
         'finalized_date',
         'finalized_status',
-        'finalized_by',
-        'created_by',
+        'finalized_by'
     ];
 
     static function add($request)
