@@ -39,7 +39,7 @@ class StoreVaccineProductRequest extends FormRequest
                 'required',
                 Rule::in([VaccineProductRequestStatusEnum::urgent(), VaccineProductRequestStatusEnum::other()])
             ],
-            'recommendation_reason' => 'required',
+            'recommendation_reason' => 'nullable',
             'recommendation_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
             'description' => 'nullable',
             'usage' => 'required',
