@@ -8,6 +8,7 @@ use App\Http\Requests\VaccineRequest\GetVaccineProductRequest;
 use App\Http\Requests\VaccineRequest\StoreVaccineProductRequest;
 use App\Http\Requests\VaccineRequest\UpdateVaccineProductRequest;
 use App\Http\Resources\Vaccine\VaccineProductFinalizationResource;
+use App\Http\Resources\Vaccine\VaccineProductDeliveryPlanResource;
 use App\Http\Resources\Vaccine\VaccineProductRecommendationResource;
 use App\Http\Resources\Vaccine\VaccineProductRequestResource;
 use App\VaccineProductRequest;
@@ -33,6 +34,8 @@ class VaccineProductRequestController extends Controller
             $resource = VaccineProductRecommendationResource::collection($data->paginate($limit));
         } elseif ($status == 'finalization') {
             $resource = VaccineProductFinalizationResource::collection($data->paginate($limit));
+        } elseif ($status == 'delivery_plan') {
+            $resource = VaccineProductDeliveryPlanResource::collection($data->paginate($limit));
         }
         return $resource;
     }
@@ -42,6 +45,7 @@ class VaccineProductRequestController extends Controller
         $data['request'] = new VaccineProductRequestResource($vaccineProductRequest);
         $data['recommendation'] = new VaccineProductRecommendationResource($vaccineProductRequest);
         $data['finalization'] = new VaccineProductFinalizationResource($vaccineProductRequest);
+        $data['delivery_plan'] = new VaccineProductDeliveryPlanResource($vaccineProductRequest);
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
