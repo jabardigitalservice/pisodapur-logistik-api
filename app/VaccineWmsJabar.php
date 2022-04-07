@@ -109,7 +109,6 @@ class VaccineWmsJabar extends WmsJabar
     {
         try {
             $config = self::setStoreRequest($vaccineRequest);
-            dd($config);
             $config['apiFunction'] = '/api_vaksin/index.php?route=pingme_v2';
             $res = self::callAPI($config, 'post');
 
