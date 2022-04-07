@@ -98,7 +98,8 @@ class VaccineWmsJabar extends WmsJabar
                 'primary_phone_number' => $vaccineRequest->applicant_primary_phone_number,
                 'application_letter_number' => $vaccineRequest->letter_number
             ],
-            'finalization_items' => $vaccineProductRequests
+            'finalization_items' => $vaccineProductRequests,
+            'lo_date' => $vaccineRequest->delivery_plan_date
         ];
 
         return $config;
