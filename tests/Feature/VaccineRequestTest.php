@@ -603,6 +603,7 @@ class VaccineRequestTest extends TestCase
                     'request' => [],
                     'recommendation' => [],
                     'finalization' => [],
+                    'delivery_plan' => [],
                 ]
             ]);
     }
@@ -626,6 +627,7 @@ class VaccineRequestTest extends TestCase
                     'request' => [],
                     'recommendation' => [],
                     'finalization' => [],
+                    'delivery_plan' => [],
                 ]
             ]);
     }

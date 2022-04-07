@@ -34,6 +34,7 @@ class AllocationMaterialController extends Controller
                     $query->where('matg_id', $request->input('matg_id'));
                 })
                 ->whereRaw('(stock_ok - booked_stock) > 0')
+                ->orderByRaw('(stock_ok - booked_stock) DESC')
                 ->orderBy('material_name');
 
         $data = $isPaginated ? $data->paginate($limit) : $data->get();
