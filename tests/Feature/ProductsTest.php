@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ProductCategoryEnum;
 use App\Product;
 use App\User;
 use Tests\TestCase;
@@ -28,6 +29,7 @@ class ProductsTest extends TestCase
             'limit' => 10,
             'name' => $this->product->name,
             'user_filter' => 4,
+            'category' => ProductCategoryEnum::alkes()
         ]);
         $response->assertStatus(Response::HTTP_OK);
     }

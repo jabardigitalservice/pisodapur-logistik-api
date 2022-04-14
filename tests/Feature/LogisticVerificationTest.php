@@ -11,6 +11,7 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Mail;
 
 class LogisticVerificationTest extends TestCase
 {
@@ -36,26 +37,18 @@ class LogisticVerificationTest extends TestCase
         $this->logisticVerification = factory(LogisticVerification::class)->create(['agency_id' => $this->agency->id]);
     }
 
-    public function testVerificationCodeRegistration()
-    {
-        $response = $this->json('POST', '/api/v1/verification-registration', ['register_id' => $this->agency->id]);
-        $response->assertStatus(Response::HTTP_OK);
-    }
-
-    public function testVerificationResendCode()
-    {
-        $response = $this->json('POST', '/api/v1/verification-resend', [
-            'register_id' => $this->agency->id,
-            'reset' => 1,
-        ]);
-        $response->assertStatus(Response::HTTP_OK);
-    }
-
     public function testVerificationCodeRegistrationNotFound()
     {
         $agencyId = rand(10000, 99999);
         $response = $this->json('POST', '/api/v1/verification-registration', ['register_id' => $agencyId]);
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    public function testVerificationCodeRegistrationFound()
+    {
+        $agencyId = $this->agency->id;
+        $response = $this->json('POST', '/api/v1/verification-registration', ['register_id' => $agencyId]);
+        $response->assertSuccessful();
     }
 
     public function testVerificationConfirmationFail()

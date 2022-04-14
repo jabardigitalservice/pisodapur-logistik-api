@@ -25,6 +25,9 @@ class MasterFaskes extends Model
         'point_latitude_longitude',
         'non_medical',
         'kode_kab_kemendagri',
+        'kode_kec_kemendagri',
+        'kode_kel_kemendagri',
+        'nomor_telepon',
         'nama_kab',
         'alamat',
         'is_reference'
@@ -33,6 +36,11 @@ class MasterFaskes extends Model
     public function masterFaskesType()
     {
         return $this->hasOne('App\MasterFaskesType', 'id', 'id_tipe_faskes');
+    }
+
+    public function village()
+    {
+        return $this->hasOne('App\Village', 'kemendagri_desa_kode', 'kode_kel_kemendagri');
     }
 
     public function getVerificationStatusAttribute($value)

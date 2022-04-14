@@ -4,72 +4,56 @@ namespace App\Http\Controllers\API\v1;
 
 use App\AuthKey;
 use Illuminate\Http\Request;
+use Illuminate\Http\response;
 use App\Http\Controllers\Controller;
-use App\Validation;
+use App\Http\Requests\AuthKey\RegisterRequest;
+use App\Http\Requests\AuthKey\ResetRequest;
 
 class AuthKeysController extends Controller
 {
-
-    public function index()
-    {
-        return response()->format(401, "Unauthenticated");
-    }
-
+    protected $tokenLength = 16;
     /**
      * Register function
-     * 
+     *
      * To Register an external app to get data from Logistic
      *
      * @param Request $request
      * @return void
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $param = ['name' => 'required'];
-        $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === 200) {
-            $generateToken = bin2hex(openssl_random_pseudo_bytes(16));
-            $user = AuthKey::create([
-                'name' => $request->name,
-                'token' => $generateToken
-            ]);
-            $response = response()->format(200, true, ['auth_keys' => $user]);
-        }
-        return $response;
+        $generateToken = bin2hex(openssl_random_pseudo_bytes($this->tokenLength));
+        $user = AuthKey::create([
+            'name' => $request->name,
+            'token' => $generateToken
+        ]);
+        return response()->format(Response::HTTP_OK, true, ['auth_keys' => $user]);
     }
 
     /**
      * Reset function
-     * 
+     *
      * To Reset an external app Key Token to get data from Logistic
      *
      * @param Request $request
      * @return void
      */
-    public function reset(Request $request)
+    public function reset(ResetRequest $request)
     {
-        $param = [
-            'name' => 'required',
-            'token' => 'required',
-            'retoken' => 'required'
-        ];
-        $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === 200) {
-            $generateToken = bin2hex(openssl_random_pseudo_bytes(16));
-            $authKey = AuthKey::whereName($request->name)->whereToken($request->token)->update([
+        $generateToken = bin2hex(openssl_random_pseudo_bytes($this->tokenLength));
+        $authKey = AuthKey::whereName($request->name)->whereToken($request->token)->update([
+            'name' => $request->name,
+            'token' => $generateToken
+        ]);
+
+        if (!$authKey) {
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, 'Data not Found!');
+        } else {
+            $authKeyData = [
                 'name' => $request->name,
                 'token' => $generateToken
-            ]);
-
-            if (!$authKey) {
-                $response = response()->format(422, 'Data not Found!');
-            } else {
-                $authKeyData = [
-                    'name' => $request->name,
-                    'token' => $generateToken
-                ];
-                $response = response()->format(200, true, ['auth_keys' => $authKeyData]);
-            }
+            ];
+            $response = response()->format(response::HTTP_OK, true, ['auth_keys' => $authKeyData]);
         }
         return $response;
     }

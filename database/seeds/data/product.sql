@@ -1,4 +1,4 @@
-INSERT INTO `products` VALUES (1,'ABN',NULL,1,'ABN',NULL,NULL,0,NULL,NULL),
+INSERT INTO `products` (id, name, description, material_group_status, material_group, total_stock, total_used, is_imported, created_at, updated_at) VALUES (1,'ABN',NULL,1,'ABN',NULL,NULL,0,NULL,NULL),
 (2,'Alcohol One Swab',NULL,1,'ALCOHOL ONE SWAB',NULL,NULL,0,NULL,NULL),
 (3,'Alcohol Swab',NULL,1,'ALCOHOL_SWAB',NULL,NULL,0,NULL,NULL),
 (4,'Antiseptik',NULL,1,'ANTISEPTIK',NULL,NULL,0,NULL,NULL),

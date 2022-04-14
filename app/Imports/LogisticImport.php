@@ -17,7 +17,6 @@ use App\Product;
 use App\MasterUnit;
 use App\ProductUnit;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
-use JWTAuth;
 use DB;
 use App\Validation;
 use App\Imports\MultipleSheetImport;
@@ -27,14 +26,14 @@ class LogisticImport extends Model
 {
     public static function import($data)
     {
-        $user = JWTAuth::user();
+        $user = auth()->user();
         $application = $data->sheetData[0]->toArray();
 
         foreach ($application as $item) {
             if (isset($item['id_permohonan']) && isset($item['tanggal_pengajuan']) && isset($item['jenis_instansi']) && isset($item['nama_instansi'])) {
                 $createdAt = Date::excelToDateTimeObject($item['tanggal_pengajuan']);
                 $item['agency'] = self::createAgency($item, $createdAt);
-                $item['applicant'] = self::createApplicant($item, $user, $createdAt);                
+                $item['applicant'] = self::createApplicant($item, $user, $createdAt);
                 self::createProducts($products, $data, $item);
                 $letter = self::createLetter($item);
             }
@@ -66,7 +65,7 @@ class LogisticImport extends Model
     }
 
     static function createApplicant($item, $user, $createdAt)
-    {        
+    {
         $applicant = Applicant::create([
             'agency_id' => $item['agency']->id,
             'applicant_name' => $item['nama_pemohon'] ?: '-',

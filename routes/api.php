@@ -21,7 +21,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         return ["result" => true];
     });
 
-    Route::get('/welcome', 'WelcomeController@index');
     Route::post('/login', 'UsersController@authenticate');
     Route::post('/authenticate', 'UsersController@authenticate');
 
@@ -42,11 +41,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
     //Landing Page Registration
     Route::prefix('landing-page-registration')->group(function () {
-        Route::post('/agency', 'AgencyController@store');
-        Route::post('/applicant', 'ApplicantController@store');
-        Route::post('/needs', 'NeedsController@store');
-        Route::post('/letter', 'LetterController@store');
-
         // AREAS, for public
         Route::get('/areas/cities', 'AreasController@getCities');
         Route::get('/areas/subarea', 'AreasController@subArea');
@@ -75,6 +69,14 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     //Master Faskes Type
     Route::apiResource('/master-faskes-type', 'MasterFaskesTypeController');
 
+    /** API for Logistic Vaccine Public **/
+    Route::apiResource('/medical-facility-type', 'MedicalFacilityTypeController')->only('index');
+    Route::apiResource('/medical-facility', 'MedicalFacilityController')->only('index');
+    Route::apiResource('/vaccine-material', 'AllocationMaterialController')->only(['index', 'show']);
+    Route::namespace('Vaccine')->group(function () {
+        Route::get('/vaccine-product', 'VaccineProductController');
+        Route::post('/vaccine-request', 'VaccineRequestController@store');
+    });
 
     //Route for Another App that want integrate data
     Route::middleware('auth-key')->group(function () {
@@ -127,7 +129,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::post('/logistic-request/applicant-identity/{id}', 'LogisticRequestController@update');
 
         // Logistic Realization Items by Admin
-        Route::get('/logistic-admin-realization', 'LogisticRealizationItemController@list');
+        Route::get('/logistic-admin-realization', 'LogisticRealizationItemController@index');
         Route::post('/logistic-admin-realization', 'LogisticRealizationItemController@add');
         Route::put('/logistic-admin-realization/{id}', 'LogisticRealizationItemController@update');
         Route::delete('/logistic-admin-realization/{id}', 'LogisticRealizationItemController@destroy');
@@ -165,7 +167,30 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         // API Acceptance Reports
         Route::apiResource('/acceptance-report', 'AcceptanceReportController')->except('store');
         Route::apiResource('/acceptance-report-detail', 'AcceptanceReportDetailController');
-        Route::apiResource('/acceptance-report-evidence', 'AcceptanceReportEvidenceController');
+        Route::apiResource('/acceptance-report-evidence', 'AcceptanceReportEvidenceController')->only('index');
         Route::get('/acceptance-report-statistic', 'AcceptanceReportController@statistic');
+
+        // API Allocation Requests
+        Route::apiResource('/allocation-request', 'AllocationRequestController')->only(['index', 'show']);
+        Route::get('/allocation-request-statistic', 'AllocationRequestController@statistic');
+        Route::apiResource('/allocation-vaccine-request', 'AllocationVaccineRequestController')->only(['index', 'show', 'store']);
+        Route::get('/allocation-distribution-vaccine-request', 'AllocationDistributionVaccineRequestController@index');
+        Route::get('/allocation-vaccine-request-statistic', 'AllocationVaccineRequestController@statistic');
+        Route::post('/allocation-vaccine-import', 'ImportAllocationVaccineRequestController@import');
+
+        // API Vaccine Requests
+        Route::apiResource('/allocation-request', 'AllocationRequestController')->only(['index', 'show']);
+
+        // API Store Vaccine Request
+        Route::namespace('Vaccine')->group(function () {
+            Route::apiResource('/vaccine-request', 'VaccineRequestController')->except('store');
+            Route::apiResource('/delivery-plan', 'DeliveryPlanController')->only('index');
+            Route::get('/vaccine-status-note', 'VaccineStatusNoteController');
+            Route::apiResource('/vaccine-product-request', 'VaccineProductRequestController');
+        });
+
+        Route::post('/auth-key/register', 'AuthKeysController@register');
+        Route::post('/auth-key/reset', 'AuthKeysController@reset');
+        Route::get('/leader', 'LeaderController');
     });
 });

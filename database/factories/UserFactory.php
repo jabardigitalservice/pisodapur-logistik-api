@@ -25,5 +25,6 @@ $factory->define(App\User::class, function (Faker $faker) {
         'password' => bcrypt('secret'), // secret
         'handphone' => $faker->phoneNumber,
         'phase' => 'surat',
+        'app' => 'medical',
     ];
 });

@@ -18,7 +18,7 @@ $factory->define(App\Applicant::class, function (Faker $faker) {
     return [
         'agency_id' => factory(App\Agency::class),
         'applicant_name' => $faker->name,
-        'applicants_office' => $faker->jobTitle . ' ' . $faker->company,
+        'applicants_office' => $faker->jobTitle,
         'file' => rand(1, 9999),
         'email' => $faker->email,
         'primary_phone_number' => $faker->phoneNumber,

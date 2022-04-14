@@ -8,6 +8,7 @@ class Outbound extends Model
 {
     protected $fillable = [
         'req_id',
+        'req_type',
         'lo_id',
         'lo_date',
         'lo_desc',
@@ -36,8 +37,22 @@ class Outbound extends Model
         'delivery_issued_by'
     ];
 
+    static function updateData($lo)
+    {
+        return Outbound::updateOrCreate([
+                'lo_id' => $lo['lo_id'],
+                'req_id' => $lo['req_id'],
+                'req_type' => $lo['req_type']
+            ], $lo);
+    }
+
     public function scopeReadyToDeliver($query)
     {
         return $this->where('status', 'NEW');
+    }
+
+    public function outboundDetails()
+    {
+        return $this->hasMany('App\OutboundDetail', 'lo_id', 'lo_id');
     }
 }

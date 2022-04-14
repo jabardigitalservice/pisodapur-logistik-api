@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
 use App\Notifications\ChangeStatusNotification;
 use JWTAuth;
+use App\Applicant;
+use App\LogisticRealizationItems;
+use App\Validation;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\LogisticRequestResource;
 use Illuminate\Http\Response;
@@ -99,7 +102,7 @@ class LogisticRequest extends Model
                 'agency_id' => $request->input('agency_id'),
                 'applicant_id' => $request->input('applicant_id'),
                 'product_id' => $value['product_id'],
-                'brand' => $value['brand'],
+                'brand' => $value['description'],
                 'quantity' => $value['quantity'],
                 'unit' => $value['unit'],
                 'usage' => $value['usage'],
@@ -197,7 +200,7 @@ class LogisticRequest extends Model
     static function verificationProcess(Request $request, $dataUpdate)
     {
         $response = Validation::defaultError();
-        $dataUpdate['verified_by'] = JWTAuth::user()->id;
+        $dataUpdate['verified_by'] = auth()->user()->id;
         $dataUpdate['verified_at'] = date('Y-m-d H:i:s');
         $applicant = Applicant::updateApplicant($request, $dataUpdate);
         $email = self::sendEmailNotification($applicant->agency_id, $request->verification_status);
@@ -254,7 +257,7 @@ class LogisticRequest extends Model
             'total_item_need_update' => $param['notReadyItemsTotal']
         ], 422);
         if (!$param['checkAllItemsStatus']) {
-            $dataUpdate[$param['step'] . '_by'] = JWTAuth::user()->id;
+            $dataUpdate[$param['step'] . '_by'] = auth()->user()->id;
             $dataUpdate[$param['step'] . '_at'] = date('Y-m-d H:i:s');
             $applicant = Applicant::updateApplicant($request, $dataUpdate);
             $email = self::sendEmailNotification($applicant->agency_id, $param['applicantStatus']);

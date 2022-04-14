@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Enums\AllocationRequestTypeEnum;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,6 +10,7 @@ class OutboundDetail extends Model
 {
     protected $fillable = [
         'req_id',
+        'req_type',
         'lo_id',
         'material_id',
         'material_name',
@@ -23,13 +25,15 @@ class OutboundDetail extends Model
         'lo_approved_time'
     ];
 
-    static function massInsert($query)
+    static function massInsert($query, $req_type = null)
     {
-        $detil = collect($query)->map(function ($lo_detil) {
+        $req_type = $req_type ?? AllocationRequestTypeEnum::vaccine();
+        $detil = collect($query)->map(function ($lo_detil) use ($req_type) {
             $lo_detil['created_at'] = Carbon::now();
             $lo_detil['updated_at'] = Carbon::now();
+            $lo_detil['req_type'] = $req_type;
             return $lo_detil;
         })->toArray();
-        OutboundDetail::insert($detil);
+        return OutboundDetail::insert($detil);
     }
 }

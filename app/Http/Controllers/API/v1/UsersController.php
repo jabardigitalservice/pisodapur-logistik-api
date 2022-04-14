@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\v1;
 
+use App\Http\Requests\RegisterUserRequest;
 use App\User;
 use App\Validation;
 use Illuminate\Http\Request;
@@ -35,37 +36,24 @@ class UsersController extends ApiController
         return response()->format(200, true, compact('token', 'user'));
     }
 
-    public function register(Request $request)
+    public function register(RegisterUserRequest $request)
     {
-        $param = [
-            'name' => 'required',
-            'username' => 'required | unique:users',
-            'email' => 'required | email | unique:users',
-            'password' => 'required',
-            'roles' => 'required',
-            'agency_name' => 'required',
-            'code_district_city' => 'required',
-            'name_district_city' => 'required',
-            'phase' => 'required',
-        ];
-        $response = Validation::validate($request, $param);
-        if ($response->getStatusCode() === 200) {
-            $user = User::create([
-                'username' => $request->username,
-                'email' => $request->email,
-                'name' => $request->name,
-                'password' => bcrypt($request->password),
-                'roles' => $request->roles,
-                'agency_name' => $request->agency_name,
-                'code_district_city' => $request->code_district_city,
-                'name_district_city' => $request->name_district_city,
-                'phase' => $request->phase,
-            ]);
-            $response = response()->format(200, true, [
-                'token' => JWTAuth::fromUser($user),
-                'user' => $user,
-            ]);
-        }
+        $user = User::create([
+            'username' => $request->username,
+            'email' => $request->email,
+            'name' => $request->name,
+            'password' => bcrypt($request->password),
+            'roles' => $request->roles,
+            'agency_name' => $request->agency_name,
+            'code_district_city' => $request->code_district_city,
+            'name_district_city' => $request->name_district_city,
+            'phase' => $request->phase,
+            'app' => $request->input('app', 'medical'),
+        ]);
+        $response = response()->format(200, true, [
+            'token' => JWTAuth::fromUser($user),
+            'user' => $user,
+        ]);
         return $response;
     }
 

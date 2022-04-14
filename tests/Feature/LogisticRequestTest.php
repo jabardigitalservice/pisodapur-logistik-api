@@ -12,8 +12,8 @@ use App\User;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Notification;
 
@@ -162,14 +162,13 @@ class LogisticRequestTest extends TestCase
     public function testStoreLogisticRequestFaskes()
     {
         Storage::fake('photos');
-        Mail::fake();
         Notification::fake();
 
         $logisticItems[] = [
             'usage' => $this->faker->text,
             'priority' => 'Menengah',
             'product_id' => rand(1,200),
-            'brand' => $this->faker->text,
+            'description' => $this->faker->text,
             'quantity' => rand(1,99999),
             'unit' => 'PCS'
         ];
@@ -203,14 +202,13 @@ class LogisticRequestTest extends TestCase
     public function testStoreLogisticRequestNonFaskes()
     {
         Storage::fake('photos');
-        Mail::fake();
         Notification::fake();
 
         $logisticItems[] = [
             'usage' => $this->faker->text,
             'priority' => 'Menengah',
             'product_id' => rand(1,200),
-            'brand' => $this->faker->text,
+            'description' => $this->faker->text,
             'quantity' => rand(1,99999),
             'unit' => 'PCS'
         ];
@@ -273,7 +271,6 @@ class LogisticRequestTest extends TestCase
     public function testPostRequestVerifying()
     {
         Storage::fake('photos');
-        Mail::fake();
         Notification::fake();
 
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/logistic-request/verification', [
@@ -285,10 +282,24 @@ class LogisticRequestTest extends TestCase
         $response->assertSuccessful();
     }
 
+    public function testPostRequestRejectVerification()
+    {
+        Storage::fake('photos');
+        Notification::fake();
+
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/logistic-request/verification', [
+            'agency_id' => $this->applicant->id,
+            'applicant_id' => $this->applicant->agency_id,
+            'verification_status' => ApplicantStatusEnum::rejected(),
+            'note' => $this->faker->text,
+            'url' => 'http:://localhost/#',
+        ]);
+        $response->assertSuccessful();
+    }
+
     public function testPostRequestApproval()
     {
         Storage::fake('photos');
-        Mail::fake();
         Notification::fake();
 
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/logistic-request/approval', [
@@ -300,21 +311,35 @@ class LogisticRequestTest extends TestCase
         $response->assertSuccessful();
     }
 
-    // Need future Investigation for HTTP::fake or GuzzleHTTP fake
-    // public function testPostRequestFinal()
-    // {
-    //     Storage::fake('photos');
-    //     Mail::fake();
-    //     Notification::fake();
+    public function testPostRequestRejectedApproval()
+    {
+        Storage::fake('photos');
+        Notification::fake();
 
-    //     $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/logistic-request/final', [
-    //         'agency_id' => $this->applicant->id,
-    //         'applicant_id' => $this->applicant->agency_id,
-    //         'approval_status' => ApplicantStatusEnum::approved(),
-    //         'url' => 'http:://localhost/#',
-    //     ]);
-    //     $response->assertSuccessful();
-    // }
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/logistic-request/approval', [
+            'agency_id' => $this->applicant->id,
+            'applicant_id' => $this->applicant->agency_id,
+            'approval_status' => ApplicantStatusEnum::rejected(),
+            'approval_note' => $this->faker->text,
+            'url' => 'http:://localhost/#',
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testPostRequestFinal()
+    {
+        Storage::fake('photos');
+        Notification::fake();
+
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/logistic-request/final', [
+            'agency_id' => $this->applicant->id,
+            'applicant_id' => $this->applicant->agency_id,
+            'approval_status' => ApplicantStatusEnum::approved(),
+            'url' => 'http:://localhost/#',
+        ]);
+        // This should assert successful but failed beause need integration API
+        $response->assertSuccessful();
+    }
 
     public function testPostRequestSetUrgency()
     {
