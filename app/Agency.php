@@ -62,16 +62,17 @@ class Agency extends Model
     {
         $isRecommendationPhase = $request->input('verification_status') == Applicant::STATUS_VERIFIED && $request->input('approval_status') == Applicant::STATUS_NOT_APPROVED;
         $isRealizationPhase = $request->input('verification_status') == Applicant::STATUS_VERIFIED && $request->input('approval_status') == Applicant::STATUS_APPROVED;
-        return $query->orderBy('applicants.is_urgency', 'desc')
-                     ->orderBy('master_faskes.is_reference', 'desc')
-                     ->when($isRealizationPhase, function ($query) {
-                        $query->orderBy('applicants.approved_at', 'asc');
-                     })
-                     ->when($isRecommendationPhase, function ($query) {
-                        $query->orderBy('applicants.verified_at', 'asc');
-                     }, function ($query) {
-                        $query->orderBy('agency.created_at', 'asc');
-                     });
+        return $query
+                    ->when($isRealizationPhase, function ($query) {
+                        $query
+                            ->orderBy('applicants.finalized_at', 'asc')
+                            ->orderBy('applicants.approved_at', 'desc');
+                    })
+                    ->when($isRecommendationPhase, function ($query) {
+                        $query->orderBy('applicants.verified_at', 'desc');
+                    }, function ($query) {
+                        $query->orderBy('agency.created_at', 'desc');
+                    });
     }
 
     public function scopeGetDefaultWith($query)

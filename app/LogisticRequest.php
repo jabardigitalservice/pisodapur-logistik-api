@@ -3,20 +3,16 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\FileUpload;
-use App\Agency;
-use App\Needs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
-use App\User;
 use App\Notifications\ChangeStatusNotification;
+use JWTAuth;
 use App\Applicant;
 use App\LogisticRealizationItems;
 use App\Validation;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\LogisticRequestResource;
-use App\WmsJabar;
 use Illuminate\Http\Response;
 
 class LogisticRequest extends Model
@@ -44,7 +40,7 @@ class LogisticRequest extends Model
             'applicant_name' => 'required|string',
             'primary_phone_number' => 'required|numeric',
             'logistic_request' => 'required',
-            'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
+            'letter_file' => 'required|file|max:10240',
             'application_letter_number' => 'required|string'
         ];
 
@@ -86,7 +82,7 @@ class LogisticRequest extends Model
             $response = response()->format(Response::HTTP_OK, 'success', new LogisticRequestResource($responseData));
         } catch (\Exception $exception) {
             DB::rollBack();
-            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $responseData);
+            $response = response()->format(Response::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage(), $exception->getTrace());
         }
         return $response;
     }
@@ -245,10 +241,10 @@ class LogisticRequest extends Model
         $param['step'] = 'finalized';
         $param['phase'] = 'final';
         $response = self::getResponseApproval($request, $param);
-        // Handling Poslog Integration
-        if ($response->getStatusCode() == Response::HTTP_OK) {
-            $response = WmsJabar::sendPing();
-        }
+        // handling integration to poslog
+        // if ($response->getStatusCode() == Response::HTTP_OK) {
+        //     WmsJabar::sendPing();
+        // }
         return $response;
     }
 
