@@ -44,7 +44,7 @@ class StoreRequest extends FormRequest
                 'recommendation_unit' => 'required_if:store_type,recommendation|string',
                 'realization_quantity' => 'required_if:store_type,realization|numeric',
                 'realization_date' => 'required_if:store_type,realization|date',
-                'realization_unit' => 'required_if:store_type,realization|string',
+                'realization_unit_id' => 'required_if:store_type,realization|string',
                 'material_group' => 'exclude_if:store_type,realization|nullable',
             ];
         }
