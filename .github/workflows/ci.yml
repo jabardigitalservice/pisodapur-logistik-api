@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - development
+      - master
 
 jobs:
   laravel-tests:
