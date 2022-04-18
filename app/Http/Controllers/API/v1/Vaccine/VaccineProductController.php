@@ -13,7 +13,9 @@ class VaccineProductController extends Controller
     {
         $data = VaccineProduct::when($request->input('category'), function ($query) use ($request) {
                 $query->where('category', $request->input('category'));
-            })->get();
+            })
+            ->orderBy('name')
+            ->get();
         return response()->format(Response::HTTP_OK, 'success', $data);
     }
 }
