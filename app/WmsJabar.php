@@ -22,10 +22,11 @@ class WmsJabar extends Usage
     {
         try {
             $param = $config['param'];
-            $apiLink = config('wmsjabar.url');
-            $apiKey = config('wmsjabar.key');
+            $apiLink = $config['url_type'] == 'vaccine' ? config('wmsposlogvaksin.url') : config('wmsjabar.url');
+            $apiKey = $config['url_type'] == 'vaccine' ? config('wmsposlogvaksin.key') : config('wmsjabar.key');
             $apiFunction = $config['apiFunction'];
             $url = $apiLink . $apiFunction;
+
             $attributes = [
                 'headers' => [
                     'accept' => 'application/json',
@@ -51,6 +52,7 @@ class WmsJabar extends Usage
             // Send Notification to WMS Jabar Poslog
             $config['param'] = [];
             $config['apiFunction'] = '/api/pingme';
+            $config['url_type'] = 'medical';
             $res = self::callAPI($config);
 
             $outboundPlans = [];
@@ -104,6 +106,7 @@ class WmsJabar extends Usage
             // Send Notification to WMS Jabar Poslog
             $config['param']['request_id'] = $request->input('request_id');
             $config['apiFunction'] = '/api/outbound_fReqID';
+            $config['url_type'] = 'medical';
             $res = self::callAPI($config);
 
             $outboundPlans = json_decode($res->getBody(), true);

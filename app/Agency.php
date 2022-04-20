@@ -77,12 +77,7 @@ class Agency extends Model
 
     public function scopeGetDefaultWith($query)
     {
-        return $query->with([
-            'masterFaskes',
-            'masterFaskesType',
-            'city',
-            'subDistrict',
-            'village',
+        return $query->with(['masterFaskes', 'masterFaskesType', 'city', 'subDistrict', 'village',
             'applicant' => function ($query) {
                 $query->select([ 'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', DB::raw('concat(approval_status, "-", verification_status) as status'), DB::raw('concat(approval_status, "-", verification_status) as statusDetail'), 'finalized_by', 'finalized_at', 'is_urgency', 'is_integrated' ])
                       ->active()

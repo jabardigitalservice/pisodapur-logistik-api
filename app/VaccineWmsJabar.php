@@ -19,6 +19,7 @@ class VaccineWmsJabar extends WmsJabar
         try {
             $config['param']['soh_location'] = 'WHS_VAKSIN';
             $config['apiFunction'] = '/api_vaksin/index.php?route=soh_flocation';
+            $config['url_type'] = 'vaccine';
             $res = self::callAPI($config);
 
             $data = json_decode($res->getBody(), true);
@@ -42,6 +43,7 @@ class VaccineWmsJabar extends WmsJabar
         try {
             $config['param'] = $param;
             $config['apiFunction'] = '/api_vaksin/index.php?route=soh_fmaterial';
+            $config['url_type'] = 'vaccine';
             $res = self::callAPI($config);
 
             $data = json_decode($res->getBody(), true);
@@ -110,6 +112,7 @@ class VaccineWmsJabar extends WmsJabar
         try {
             $config = self::setStoreRequest($vaccineRequest);
             $config['apiFunction'] = '/api_vaksin/index.php?route=pingme_v2';
+            $config['url_type'] = 'vaccine';
             $res = self::callAPI($config, 'post');
 
             $data = json_decode($res->getBody(), true);
