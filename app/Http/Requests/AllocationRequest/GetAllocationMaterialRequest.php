@@ -27,7 +27,7 @@ class GetAllocationMaterialRequest extends FormRequest
             'limit' => 'nullable|numeric',
             'page' => 'nullable|numeric',
             'is_paginated' => 'boolean',
-            'matg_id' => 'nullable|exists:allocation_materials,matg_id',
+            'matg_id' => 'nullable',
         ];
     }
 }

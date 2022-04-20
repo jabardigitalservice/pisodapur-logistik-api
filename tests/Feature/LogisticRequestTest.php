@@ -338,7 +338,7 @@ class LogisticRequestTest extends TestCase
             'url' => 'http:://localhost/#',
         ]);
         // This should assert successful but failed beause need integration API
-        $response->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR);
+        $response->assertSuccessful();
     }
 
     public function testPostRequestSetUrgency()

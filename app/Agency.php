@@ -62,26 +62,22 @@ class Agency extends Model
     {
         $isRecommendationPhase = $request->input('verification_status') == Applicant::STATUS_VERIFIED && $request->input('approval_status') == Applicant::STATUS_NOT_APPROVED;
         $isRealizationPhase = $request->input('verification_status') == Applicant::STATUS_VERIFIED && $request->input('approval_status') == Applicant::STATUS_APPROVED;
-        return $query->orderBy('applicants.is_urgency', 'desc')
-                     ->orderBy('master_faskes.is_reference', 'desc')
-                     ->when($isRealizationPhase, function ($query) {
-                        $query->orderBy('applicants.approved_at', 'asc');
-                     })
-                     ->when($isRecommendationPhase, function ($query) {
-                        $query->orderBy('applicants.verified_at', 'asc');
-                     }, function ($query) {
-                        $query->orderBy('agency.created_at', 'asc');
-                     });
+        return $query
+                    ->when($isRealizationPhase, function ($query) {
+                        $query
+                            ->orderBy('applicants.finalized_at', 'asc')
+                            ->orderBy('applicants.approved_at', 'desc');
+                    })
+                    ->when($isRecommendationPhase, function ($query) {
+                        $query->orderBy('applicants.verified_at', 'desc');
+                    }, function ($query) {
+                        $query->orderBy('agency.created_at', 'desc');
+                    });
     }
 
     public function scopeGetDefaultWith($query)
     {
-        return $query->with([
-            'masterFaskes',
-            'masterFaskesType',
-            'city',
-            'subDistrict',
-            'village',
+        return $query->with(['masterFaskes', 'masterFaskesType', 'city', 'subDistrict', 'village',
             'applicant' => function ($query) {
                 $query->select([ 'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number', 'verified_by', 'verified_at', 'approved_by', 'approved_at', DB::raw('concat(approval_status, "-", verification_status) as status'), DB::raw('concat(approval_status, "-", verification_status) as statusDetail'), 'finalized_by', 'finalized_at', 'is_urgency', 'is_integrated' ])
                       ->active()

@@ -205,7 +205,7 @@ class LogisticRequestController extends Controller
 
     public function uploadLetter(Request $request, $id)
     {
-        $param['letter_file'] = 'required|mimes:jpeg,jpg,png,pdf|max:10240';
+        $param['letter_file'] = 'required|file|max:10240';
         $param['agency_id'] = 'required';
         $param['applicant_id'] = 'required';
         $param['update_type'] = 'required';
@@ -222,7 +222,7 @@ class LogisticRequestController extends Controller
     public function uploadApplicantFile(Request $request, $id)
     {
         $param = [
-            'applicant_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240'
+            'applicant_file' => 'required|file|max:10240'
         ];
         $response = Validation::validate($request, $param);
         if ($response->getStatusCode() === Response::HTTP_OK) {

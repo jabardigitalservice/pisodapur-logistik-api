@@ -80,7 +80,8 @@ class LogisticRealizationItemTest extends TestCase
         $param['need_id'] = rand();
         $param['realization_quantity'] = rand(1, 1000);
         $param['realization_date'] = date('Y-m-d');
-        $param['realization_unit'] = 'PCS';
+        $param['realization_unit'] = null;
+        $param['realization_unit_id'] = 'PCS';
 
         $this
             ->actingAs($this->admin, 'api')

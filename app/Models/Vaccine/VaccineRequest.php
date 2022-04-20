@@ -61,6 +61,7 @@ class VaccineRequest extends Model
     static function add($request)
     {
         $user = auth()->user();
+
         $vaccineRequest = [
             'agency_id' => $request->input('master_faskes_id'),
             'agency_type_id' => $request->input('agency_type'),
