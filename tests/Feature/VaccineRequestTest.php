@@ -10,6 +10,7 @@ use App\Enums\Vaccine\VaccineProductCategoryEnum;
 use App\Enums\VaccineProductRequestStatusEnum;
 use App\Enums\VaccineRequestStatusEnum;
 use App\Models\MedicalFacility;
+use App\Models\MedicalFacilityType;
 use App\Subdistrict;
 use App\Models\Vaccine\VaccineRequest;
 use App\VaccineProductRequest;
@@ -253,7 +254,6 @@ class VaccineRequestTest extends TestCase
             ->assertJsonStructure([
                 'message',
                 'errors' => [
-                    'master_faskes_id' => [],
                     'agency_type' => [],
                     'agency_name' => [],
                     'location_district_code' => [],
@@ -279,6 +279,25 @@ class VaccineRequestTest extends TestCase
     public function testCreateVaccineRequest()
     {
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
+        $response->assertSuccessful();
+    }
+
+    public function testCreateVaccineRequestOtherInstance()
+    {
+        MedicalFacilityType::insert([
+            'id' => 99,
+            'name' => 'Instansi Lainnya'
+        ]);
+
+        $vaccineRequestPayload = $this->vaccineRequestPayload;
+
+        $vaccineRequestPayload['master_faskes_id'] = null;
+        $vaccineRequestPayload['agency_type'] = 99;
+        $vaccineRequestPayload['agency_name'] = $this->faker->company;
+        $vaccineRequestPayload['phone_number'] = $this->faker->phoneNumber;
+        $vaccineRequestPayload['location_address'] = $this->faker->address;
+
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $vaccineRequestPayload);
         $response->assertSuccessful();
     }
 

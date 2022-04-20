@@ -12,6 +12,7 @@ use App\Http\Requests\VaccineRequest\GetVaccineRequest;
 use App\Http\Requests\VaccineRequest\UpdateStatusVaccineRequest;
 use App\Http\Resources\VaccineRequestResource;
 use App\Mail\Vaccine\ConfirmEmailNotification;
+use App\Models\MedicalFacility;
 use App\Models\Vaccine\VaccineRequestStatusNote;
 use App\VaccineProductRequest;
 use App\VaccineWmsJabar;
@@ -49,6 +50,23 @@ class VaccineRequestController extends Controller
             if ($request->hasFile('applicant_file')) {
                 $request->merge(['applicant_file_url' => Storage::put(FileUpload::APPLICANT_IDENTITY_PATH, $request->file('applicant_file'))]);
             }
+
+            if ($request->agency_type == 99) {
+                $medicalData = [
+                    'name' => $request->agency_name,
+                    'medical_facility_type_id' => $request->agency_type,
+                    'city_id' => $request->location_district_code,
+                    'district_id' => $request->location_subdistrict_code,
+                    'village_id' => $request->location_village_code,
+                    'address' => $request->location_address,
+                    'phone' => $request->phone_number
+                ];
+
+                $medicalFacility = MedicalFacility::create($medicalData);
+
+                $request->merge(['master_faskes_id' => $medicalFacility->id]);
+            }
+
             $data = VaccineRequest::add($request);
             $request->merge(['vaccine_request_id' => $data->id]);
             $data['need'] = VaccineProductRequest::add($request);
