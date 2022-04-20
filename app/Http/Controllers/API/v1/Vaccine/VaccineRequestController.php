@@ -52,18 +52,7 @@ class VaccineRequestController extends Controller
             }
 
             if ($request->agency_type == 99) {
-                $medicalData = [
-                    'name' => $request->agency_name,
-                    'medical_facility_type_id' => $request->agency_type,
-                    'city_id' => $request->location_district_code,
-                    'district_id' => $request->location_subdistrict_code,
-                    'village_id' => $request->location_village_code,
-                    'address' => $request->location_address,
-                    'phone' => $request->phone_number
-                ];
-
-                $medicalFacility = MedicalFacility::create($medicalData);
-
+                $medicalFacility = $this->addMedicalFacility($request);
                 $request->merge(['master_faskes_id' => $medicalFacility->id]);
             }
 
@@ -78,6 +67,19 @@ class VaccineRequestController extends Controller
             $response = response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage(), $exception->getTrace());
         }
         return $response;
+    }
+
+    public function addMedicalFacility($request)
+    {
+        return MedicalFacility::create([
+            'name' => $request->agency_name,
+            'medical_facility_type_id' => $request->agency_type,
+            'city_id' => $request->location_district_code,
+            'district_id' => $request->location_subdistrict_code,
+            'village_id' => $request->location_village_code,
+            'address' => $request->location_address,
+            'phone' => $request->phone_number
+        ]);
     }
 
     public function update(VaccineRequest $vaccineRequest, UpdateStatusVaccineRequest $request)
