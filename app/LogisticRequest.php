@@ -28,7 +28,7 @@ class LogisticRequest extends Model
         ];
     }
 
-    static function setParamStore(Request $request)
+    static function setParamStore($request)
     {
         $param = [
             'master_faskes_id' => 'required|numeric',
