@@ -118,7 +118,11 @@ class VaccineWmsJabar extends WmsJabar
             $data = json_decode($res->getBody(), true);
 
             if (!isset($data['result'])) {
-                return response()->format($data['stt'], 'Failed at WMS Poslog: ' . $data['msg'], $data['error']);
+                return response()->format($data['stt'], 'Failed at WMS Poslog: ' . $data['msg'],
+                [
+                    'poslog_error' => $data,
+                    'config_data' => $config
+                ]);
             }
 
             $lo = $data['result'];
