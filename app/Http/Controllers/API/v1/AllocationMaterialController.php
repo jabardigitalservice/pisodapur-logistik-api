@@ -16,6 +16,7 @@ class AllocationMaterialController extends Controller
     public function index(GetAllocationMaterialRequest $request)
     {
         if ($this->checkOutdated()) {
+            AllocationMaterial::truncate();
             VaccineWmsJabar::getAllVaccineMaterial();
         }
 
