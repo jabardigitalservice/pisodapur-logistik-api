@@ -28,11 +28,11 @@ class StoreMasterFaskesRequest extends FormRequest
         return [
             'nama_faskes' => 'required',
             'id_tipe_faskes' => 'required|numeric|exists:master_faskes_types,id',
-            'nomor_telepon' => 'required|numeric',
-            'kode_kab_kemendagri' => 'required|exists:districtcities,kemendagri_kabupaten_kode',
-            'kode_kec_kemendagri' => 'required|exists:subdistricts,kemendagri_kecamatan_kode',
-            'kode_kel_kemendagri' => 'required|exists:villages,kemendagri_desa_kode',
-            'alamat' => 'required',
+            'nomor_telepon' => 'numeric',
+            'kode_kab_kemendagri' => 'exists:districtcities,kemendagri_kabupaten_kode',
+            'kode_kec_kemendagri' => 'exists:subdistricts,kemendagri_kecamatan_kode',
+            'kode_kel_kemendagri' => 'exists:villages,kemendagri_desa_kode',
+            'alamat' => 'nullable',
             'permit_file' => 'mimes:jpeg,jpg,png|max:10240',
             'verification_status' => [new EnumRule(MasterFaskesVerificationStatusEnum::class)],
         ];
