@@ -6,7 +6,7 @@ use App\LogisticRealizationItems;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreRequest extends FormRequest
+    class StoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -31,7 +31,7 @@ class StoreRequest extends FormRequest
             'agency_id' => 'required|numeric',
             'applicant_id' => 'required|numeric',
             'need_id' => 'required|numeric',
-            'product_id' => 'required|string',
+            'product_id' => 'string',
             'status' => ['required', Rule::in(LogisticRealizationItems::STATUS)],
             'store_type' => 'required|string',
             'product_name' => 'nullable',
