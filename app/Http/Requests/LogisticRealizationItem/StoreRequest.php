@@ -31,7 +31,7 @@ class StoreRequest extends FormRequest
             'agency_id' => 'required|numeric',
             'applicant_id' => 'required|numeric',
             'need_id' => 'required|numeric',
-            'product_id' => 'required|string',
+            'product_id' => 'nullable|string',
             'status' => ['required', Rule::in(LogisticRealizationItems::STATUS)],
             'store_type' => 'required|string',
             'product_name' => 'nullable',
