@@ -97,6 +97,10 @@ class VaccineRequestController extends Controller
                 Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $status));
                 break;
 
+            case VaccineRequestStatusEnum::finalized():
+                Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, VaccineRequestStatusEnum::finalized()));
+                break;
+
             case VaccineRequestStatusEnum::integrated():
                 $response = VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
                 if ($response->getStatusCode() != Response::HTTP_OK) {
