@@ -148,10 +148,47 @@ class VerifiedEmailNotification extends Mailable
             ->where('vaccine_request_id', $this->vaccineRequest->id)
             ->get();
 
+        foreach ($this->table as $key => $val) {
+            $this->table[$key]->finalized_status = $this->getStatusValue($val->finalized_status);
+
+        }
+
         $this->texts[] = '';
 
         $this->notes[] = '<b>Lacak Permohonan</b>';
         $this->notes[] = 'Lacak permohonan Anda melalui nomor Whatsapp Admin Logistik Vaksin Pikobar <a href="bit.ly/AdmLogVaksin">bit.ly/AdmLogVaksin</a>';
         $this->notes[] = '';
+    }
+
+    public function getStatusValue($status = '')
+    {
+        $result = '';
+        switch ($status) {
+
+            case VaccineProductRequestStatusEnum::approved():
+                $result = 'Barang Disetujui';
+                break;
+
+            case VaccineProductRequestStatusEnum::not_available():
+                $result = 'Barang Tidak Tersedia';
+                break;
+
+            case VaccineProductRequestStatusEnum::replaced():
+                $result = 'Barang Diganti';
+                break;
+
+            case VaccineProductRequestStatusEnum::not_yet_fulfilled():
+                $result = 'Barang Belum Bisa Dipenuhi';
+                break;
+
+            case VaccineProductRequestStatusEnum::urgent():
+                $result = 'Barang Penting';
+                break;
+
+            case VaccineProductRequestStatusEnum::other():
+                $result = 'Barang Lainnya';
+                break;
+        }
+        return $result;
     }
 }

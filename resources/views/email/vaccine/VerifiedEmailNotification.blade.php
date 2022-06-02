@@ -57,16 +57,16 @@
                 </tr>
 
                 @foreach ($tables as $key => $table)
-                    <tr>
-                        <td>{{ ($key + 1) }}</td>
-                        <td>{{ optional($table->vaccineProduct)->name }}</td>
-                        <td>{{ $table->quantity }}</td>
-                        <td>{{ $table->unit }}</td>
-                        <td>{{ $table->finalized_status }}</td>
-                        <td>{{ $table->finalized_product_name }}</td>
-                        <td>{{ $table->finalized_quantity }}</td>
-                        <td>{{ $table->finalized_UoM }}</td>
-                    </tr>
+                <tr>
+                    <td>{{ ($key + 1) }}</td>
+                    <td>{{ optional($table->vaccineProduct)->name }}</td>
+                    <td>{{ $table->quantity }}</td>
+                    <td>{{ $table->unit }}</td>
+                    <td>{{ $table->finalized_status }}</td>
+                    <td>{{ $table->finalized_product_name }}</td>
+                    <td>{{ $table->finalized_quantity }}</td>
+                    <td>{{ $table->finalized_UoM }}</td>
+                </tr>
                 @endforeach
 
             </table>
