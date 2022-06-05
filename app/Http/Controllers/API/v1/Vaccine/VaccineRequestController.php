@@ -12,8 +12,10 @@ use App\Http\Requests\VaccineRequest\GetVaccineRequest;
 use App\Http\Requests\VaccineRequest\UpdateStatusVaccineRequest;
 use App\Http\Resources\VaccineRequestResource;
 use App\Mail\Vaccine\ConfirmEmailNotification;
+use App\Mail\Vaccine\VerifiedEmailNotification;
 use App\Models\MedicalFacility;
 use App\Models\Vaccine\VaccineRequestStatusNote;
+use App\Notifications\Vaccine\VaccineStatusNotification;
 use App\VaccineProductRequest;
 use App\VaccineWmsJabar;
 use Carbon\Carbon;
@@ -87,6 +89,16 @@ class VaccineRequestController extends Controller
         switch ($request->status) {
             case VaccineRequestStatusEnum::verified():
                 VaccineRequestStatusNote::insertData($request, $vaccineRequest->id);
+
+                $status = VaccineRequestStatusEnum::verified();
+                if ($request->vaccine_status_note) {
+                    $status = VaccineRequestStatusEnum::verified_with_note();
+                }
+                Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $status));
+                break;
+
+            case VaccineRequestStatusEnum::finalized():
+                Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, VaccineRequestStatusEnum::finalized()));
                 break;
 
             case VaccineRequestStatusEnum::integrated():

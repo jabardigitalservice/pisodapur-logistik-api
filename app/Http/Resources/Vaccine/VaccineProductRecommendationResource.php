@@ -31,7 +31,9 @@ class VaccineProductRecommendationResource extends JsonResource
         'reason' => $this->recommendation_reason,
         'file_url' => $this->recommendation_file_url,
         'created_at' => $this->created_at,
-        'updated_at' => $this->updated_at
+        'updated_at' => $this->updated_at,
+        'recommendation_date' => $this->recommendation_date,
+        'finalized_date' => $this->finalized_date,
     ];
   }
 }

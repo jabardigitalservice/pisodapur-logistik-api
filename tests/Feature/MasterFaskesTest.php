@@ -102,11 +102,9 @@ class MasterFaskesTest extends TestCase
         $data = [
             'nama_faskes' => $faskesName,
             'id_tipe_faskes' => 5,
-            'nomor_telepon' => '+6281098765432',
-            'kode_kab_kemendagri' => '32.01',
-            'kode_kec_kemendagri' => '32.01.01',
-            'kode_kel_kemendagri' => '32.01.01.1001',
-            'alamat' => 'jl. ' . $this->faker->company . ' No. ' . rand()
+            'nama_atasan' => $this->faker->name,
+            'nomor_izin_sarana' => 'NOMOR/IZIN/SARANA/' . rand(),
+            'nomor_registrasi' => 'NOMOR/IZIN/REGISTRASI/' . rand(),
         ];
 
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/master-faskes', $data);
