@@ -66,16 +66,12 @@ class VerifiedEmailNotification extends Mailable
                 $this->subject = '[INFO] Permohonan Logistik Vaksin - Telah Realisasi';
                 $this->setMessageFinalized();
                 break;
-
-            default:
-                # code...
-                break;
         }
     }
 
     public function getContent()
     {
-        return $this->markdown('email.vaccine.verifiedEmailNotification')
+        return $this->markdown('email.vaccine.verified-email-notification')
                     ->subject($this->subject)
                     ->with([
                         'data' => $this->vaccineRequest,
