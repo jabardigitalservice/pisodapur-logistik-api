@@ -2,6 +2,7 @@
 
 namespace App\Models\Vaccine;
 
+use App\Enums\VaccineRequestStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class VaccineRequest extends Model
@@ -120,7 +121,34 @@ class VaccineRequest extends Model
                         $query->where('agency_type_id', $request->input('faskes_type'));
                     })
                     ->isLetterFileFinal($request)
-                    ->whereHasMedicalFacility($request);
+                    ->verificationStatusFilter($request)
+                    ->searchFilter($request);
+    }
+
+    public function scopeVerificationStatusFilter($query, $request)
+    {
+        $query->when($request->input('verification_status'), function ($query) use ($request) {
+            switch ($request->verification_status) {
+                case VaccineRequestStatusEnum::not_verified():
+                    $query->where('status', VaccineRequestStatusEnum::not_verified());
+                    break;
+
+                case VaccineRequestStatusEnum::verified():
+                    $query
+                        ->where('status', '!=', VaccineRequestStatusEnum::not_verified())
+                        ->whereDoesntHave('vaccineRequestStatusNotes');
+                    break;
+
+
+                case VaccineRequestStatusEnum::verified_with_note():
+                    $query
+                        ->where('status', '!=', VaccineRequestStatusEnum::not_verified())
+                        ->whereHas('vaccineRequestStatusNotes');
+                    break;
+
+            }
+        });
+        return $query;
     }
 
     public function scopeWhenHasDate($query, $request)
@@ -141,14 +169,20 @@ class VaccineRequest extends Model
         return $query;
     }
 
-    public function scopeWhereHasMedicalFacility($query, $request)
+    public function scopeSearchFilter($query, $request)
     {
-        $query->whereHas('medicalFacility', function ($query) use ($request) {
-            $query
-                ->when($request->input('search'), function ($query) use ($request) {
-                    $query->where('name', 'like', '%' . $request->input('search') . '%');
-                });
+        $query->when($request->input('search'), function ($query) use ($request) {
+            $query->where(function ($query) use ($request) {
+                $query
+                    ->whereHas('village', function ($query) use ($request) {
+                        $query->where('kemendagri_kabupaten_nama', $request->input('search'));
+                    })
+                    ->orWhere('agency_name', 'like', '%' . $request->input('search') . '%')
+                    ->orWhere('id', $request->input('search'));
+            });
         });
+
+
         return $query;
     }
 
