@@ -120,7 +120,7 @@ class VaccineRequest extends Model
                         $query->where('agency_type_id', $request->input('faskes_type'));
                     })
                     ->isLetterFileFinal($request)
-                    ->whereHasMedicalFacility($request);
+                    ->searchFilter($request);
     }
 
     public function scopeWhenHasDate($query, $request)
@@ -141,14 +141,20 @@ class VaccineRequest extends Model
         return $query;
     }
 
-    public function scopeWhereHasMedicalFacility($query, $request)
+    public function scopeSearchFilter($query, $request)
     {
-        $query->whereHas('medicalFacility', function ($query) use ($request) {
-            $query
-                ->when($request->input('search'), function ($query) use ($request) {
-                    $query->where('name', 'like', '%' . $request->input('search') . '%');
-                });
+        $query->when($request->input('search'), function ($query) use ($request) {
+            $query->where(function ($query) use ($request) {
+                $query
+                    ->whereHas('village', function ($query) use ($request) {
+                        $query->where('kemendagri_kabupaten_nama', $request->input('search'));
+                    })
+                    ->orWhere('agency_name', 'like', '%' . $request->input('search') . '%')
+                    ->orWhere('id', $request->input('search'));
+            });
         });
+
+
         return $query;
     }
 
