@@ -2,6 +2,7 @@
 
 namespace App\Models\Vaccine;
 
+use App\Enums\VaccineRequestStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class VaccineRequest extends Model
@@ -120,7 +121,34 @@ class VaccineRequest extends Model
                         $query->where('agency_type_id', $request->input('faskes_type'));
                     })
                     ->isLetterFileFinal($request)
+                    ->verificationStatusFilter($request)
                     ->searchFilter($request);
+    }
+
+    public function scopeVerificationStatusFilter($query, $request)
+    {
+        $query->when($request->input('verification_status'), function ($query) use ($request) {
+            switch ($request->verification_status) {
+                case VaccineRequestStatusEnum::not_verified():
+                    $query->where('status', VaccineRequestStatusEnum::not_verified());
+                    break;
+
+                case VaccineRequestStatusEnum::verified():
+                    $query
+                        ->where('status', '!=', VaccineRequestStatusEnum::not_verified())
+                        ->whereDoesntHave('vaccineRequestStatusNotes');
+                    break;
+
+
+                case VaccineRequestStatusEnum::verified_with_note():
+                    $query
+                        ->where('status', '!=', VaccineRequestStatusEnum::not_verified())
+                        ->whereHas('vaccineRequestStatusNotes');
+                    break;
+
+            }
+        });
+        return $query;
     }
 
     public function scopeWhenHasDate($query, $request)
