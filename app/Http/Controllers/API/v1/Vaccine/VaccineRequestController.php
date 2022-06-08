@@ -34,11 +34,7 @@ class VaccineRequestController extends Controller
             ->sort($request);
 
         if ($request->page_type == 'archive') {
-            $data->select(
-                'id', 'agency_type_id', 'delivery_plan_date',
-                'agency_name', 'is_letter_file_final', 'note',
-                'status', 'agency_village_id'
-            );
+            $data->select( 'id', 'delivery_plan_date', 'agency_name', 'is_letter_file_final', 'note', 'status');
             $resource = VaccineRequestArchiveResource::collection($data->paginate($limit));
         } else {
             $resource = VaccineRequestResource::collection($data->paginate($limit));
