@@ -30,7 +30,6 @@ class VaccineRequestController extends Controller
     {
         $limit = $request->input('limit', 5);
         $data = VaccineRequest::filter($request)
-            ->latest()
             ->sort($request);
         return VaccineRequestResource::collection($data->paginate($limit));
     }

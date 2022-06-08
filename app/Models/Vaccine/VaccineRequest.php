@@ -10,7 +10,7 @@ class VaccineRequest extends Model
     protected $with = [
         'medicalFacility:id,name,poslog_id,poslog_name',
         'medicalFacilityType:id,name',
-        'village',
+        'village:kemendagri_desa_kode,kemendagri_desa_nama,kemendagri_kecamatan_nama,kemendagri_kabupaten_nama',
         'verifiedBy:id,name',
         'approvedBy:id,name',
         'finalizedBy:id,name',
@@ -185,9 +185,11 @@ class VaccineRequest extends Model
 
     public function scopeSort($query, $request)
     {
-        $query->when($request->input('sort'), function ($query) use ($request) {
-            $query->orderBy('agency_name', $request->input('sort'));
-        });
+        if ($request->input('sort_by') && $request->input('order_by')) {
+            $query->orderBy($request->input('sort_by'), $request->input('order_by'));
+        } else {
+            $query->latest();
+        }
         return $query;
     }
 
