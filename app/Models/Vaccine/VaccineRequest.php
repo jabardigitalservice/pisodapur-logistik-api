@@ -174,10 +174,7 @@ class VaccineRequest extends Model
         $query->when($request->input('search'), function ($query) use ($request) {
             $query->where(function ($query) use ($request) {
                 $query
-                    ->whereHas('village', function ($query) use ($request) {
-                        $query->where('kemendagri_kabupaten_nama', $request->input('search'));
-                    })
-                    ->orWhere('agency_name', 'like', '%' . $request->input('search') . '%')
+                    ->where('agency_name', 'like', '%' . $request->input('search') . '%')
                     ->orWhere('id', $request->input('search'));
             });
         });
