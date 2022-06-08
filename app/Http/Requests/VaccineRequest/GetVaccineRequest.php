@@ -30,7 +30,6 @@ class GetVaccineRequest extends FormRequest
             'limit' => 'nullable|numeric',
             'page' => 'nullable|numeric',
             'status' => ['nullable', new EnumRule(VaccineRequestStatusEnum::class)],
-            'sort' => ['nullable', new EnumRule(OrderEnum::class)],
             'is_completed' => 'boolean',
             'is_urgency' => 'boolean',
             'start_date' => 'nullable|required_with:end_date|date',
@@ -38,6 +37,8 @@ class GetVaccineRequest extends FormRequest
             'city_id' => 'nullable|exists:districtcities,kemendagri_kabupaten_kode',
             'faskes_type' => 'nullable|exists:medical_facility_types,id',
             'is_letter_file_final' => 'nullable|boolean',
+            'sort_by' => 'nullable',
+            'order_by' => 'nullable',
         ];
     }
 }
