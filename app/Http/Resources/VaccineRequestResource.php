@@ -17,7 +17,7 @@ class VaccineRequestResource extends JsonResource
       return [
         'id' => $this->id,
         'agency_id' => $this->agency_id,
-        'agency_name' => $this->medicalFacility->name,
+        'agency_name' => $this->agency_name,
         'agency_type_id' => $this->agency_type_id,
         'agency_type_name' => $this->medicalFacilityType->name,
         'agency_phone_number' => $this->agency_phone_number,
