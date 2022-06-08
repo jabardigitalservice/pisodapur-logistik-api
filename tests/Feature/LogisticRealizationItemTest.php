@@ -215,7 +215,35 @@ class LogisticRealizationItemTest extends TestCase
             ]);
     }
 
-    public function testEdit()
+    public function testEditRecommendation()
+    {
+        $param = $this->param;
+        $param['store_type'] = 'recommendation';
+        $param['recommendation_quantity'] = rand(1, 1000);
+        $param['recommendation_date'] = date('Y-m-d');
+        $param['recommendation_unit'] = 'PCS';
+
+        $this
+            ->actingAs($this->admin, 'api')
+            ->json('POST', '/api/v1/logistic-admin-realization', $param);
+
+        $realizationItem = LogisticRealizationItems::first();
+
+        $param = $this->param;
+        $param['store_type'] = 'recommendation';
+        $param['recommendation_quantity'] = rand(1, 1000);
+        $param['recommendation_date'] = date('Y-m-d');
+        $param['recommendation_unit'] = 'PCS';
+        $param['realization_quantity'] = null;
+        $param['realization_date'] =null;
+        $param['realization_unit'] = null;
+
+        $update = $this
+            ->actingAs($this->admin, 'api')->json('PUT', '/api/v1/logistic-admin-realization/' . $realizationItem->id, $param)
+            ->assertSuccessful();
+    }
+
+    public function testEditRealization()
     {
         $param = $this->param;
         $param['store_type'] = 'recommendation';
