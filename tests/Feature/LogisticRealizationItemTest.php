@@ -62,7 +62,7 @@ class LogisticRealizationItemTest extends TestCase
         $param['store_type'] = 'recomendation';
         $param['applicant_id'] = $this->applicant->id;
         $param['need_id'] = rand();
-        $param['recommendation_quantity'] = "1";
+        $param['recommendation_quantity'] = rand(1, 1000);
         $param['recommendation_date'] = date('Y-m-d');
         $param['recommendation_unit'] = 'PCS';
 
@@ -78,7 +78,7 @@ class LogisticRealizationItemTest extends TestCase
         $param['store_type'] = 'realization';
         $param['applicant_id'] = $this->applicant->id;
         $param['need_id'] = rand();
-        $param['realization_quantity'] = "1";
+        $param['realization_quantity'] = rand(1, 1000);
         $param['realization_date'] = date('Y-m-d');
         $param['realization_unit'] = null;
         $param['realization_unit_id'] = 'PCS';
@@ -93,7 +93,7 @@ class LogisticRealizationItemTest extends TestCase
     {
         $param = $this->param;
         $param['store_type'] = 'recommendation';
-        $param['recommendation_quantity'] = "1";
+        $param['recommendation_quantity'] = rand(1, 1000);
         $param['recommendation_date'] = date('Y-m-d');
         $param['recommendation_unit'] = 'PCS';
 
@@ -107,7 +107,7 @@ class LogisticRealizationItemTest extends TestCase
     {
         $param = $this->param;
         $param['store_type'] = 'realization';
-        $param['realization_quantity'] = "1";
+        $param['realization_quantity'] = rand(1, 1000);
         $param['realization_date'] = date('Y-m-d');
         $param['realization_unit'] = 'PCS';
 
@@ -121,7 +121,7 @@ class LogisticRealizationItemTest extends TestCase
     {
         $param = $this->param;
         $param['store_type'] = 'recommendation';
-        $param['recommendation_quantity'] = "1";
+        $param['recommendation_quantity'] = rand(1, 1000);
         $param['recommendation_date'] = date('Y-m-d');
         $param['recommendation_unit'] = 'PCS';
 
@@ -195,7 +195,7 @@ class LogisticRealizationItemTest extends TestCase
     {
         $param = $this->param;
         $param['store_type'] = 'recommendation';
-        $param['recommendation_quantity'] = "1";
+        $param['recommendation_quantity'] = rand(1, 1000);
         $param['recommendation_date'] = date('Y-m-d');
         $param['recommendation_unit'] = 'PCS';
 
@@ -219,7 +219,7 @@ class LogisticRealizationItemTest extends TestCase
     {
         $param = $this->param;
         $param['store_type'] = 'recommendation';
-        $param['recommendation_quantity'] = "1";
+        $param['recommendation_quantity'] = rand(1, 1000);
         $param['recommendation_date'] = date('Y-m-d');
         $param['recommendation_unit'] = 'PCS';
 
@@ -231,7 +231,7 @@ class LogisticRealizationItemTest extends TestCase
 
         $param = $this->param;
         $param['store_type'] = 'realization';
-        $param['realization_quantity'] = "1";
+        $param['realization_quantity'] = rand(1, 1000);
         $param['realization_date'] = date('Y-m-d');
         $param['realization_unit'] = 'PCS';
         $update = $this
