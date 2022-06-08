@@ -39,11 +39,11 @@ class StoreRequest extends FormRequest
 
         if (!in_array($this->status, [LogisticRealizationItems::STATUS_NOT_AVAILABLE, LogisticRealizationItems::STATUS_NOT_YET_FULFILLED])) {
             $params += [
-                'recommendation_quantity' => 'nullable|numeric',
+                'recommendation_quantity' => 'nullable',
                 'recommendation_date' => 'nullable|date',
                 'recommendation_unit' => 'nullable|string',
                 'recommendation_unit_id' => 'nullable|string',
-                'realization_quantity' => 'nullable|numeric',
+                'realization_quantity' => 'nullable',
                 'realization_date' => 'nullable|date',
                 'realization_unit' => 'nullable|string',
                 'realization_unit_id' => 'nullable|string',

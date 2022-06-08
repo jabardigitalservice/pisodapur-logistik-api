@@ -38,10 +38,10 @@ class AddRequest extends FormRequest
 
         if (!in_array($this->status, [LogisticRealizationItems::STATUS_NOT_AVAILABLE, LogisticRealizationItems::STATUS_NOT_YET_FULFILLED])) {
             $params += [
-                'recommendation_quantity' => 'required_if:store_type,recommendation|numeric',
+                'recommendation_quantity' => 'required_if:store_type,recommendation',
                 'recommendation_date' => 'required_if:store_type,recommendation|date',
                 'recommendation_unit' => 'required_if:store_type,recommendation|string',
-                'realization_quantity' => 'required_if:store_type,realization|numeric',
+                'realization_quantity' => 'required_if:store_type,realization',
                 'realization_date' => 'required_if:store_type,realization|date',
                 'realization_unit' => 'required_if:store_type,realization|string',
                 'material_group' => 'exclude_if:store_type,realization|nullable',
