@@ -16,7 +16,7 @@ class StoreVaccineRequest extends FormRequest
         'location_village_code' => 'required|string|exists:villages,kemendagri_desa_kode',
         'applicant_name' => 'required|string',
         'primary_phone_number' => 'required|numeric',
-        'letter_file' => 'required|mimes:jpeg,jpg,png,pdf|max:10240',
+        'letter_file' => 'required|file|max:10240',
         'applicant_file' => 'mimes:jpeg,jpg,png,pdf|max:10240',
         'is_letter_file_final' => 'required|boolean',
         'application_letter_number' => 'required|string',
