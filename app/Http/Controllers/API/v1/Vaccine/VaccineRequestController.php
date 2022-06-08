@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreVaccineRequest;
 use App\Http\Requests\VaccineRequest\GetVaccineRequest;
 use App\Http\Requests\VaccineRequest\UpdateStatusVaccineRequest;
+use App\Http\Resources\VaccineRequestArchiveResource;
 use App\Http\Resources\VaccineRequestResource;
 use App\Mail\Vaccine\ConfirmEmailNotification;
 use App\Mail\Vaccine\VerifiedEmailNotification;
@@ -31,7 +32,18 @@ class VaccineRequestController extends Controller
         $limit = $request->input('limit', 5);
         $data = VaccineRequest::filter($request)
             ->sort($request);
-        return VaccineRequestResource::collection($data->paginate($limit));
+
+        if ($request->page_type == 'archive') {
+            $data->select(
+                'id', 'agency_type_id', 'delivery_plan_date',
+                'agency_name', 'is_letter_file_final', 'note',
+                'status', 'agency_village_id'
+            );
+            $resource = VaccineRequestArchiveResource::collection($data->paginate($limit));
+        } else {
+            $resource = VaccineRequestResource::collection($data->paginate($limit));
+        }
+        return $resource;
     }
 
     public function show($id, Request $request)
