@@ -115,39 +115,23 @@ class VaccineRequestController extends Controller
                     return $response;
                 }
                 break;
-
-            case VaccineRequestStatusEnum::booked():
-                $vaccineRequest->status = VaccineRequestStatusEnum::booked();
-                $vaccineRequest->save();
-                Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, VaccineRequestStatusEnum::booked()));
-                break;
-
-            case VaccineRequestStatusEnum::do():
-                $vaccineRequest->status = VaccineRequestStatusEnum::do();
-                $vaccineRequest->save();
-                Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, VaccineRequestStatusEnum::do()));
-                break;
-
-            case VaccineRequestStatusEnum::intransit():
-                $vaccineRequest->status = VaccineRequestStatusEnum::intransit();
-                $vaccineRequest->save();
-                Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, VaccineRequestStatusEnum::intransit()));
-                break;
         }
 
+        $this->updateProcess($vaccineRequest, $request);
+        return response()->format(Response::HTTP_OK, 'Vaccine request updated');
+    }
+
+    public function updateProcess($vaccineRequest, $request)
+    {
         $vaccineRequest->fill($request->validated());
         $data[$request->status . '_at'] = Carbon::now();
 
-        $user_id = null;
-        if (auth()->user()) {
-            $user_id = auth()->user()->id;
-        } else {
+        $user = auth()->user();
+        if (!auth()->user()) {
+            Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $request->status));
             $user = User::where('username', 'poslog_caesar')->first();
-            $user_id = $user->id;
         }
-        $data[$request->status . '_by'] = $user_id;
-        $vaccineRequest->update($data);
-
-        return response()->format(Response::HTTP_OK, 'Vaccine request updated');
+        $data[$request->status . '_by'] = $user->id;
+        return $vaccineRequest->update($data);
     }
 }
