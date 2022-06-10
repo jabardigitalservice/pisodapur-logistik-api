@@ -12,6 +12,9 @@ use Spatie\Enum\Enum;
  * @method static self approved()
  * @method static self finalized()
  * @method static self integrated()
+ * @method static self booked()
+ * @method static self do()
+ * @method static self intransit()
  * @method static self delivered()
  */
 

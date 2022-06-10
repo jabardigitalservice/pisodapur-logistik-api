@@ -16,7 +16,7 @@ use App\Mail\Vaccine\ConfirmEmailNotification;
 use App\Mail\Vaccine\VerifiedEmailNotification;
 use App\Models\MedicalFacility;
 use App\Models\Vaccine\VaccineRequestStatusNote;
-use App\Notifications\Vaccine\VaccineStatusNotification;
+use App\User;
 use App\VaccineProductRequest;
 use App\VaccineWmsJabar;
 use Carbon\Carbon;
@@ -116,11 +116,21 @@ class VaccineRequestController extends Controller
                 break;
         }
 
+        $this->updateProcess($vaccineRequest, $request);
+        return response()->format(Response::HTTP_OK, 'Vaccine request updated');
+    }
+
+    public function updateProcess($vaccineRequest, $request)
+    {
         $vaccineRequest->fill($request->validated());
         $data[$request->status . '_at'] = Carbon::now();
-        $data[$request->status . '_by'] = auth()->user()->id;
-        $vaccineRequest->update($data);
 
-        return response()->format(Response::HTTP_OK, 'Vaccine request updated');
+        $user = auth()->user();
+        if (!auth()->user()) {
+            Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $request->status));
+            $user = User::where('username', 'poslog_caesar')->first();
+        }
+        $data[$request->status . '_by'] = $user->id;
+        return $vaccineRequest->update($data);
     }
 }
