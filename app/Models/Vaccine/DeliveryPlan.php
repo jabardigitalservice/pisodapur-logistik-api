@@ -8,7 +8,11 @@ class DeliveryPlan extends VaccineRequest
 
     public function scopeDeliveryPlan($query, $request)
     {
-        $query->where('is_integrated', $request->input('is_integrated'));
+        if ($request->input('is_integrated') == 1) {
+            $query->where('status', 'integrated');
+        } else {
+            $query->where('status', 'finalized');
+        }
         return $query;
     }
 }

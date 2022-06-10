@@ -13,11 +13,9 @@ use App\Http\Requests\VaccineRequest\UpdateStatusVaccineRequest;
 use App\Http\Resources\VaccineRequestArchiveResource;
 use App\Http\Resources\VaccineRequestResource;
 use App\Mail\Vaccine\ConfirmEmailNotification;
-use App\Mail\Vaccine\PoslogEmailNotification;
 use App\Mail\Vaccine\VerifiedEmailNotification;
 use App\Models\MedicalFacility;
 use App\Models\Vaccine\VaccineRequestStatusNote;
-use App\Notifications\Vaccine\VaccineStatusNotification;
 use App\User;
 use App\VaccineProductRequest;
 use App\VaccineWmsJabar;
@@ -129,7 +127,7 @@ class VaccineRequestController extends Controller
 
         $user = auth()->user();
         if (!auth()->user()) {
-            Mail::to($vaccineRequest->applicant_email)->send(new PoslogEmailNotification($vaccineRequest, $request->status));
+            Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $request->status));
             $user = User::where('username', 'poslog_caesar')->first();
         }
         $data[$request->status . '_by'] = $user->id;
