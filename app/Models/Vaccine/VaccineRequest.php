@@ -219,21 +219,6 @@ class VaccineRequest extends Model
         return $this->hasOne('App\User', 'id', 'finalized_by');
     }
 
-    public function bookedBy()
-    {
-        return $this->hasOne('App\User', 'id', 'booked_by');
-    }
-
-    public function doBy()
-    {
-        return $this->hasOne('App\User', 'id', 'do_by');
-    }
-
-    public function intransitBy()
-    {
-        return $this->hasOne('App\User', 'id', 'intransit_by');
-    }
-
     public function vaccineRequestStatusNotes()
     {
         return $this->hasMany('App\Models\Vaccine\VaccineRequestStatusNote', 'vaccine_request_id', 'id');
