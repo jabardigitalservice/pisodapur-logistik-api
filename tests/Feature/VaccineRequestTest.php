@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use DB;
 use App\User;
 use App\AllocationMaterial;
 use App\Districtcities;
@@ -382,6 +383,69 @@ class VaccineRequestTest extends TestCase
             'status' => VaccineRequestStatusEnum::integrated()
         ]);
         $response->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR); // This is because need integration with third party.
+    }
+
+    public function testBookedStatusVaccineRequestById()
+    {
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
+        ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->json('PUT', '/api/v1/vaccine-poslog/' . $this->vaccineRequest->id, [
+                'status' => VaccineRequestStatusEnum::booked()
+            ]);
+        $response->assertSuccessful();
+    }
+
+    public function testDoStatusVaccineRequestById()
+    {
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
+        ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->json('PUT', '/api/v1/vaccine-poslog/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::do()
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testIntransitStatusVaccineRequestById()
+    {
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
+        ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->json('PUT', '/api/v1/vaccine-poslog/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::intransit()
+        ]);
+        $response->assertSuccessful();
     }
 
     public function testDeliveredStatusVaccineRequestById()
