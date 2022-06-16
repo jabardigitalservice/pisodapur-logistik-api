@@ -26,7 +26,7 @@ class VaccineRequest extends Model
         'letter_number', 'letter_file_url',
         'applicant_file_url', 'is_letter_file_final',
         'is_completed', 'is_urgency',
-        'status', 'note',
+        'status', 'verification_status', 'note',
         'delivery_plan_date',
         'verified_at', 'verified_by',
         'approved_at', 'approved_by',

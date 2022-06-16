@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\v1\Vaccine;
 
+use App\Enums\Vaccine\VerificationStatusEnum;
 use App\Enums\VaccineRequestStatusEnum;
 use App\FileUpload;
 use App\Models\Vaccine\VaccineRequest;
@@ -34,7 +35,7 @@ class VaccineRequestController extends Controller
             ->sort($request);
 
         if ($request->page_type == 'archive') {
-            $data->select( 'id', 'delivery_plan_date', 'agency_name', 'is_letter_file_final', 'note', 'status');
+            $data->select( 'id', 'delivery_plan_date', 'agency_name', 'is_letter_file_final', 'verification_status', 'note', 'status');
             $resource = VaccineRequestArchiveResource::collection($data->paginate($limit));
         } else {
             $resource = VaccineRequestResource::collection($data->paginate($limit));
@@ -93,15 +94,18 @@ class VaccineRequestController extends Controller
 
     public function update(VaccineRequest $vaccineRequest, UpdateStatusVaccineRequest $request)
     {
+        $vaccineRequest->fill($request->validated());
+        $vaccineRequest->verification_status = VerificationStatusEnum::not_verified();
         switch ($request->status) {
             case VaccineRequestStatusEnum::verified():
                 VaccineRequestStatusNote::insertData($request, $vaccineRequest->id);
-
+                $vaccineRequest->verification_status = VerificationStatusEnum::verified();
                 $status = VaccineRequestStatusEnum::verified();
                 if ($request->vaccine_status_note) {
+                    $vaccineRequest->verification_status = VerificationStatusEnum::verified_with_note();
                     $status = VaccineRequestStatusEnum::verified_with_note();
                 }
-                Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $status));
+                // Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $status));
                 break;
 
             case VaccineRequestStatusEnum::finalized():
@@ -122,7 +126,6 @@ class VaccineRequestController extends Controller
 
     public function updateProcess($vaccineRequest, $request)
     {
-        $vaccineRequest->fill($request->validated());
         $data[$request->status . '_at'] = Carbon::now();
 
         $user = auth()->user();
