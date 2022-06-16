@@ -52,7 +52,7 @@ class ConfirmEmailNotification extends Mailable
 
     public function getContent()
     {
-        return $this->view('email.vaccine.confirmEmailNotification')
+        return $this->view('email.vaccine.confirm-email-notification')
                     ->subject($this->subject)
                     ->with([
                         'data' => $this->vaccineRequest,

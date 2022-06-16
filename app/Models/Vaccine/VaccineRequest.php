@@ -2,6 +2,7 @@
 
 namespace App\Models\Vaccine;
 
+use App\Enums\VaccineRequestStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class VaccineRequest extends Model
@@ -9,7 +10,7 @@ class VaccineRequest extends Model
     protected $with = [
         'medicalFacility:id,name,poslog_id,poslog_name',
         'medicalFacilityType:id,name',
-        'village',
+        'village:kemendagri_desa_kode,kemendagri_desa_nama,kemendagri_kecamatan_nama,kemendagri_kabupaten_nama',
         'verifiedBy:id,name',
         'approvedBy:id,name',
         'finalizedBy:id,name',
@@ -17,32 +18,23 @@ class VaccineRequest extends Model
     ];
 
     protected $fillable = [
-        'agency_id',
-        'agency_type_id',
-        'agency_name',
+        'agency_id', 'agency_type_id', 'agency_name',
         'agency_phone_number',
-        'agency_city_id',
-        'agency_district_id',
-        'agency_village_id',
-        'agency_address',
-        'applicant_fullname',
-        'applicant_position',
-        'applicant_email',
-        'applicant_primary_phone_number',
-        'applicant_secondary_phone_number',
-        'letter_number',
-        'letter_file_url',
-        'applicant_file_url',
-        'is_letter_file_final',
-        'is_completed',
-        'is_urgency',
-        'status',
-        'note',
+        'agency_city_id', 'agency_district_id', 'agency_village_id', 'agency_address',
+        'applicant_fullname', 'applicant_position',
+        'applicant_email', 'applicant_primary_phone_number', 'applicant_secondary_phone_number',
+        'letter_number', 'letter_file_url',
+        'applicant_file_url', 'is_letter_file_final',
+        'is_completed', 'is_urgency',
+        'status', 'note',
         'delivery_plan_date',
         'verified_at', 'verified_by',
         'approved_at', 'approved_by',
         'finalized_at', 'finalized_by',
         'integrated_at', 'integrated_by',
+        'booked_at', 'booked_by',
+        'do_at', 'do_by',
+        'intransit_at', 'intransit_by',
         'delivered_at', 'delivered_by',
     ];
 
@@ -120,7 +112,34 @@ class VaccineRequest extends Model
                         $query->where('agency_type_id', $request->input('faskes_type'));
                     })
                     ->isLetterFileFinal($request)
-                    ->whereHasMedicalFacility($request);
+                    ->verificationStatusFilter($request)
+                    ->searchFilter($request);
+    }
+
+    public function scopeVerificationStatusFilter($query, $request)
+    {
+        $query->when($request->input('verification_status'), function ($query) use ($request) {
+            switch ($request->verification_status) {
+                case VaccineRequestStatusEnum::not_verified():
+                    $query->where('status', VaccineRequestStatusEnum::not_verified());
+                    break;
+
+                case VaccineRequestStatusEnum::verified():
+                    $query
+                        ->where('status', '!=', VaccineRequestStatusEnum::not_verified())
+                        ->whereDoesntHave('vaccineRequestStatusNotes');
+                    break;
+
+
+                case VaccineRequestStatusEnum::verified_with_note():
+                    $query
+                        ->where('status', '!=', VaccineRequestStatusEnum::not_verified())
+                        ->whereHas('vaccineRequestStatusNotes');
+                    break;
+
+            }
+        });
+        return $query;
     }
 
     public function scopeWhenHasDate($query, $request)
@@ -141,22 +160,27 @@ class VaccineRequest extends Model
         return $query;
     }
 
-    public function scopeWhereHasMedicalFacility($query, $request)
+    public function scopeSearchFilter($query, $request)
     {
-        $query->whereHas('medicalFacility', function ($query) use ($request) {
-            $query
-                ->when($request->input('search'), function ($query) use ($request) {
-                    $query->where('name', 'like', '%' . $request->input('search') . '%');
-                });
+        $query->when($request->input('search'), function ($query) use ($request) {
+            $query->where(function ($query) use ($request) {
+                $query
+                    ->where('agency_name', 'like', '%' . $request->input('search') . '%')
+                    ->orWhere('id', $request->input('search'));
+            });
         });
+
+
         return $query;
     }
 
     public function scopeSort($query, $request)
     {
-        $query->when($request->input('sort'), function ($query) use ($request) {
-            $query->orderBy('agency_name', $request->input('sort'));
-        });
+        if ($request->input('sort_by') && $request->input('order_by')) {
+            $query->orderBy($request->input('sort_by'), $request->input('order_by'));
+        } else {
+            $query->latest();
+        }
         return $query;
     }
 

@@ -93,6 +93,8 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/sendping', 'OutboundController@sendPing');
         Route::get('/poslog-notify', 'OutboundController@getNotification');
         Route::get('/update-all-lo', 'OutboundController@updateAll');
+
+        Route::put('/vaccine-poslog/{vaccineRequest}', 'Vaccine\VaccineRequestController@update');
     });
 
     Route::middleware('auth:api')->group(function () {
