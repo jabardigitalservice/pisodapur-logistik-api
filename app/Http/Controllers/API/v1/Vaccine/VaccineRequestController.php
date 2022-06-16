@@ -24,6 +24,7 @@ use App\VaccineWmsJabar;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -95,17 +96,14 @@ class VaccineRequestController extends Controller
     public function update(VaccineRequest $vaccineRequest, UpdateStatusVaccineRequest $request)
     {
         $vaccineRequest->fill($request->validated());
-        $vaccineRequest->verification_status = VerificationStatusEnum::not_verified();
         switch ($request->status) {
             case VaccineRequestStatusEnum::verified():
                 VaccineRequestStatusNote::insertData($request, $vaccineRequest->id);
-                $vaccineRequest->verification_status = VerificationStatusEnum::verified();
                 $status = VaccineRequestStatusEnum::verified();
                 if ($request->vaccine_status_note) {
-                    $vaccineRequest->verification_status = VerificationStatusEnum::verified_with_note();
                     $status = VaccineRequestStatusEnum::verified_with_note();
                 }
-                // Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $status));
+                Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $status));
                 break;
 
             case VaccineRequestStatusEnum::finalized():
@@ -119,8 +117,8 @@ class VaccineRequestController extends Controller
                 }
                 break;
         }
-
         $this->updateProcess($vaccineRequest, $request);
+        Artisan::call('vaccine-logistik:verification-status-generator');
         return response()->format(Response::HTTP_OK, 'Vaccine request updated');
     }
 
