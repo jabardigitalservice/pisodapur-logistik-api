@@ -16,6 +16,7 @@ use App\Http\Resources\VaccineRequestResource;
 use App\Mail\Vaccine\ConfirmEmailNotification;
 use App\Mail\Vaccine\VerifiedEmailNotification;
 use App\Models\MedicalFacility;
+use App\Models\Vaccine\Archive;
 use App\Models\Vaccine\VaccineRequestStatusNote;
 use App\User;
 use App\VaccineProductRequest;
@@ -31,13 +32,12 @@ class VaccineRequestController extends Controller
     public function index(GetVaccineRequest $request)
     {
         $limit = $request->input('limit', 5);
-        $data = VaccineRequest::filter($request)
-            ->sort($request);
 
         if ($request->page_type == 'archive') {
-            $data->select( 'id', 'delivery_plan_date', 'agency_name', 'is_letter_file_final', 'verification_status', 'note', 'status');
-            $resource = VaccineRequestArchiveResource::collection($data->paginate($limit));
+            $resource = $this->archiveList($request);
         } else {
+            $data = VaccineRequest::filter($request)
+                ->sort($request);
             $resource = VaccineRequestResource::collection($data->paginate($limit));
         }
         return $resource;
@@ -135,5 +135,15 @@ class VaccineRequestController extends Controller
         }
         $data[$request->status . '_by'] = $user->id;
         return $vaccineRequest->update($data);
+    }
+
+    public function archiveList($request)
+    {
+        $limit = $request->input('limit', 5);
+        $data = Archive::filter($request)
+            ->sort($request);
+
+        $data->select( 'id', 'delivery_plan_date', 'agency_name', 'is_letter_file_final', 'verification_status', 'note', 'status', 'status_rank');
+        return VaccineRequestArchiveResource::collection($data->paginate($limit));
     }
 }

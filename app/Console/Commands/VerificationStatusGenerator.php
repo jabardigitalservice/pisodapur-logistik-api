@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Enums\Vaccine\VerificationStatusEnum;
+use App\Enums\VaccineRequestStatusEnum;
 use App\Models\Vaccine\VaccineRequest;
 use Illuminate\Console\Command;
 
@@ -39,9 +40,20 @@ class VerificationStatusGenerator extends Command
      */
     public function handle()
     {
-        $vaccineRequest = VaccineRequest::where('status', 'not_verified')->update(['verification_status' => VerificationStatusEnum::not_verified()]);
-        $vaccineRequest = VaccineRequest::where('status', '!=', 'not_verified')->update(['verification_status' => VerificationStatusEnum::verified()]);
-        $vaccineRequest = VaccineRequest::where('status', '!=', 'not_verified')->whereHas('vaccineRequestStatusNotes')->update(['verification_status' => VerificationStatusEnum::verified_with_note()]);
+        VaccineRequest::where('status', VaccineRequestStatusEnum::not_verified())->update(['verification_status' => VerificationStatusEnum::not_verified()]);
+        VaccineRequest::where('status', '!=', VaccineRequestStatusEnum::not_verified())->update(['verification_status' => VerificationStatusEnum::verified()]);
+        VaccineRequest::where('status', '!=', VaccineRequestStatusEnum::not_verified())->whereHas('vaccineRequestStatusNotes')->update(['verification_status' => VerificationStatusEnum::verified_with_note()]);
+
+        VaccineRequest::where('status', VaccineRequestStatusEnum::not_verified())->update(['status_rank' => 0]);
+        VaccineRequest::where('status', VaccineRequestStatusEnum::verified())->update(['status_rank' => 1]);
+        VaccineRequest::where('status', VaccineRequestStatusEnum::approved())->update(['status_rank' => 2]);
+        VaccineRequest::where('status', VaccineRequestStatusEnum::finalized())->update(['status_rank' => 3]);
+        VaccineRequest::where('status', VaccineRequestStatusEnum::integrated())->update(['status_rank' => 4]);
+        VaccineRequest::where('status', VaccineRequestStatusEnum::booked())->update(['status_rank' => 5]);
+        VaccineRequest::where('status', VaccineRequestStatusEnum::do())->update(['status_rank' => 6]);
+        VaccineRequest::where('status', VaccineRequestStatusEnum::intransit())->update(['status_rank' => 7]);
+        VaccineRequest::where('status', VaccineRequestStatusEnum::delivered())->update(['status_rank' => 8]);
+
         return 0;
     }
 }

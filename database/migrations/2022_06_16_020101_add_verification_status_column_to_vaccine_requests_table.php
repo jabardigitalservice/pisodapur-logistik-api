@@ -15,6 +15,7 @@ class AddVerificationStatusColumnToVaccineRequestsTable extends Migration
     {
         Schema::table('vaccine_requests', function (Blueprint $table) {
             $table->tinyInteger('verification_status')->after('status')->default(0);
+            $table->tinyInteger('status_rank')->after('status')->default(0);
         });
     }
 
@@ -27,6 +28,7 @@ class AddVerificationStatusColumnToVaccineRequestsTable extends Migration
     {
         Schema::table('vaccine_requests', function (Blueprint $table) {
             $table->dropColumn('verification_status');
+            $table->dropColumn('status_rank');
         });
     }
 }
