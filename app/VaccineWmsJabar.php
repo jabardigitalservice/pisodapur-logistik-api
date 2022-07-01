@@ -70,13 +70,15 @@ class VaccineWmsJabar extends WmsJabar
     {
         $vaccineProductRequests = [];
         foreach ($vaccineRequest->vaccineProductRequests as $product) {
-            $soh_location = AllocationMaterial::select('soh_location')->where('material_id', $product->finalized_product_id)->first();
-            $vaccineProductRequests[] = [
-                'id' => $product->id,
-                'final_product_id' => $product->finalized_product_id,
-                'final_quantity' => $product->finalized_quantity,
-                'final_soh_location' => $soh_location->soh_location ?? "",
-            ];
+            if ($product->finalized_quantity > 0) {
+                $soh_location = AllocationMaterial::select('soh_location')->where('material_id', $product->finalized_product_id)->first();
+                $vaccineProductRequests[] = [
+                    'id' => $product->id,
+                    'final_product_id' => $product->finalized_product_id,
+                    'final_quantity' => $product->finalized_quantity,
+                    'final_soh_location' => $soh_location->soh_location ?? "",
+                ];
+            }
         }
         return $vaccineProductRequests;
     }

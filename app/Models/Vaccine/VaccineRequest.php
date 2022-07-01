@@ -11,9 +11,7 @@ class VaccineRequest extends Model
         'medicalFacility:id,name,poslog_id,poslog_name',
         'medicalFacilityType:id,name',
         'village:kemendagri_desa_kode,kemendagri_desa_nama,kemendagri_kecamatan_nama,kemendagri_kabupaten_nama',
-        'verifiedBy:id,name',
-        'approvedBy:id,name',
-        'finalizedBy:id,name',
+        'verifiedBy:id,name', 'approvedBy:id,name', 'finalizedBy:id,name',
         'vaccineRequestStatusNotes:vaccine_request_id,vaccine_status_note_id'
     ];
 
@@ -26,16 +24,12 @@ class VaccineRequest extends Model
         'letter_number', 'letter_file_url',
         'applicant_file_url', 'is_letter_file_final',
         'is_completed', 'is_urgency',
-        'status', 'note',
+        'status', 'verification_status', 'note',
         'delivery_plan_date',
-        'verified_at', 'verified_by',
-        'approved_at', 'approved_by',
-        'finalized_at', 'finalized_by',
-        'integrated_at', 'integrated_by',
-        'booked_at', 'booked_by',
-        'do_at', 'do_by',
-        'intransit_at', 'intransit_by',
-        'delivered_at', 'delivered_by',
+        'verified_at', 'verified_by', 'approved_at', 'approved_by',
+        'finalized_at', 'finalized_by', 'integrated_at', 'integrated_by',
+        'booked_at', 'booked_by', 'do_at', 'do_by',
+        'intransit_at', 'intransit_by', 'delivered_at', 'delivered_by',
     ];
 
     public function getLetterFileUrlAttribute($value)

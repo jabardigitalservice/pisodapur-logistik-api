@@ -20,6 +20,8 @@ class VaccineRequestArchiveResource extends JsonResource
         'delivery_plan_date' => $this->delivery_plan_date,
         'is_letter_file_final' => $this->is_letter_file_final,
         'note' => $this->note,
+        'verification_status' => $this->verification_status,
+        'status_rank' => $this->status_rank,
         'vaccine_request_status_notes' => VaccineRequestStatusNoteResource::collection($this->vaccineRequestStatusNotes),
         'status' => $this->status,
       ];
