@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\v1\Vaccine;
 
+use App\Enums\Vaccine\VerificationStatusEnum;
 use App\Enums\VaccineRequestStatusEnum;
 use App\FileUpload;
 use App\Models\Vaccine\VaccineRequest;
@@ -15,6 +16,7 @@ use App\Http\Resources\VaccineRequestResource;
 use App\Mail\Vaccine\ConfirmEmailNotification;
 use App\Mail\Vaccine\VerifiedEmailNotification;
 use App\Models\MedicalFacility;
+use App\Models\Vaccine\Archive;
 use App\Models\Vaccine\VaccineRequestStatusNote;
 use App\User;
 use App\VaccineProductRequest;
@@ -22,6 +24,7 @@ use App\VaccineWmsJabar;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -30,13 +33,12 @@ class VaccineRequestController extends Controller
     public function index(GetVaccineRequest $request)
     {
         $limit = $request->input('limit', 5);
-        $data = VaccineRequest::filter($request)
-            ->sort($request);
 
         if ($request->page_type == 'archive') {
-            $data->select( 'id', 'delivery_plan_date', 'agency_name', 'is_letter_file_final', 'note', 'status');
-            $resource = VaccineRequestArchiveResource::collection($data->paginate($limit));
+            $resource = $this->archiveList($request);
         } else {
+            $data = VaccineRequest::filter($request)
+                ->sort($request);
             $resource = VaccineRequestResource::collection($data->paginate($limit));
         }
         return $resource;
@@ -93,10 +95,10 @@ class VaccineRequestController extends Controller
 
     public function update(VaccineRequest $vaccineRequest, UpdateStatusVaccineRequest $request)
     {
+        $vaccineRequest->fill($request->validated());
         switch ($request->status) {
             case VaccineRequestStatusEnum::verified():
                 VaccineRequestStatusNote::insertData($request, $vaccineRequest->id);
-
                 $status = VaccineRequestStatusEnum::verified();
                 if ($request->vaccine_status_note) {
                     $status = VaccineRequestStatusEnum::verified_with_note();
@@ -115,14 +117,13 @@ class VaccineRequestController extends Controller
                 }
                 break;
         }
-
         $this->updateProcess($vaccineRequest, $request);
+        Artisan::call('vaccine-logistik:verification-status-generator');
         return response()->format(Response::HTTP_OK, 'Vaccine request updated');
     }
 
     public function updateProcess($vaccineRequest, $request)
     {
-        $vaccineRequest->fill($request->validated());
         $data[$request->status . '_at'] = Carbon::now();
 
         $user = auth()->user();
@@ -132,5 +133,15 @@ class VaccineRequestController extends Controller
         }
         $data[$request->status . '_by'] = $user->id;
         return $vaccineRequest->update($data);
+    }
+
+    public function archiveList($request)
+    {
+        $limit = $request->input('limit', 5);
+        $data = Archive::filter($request)
+            ->sort($request);
+
+        $data->select( 'id', 'delivery_plan_date', 'agency_name', 'is_letter_file_final', 'verification_status', 'note', 'status', 'status_rank');
+        return VaccineRequestArchiveResource::collection($data->paginate($limit));
     }
 }
