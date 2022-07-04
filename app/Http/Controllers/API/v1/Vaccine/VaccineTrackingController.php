@@ -8,29 +8,29 @@ use App\Http\Resources\VaccineTrackingResource;
 use App\Models\Vaccine\VaccineRequest;
 use App\Models\Vaccine\VaccineTracking;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class VaccineTrackingController extends Controller
 {
-    public function __invoke(Request $request)
+    public function index(Request $request)
     {
         $request->validate([
             'search' => 'required',
             'id' => 'nullable',
         ]);
 
-        $data = VaccineTracking::tracking($request)->limit(5)->latest()->get();
-        $resource = VaccineTrackingResource::collection($data);
+        $limit = $request->input('limit', 5);
+        $data = VaccineTracking::tracking($request);
+        $resource = VaccineTrackingDetailResource::collection($data->paginate($limit));
+        return $resource;
+    }
 
-        $id = $request->id ?? (count($data) > 0 ? $data[0]->id : null);
-        $detail = VaccineRequest::with([
-            'outbounds.outboundDetails'
-        ])
-        ->findOrFail($id);
-
-        $result = [
-            'detail' => new VaccineTrackingDetailResource($detail),
-            'overview' => $resource,
-        ];
-        return response()->json($result);
+    public function show($id, Request $request)
+    {
+        $data = VaccineRequest::with([
+                'outbounds.outboundDetails'
+            ])
+            ->findOrFail($id);
+        return response()->format(Response::HTTP_OK, 'success', new VaccineTrackingDetailResource($data));
     }
 }
