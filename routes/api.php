@@ -26,6 +26,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
     Route::namespace('Vaccine')->group(function () {
         Route::get('/vaccine-tracking', 'VaccineTrackingController');
+        Route::get('/vaccine-product-tracking', 'VaccineProductRequestController@index');
     });
 
     Route::get('/ping', function() {
