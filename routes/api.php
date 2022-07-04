@@ -24,6 +24,10 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     Route::post('/login', 'UsersController@authenticate');
     Route::post('/authenticate', 'UsersController@authenticate');
 
+    Route::namespace('Vaccine')->group(function () {
+        Route::get('/vaccine-tracking', 'VaccineTrackingController');
+    });
+
     Route::get('/ping', function() {
         $response = Response::make(gethostname(), 200);
         $response->header('Content-Type', 'text/plain');
