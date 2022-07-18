@@ -106,52 +106,35 @@ class VaccineRequestController extends Controller
     public function update(VaccineRequest $vaccineRequest, UpdateStatusVaccineRequest $request)
     {
         $vaccineRequest->fill($request->validated());
-        switch ($request->status) {
-            case VaccineRequestStatusEnum::verified():
-                VaccineRequestStatusNote::insertData($request, $vaccineRequest->id);
-                $status = VaccineRequestStatusEnum::verified();
-                if ($request->vaccine_status_note) {
-                    $status = VaccineRequestStatusEnum::verified_with_note();
-                }
-                Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $status));
-                break;
-
-            case VaccineRequestStatusEnum::finalized():
-                Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, VaccineRequestStatusEnum::finalized()));
-                break;
-
-            case VaccineRequestStatusEnum::integrated():
-                $response = VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
-                if ($response->getStatusCode() != Response::HTTP_OK) {
-                    return $response;
-                }
-                break;
+        if ($request->status == VaccineRequestStatusEnum::integrated()) {
+            $response = VaccineWmsJabar::sendVaccineRequest($vaccineRequest);
+            if ($response->getStatusCode() != Response::HTTP_OK) {
+                return $response;
+            }
         }
-        $this->updateProcess($vaccineRequest, $request);
+
+        // Condition when WMS Poslog hit the APIs
+        $user = auth()->user();
+        if (!auth()->user()) {
+            $user = User::where('username', 'poslog_caesar')->first();
+        }
+
+        $processName = ($request->status == VaccineRequestStatusEnum::rejected()) ? VaccineRequestStatusEnum::verified() : $request->status;
+        $data[$processName . '_at'] = Carbon::now();
+        $data[$processName . '_by'] = $user->id;
+
+        VaccineRequestStatusNote::insertData($request, $vaccineRequest->id);
+        $vaccineRequest->update($data);
         Artisan::call('vaccine-logistik:verification-status-generator');
+
+        $status = ($request->vaccine_status_note && $request->status == VaccineRequestStatusEnum::verified()) ? VaccineRequestStatusEnum::verified_with_note() : $request->status;
+        $this->sendEmailNotification($vaccineRequest, $status);
         return response()->format(Response::HTTP_OK, 'Vaccine request updated');
     }
 
-    public function updateProcess($vaccineRequest, $request)
+    public function sendEmailNotification($vaccineRequest, $status = false)
     {
-        $data[$request->status . '_at'] = Carbon::now();
-
-        $user = auth()->user();
-        if (!auth()->user()) {
-            Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $request->status));
-            $user = User::where('username', 'poslog_caesar')->first();
-        }
-        $data[$request->status . '_by'] = $user->id;
-        return $vaccineRequest->update($data);
-    }
-
-    public function archiveList($request)
-    {
-        $limit = $request->input('limit', 5);
-        $data = Archive::filter($request)
-            ->sort($request);
-
-        $data->select( 'id', 'delivery_plan_date', 'agency_name', 'is_letter_file_final', 'verification_status', 'note', 'status', 'status_rank');
-        return VaccineRequestArchiveResource::collection($data->paginate($limit));
+        $status = $status ?? $vaccineRequest->status;
+        Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $status));
     }
 }

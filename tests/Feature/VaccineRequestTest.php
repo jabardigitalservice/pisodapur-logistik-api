@@ -57,22 +57,55 @@ class VaccineRequestTest extends TestCase
             'agency_city_id' => $this->village->kemendagri_kabupaten_kode,
         ]);
 
-        $this->logisticItems[] = [
-            'product_id' => rand(),
-            'category' => 'vaccine',
-            'quantity' => rand(),
-            'unit' => 'PCS',
-            'description' => $this->faker->text,
-            'usage' => $this->faker->text,
-        ];
-
-        $this->logisticItems[] = [
-            'product_id' => rand(),
-            'category' => 'vaccine_support',
-            'quantity' => rand(),
-            'unit' => 'PCS',
-            'description' => $this->faker->text,
-            'usage' => $this->faker->text,
+        $this->logisticItems = [
+            [
+                'product_id' => rand(),
+                'category' => 'vaccine',
+                'quantity' => rand(),
+                'unit' => 'PCS',
+                'description' => $this->faker->text,
+                'usage' => $this->faker->text,
+            ],
+            [
+                'product_id' => rand(),
+                'category' => 'vaccine',
+                'quantity' => rand(),
+                'unit' => 'PCS',
+                'description' => $this->faker->text,
+                'usage' => $this->faker->text,
+            ],
+            [
+                'product_id' => rand(),
+                'category' => 'vaccine',
+                'quantity' => rand(),
+                'unit' => 'PCS',
+                'description' => $this->faker->text,
+                'usage' => $this->faker->text,
+            ],
+            [
+                'product_id' => rand(),
+                'category' => 'vaccine_support',
+                'quantity' => rand(),
+                'unit' => 'PCS',
+                'description' => $this->faker->text,
+                'usage' => $this->faker->text,
+            ],
+            [
+                'product_id' => rand(),
+                'category' => 'vaccine_support',
+                'quantity' => rand(),
+                'unit' => 'PCS',
+                'description' => $this->faker->text,
+                'usage' => $this->faker->text,
+            ],
+            [
+                'product_id' => rand(),
+                'category' => 'vaccine_support',
+                'quantity' => rand(),
+                'unit' => 'PCS',
+                'description' => $this->faker->text,
+                'usage' => $this->faker->text,
+            ]
         ];
 
         Storage::fake('photos');
@@ -175,6 +208,14 @@ class VaccineRequestTest extends TestCase
                     'total'
                 ]
             ]);
+    }
+
+    public function testGetVaccineArchive()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-request', [
+            'page_type' => 'archive'
+        ]);
+        $response->assertSuccessful();
     }
 
     public function testGetVaccineRequestFilterByIsLetterFileFinal()
@@ -350,6 +391,16 @@ class VaccineRequestTest extends TestCase
         $response->assertSuccessful();
     }
 
+    public function testRejectedStatusVaccineRequestByIdWithNote()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+            'status' => VaccineRequestStatusEnum::rejected(),
+            'vaccine_status_note' => $this->statusNoteChoice,
+            'note' => $this->faker->text
+        ]);
+        $response->assertSuccessful();
+    }
+
     public function testApproveStatusVaccineRequestByIdStatusOnly()
     {
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
@@ -370,7 +421,29 @@ class VaccineRequestTest extends TestCase
 
     public function testFinalizedStatusVaccineRequestById()
     {
-        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $this->vaccineRequest->id, [
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
+
+        $vaccineProductRequest = VaccineProductRequest::get();
+
+        $status = [
+            VaccineProductRequestStatusEnum::approved(),
+            VaccineProductRequestStatusEnum::not_available(),
+            VaccineProductRequestStatusEnum::replaced(),
+            VaccineProductRequestStatusEnum::not_yet_fulfilled(),
+            VaccineProductRequestStatusEnum::urgent(),
+            VaccineProductRequestStatusEnum::other(),
+        ];
+
+        $id = 0;
+        foreach ($vaccineProductRequest as $key => $product) {
+            $updateProductStatus = VaccineProductRequest::where('id', $product->id)->update([
+                'finalized_status' => $status[$key]
+            ]);
+
+            $id = $product->vaccine_request_id;
+        }
+
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-request/' . $id, [
             'status' => VaccineRequestStatusEnum::finalized(),
             'delivery_plan_date' => $this->faker->date()
         ]);
