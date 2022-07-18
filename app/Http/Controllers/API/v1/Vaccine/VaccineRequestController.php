@@ -44,6 +44,16 @@ class VaccineRequestController extends Controller
         return $resource;
     }
 
+    public function archiveList($request)
+    {
+        $limit = $request->input('limit', 5);
+        $data = Archive::filter($request)
+            ->sort($request);
+
+        $data->select( 'id', 'delivery_plan_date', 'agency_name', 'is_letter_file_final', 'verification_status', 'note', 'status', 'status_rank');
+        return VaccineRequestArchiveResource::collection($data->paginate($limit));
+    }
+
     public function show($id, Request $request)
     {
         $data = VaccineRequest::with([
