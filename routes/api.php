@@ -76,6 +76,11 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     Route::namespace('Vaccine')->group(function () {
         Route::get('/vaccine-product', 'VaccineProductController');
         Route::post('/vaccine-request', 'VaccineRequestController@store');
+
+        // API Vaccine Tracking
+        Route::get('/vaccine-tracking', 'VaccineTrackingController@index');
+        Route::get('/vaccine-tracking/{id}', 'VaccineTrackingController@show');
+        Route::get('/vaccine-product-tracking', 'VaccineProductRequestController@index');
     });
 
     //Route for Another App that want integrate data
