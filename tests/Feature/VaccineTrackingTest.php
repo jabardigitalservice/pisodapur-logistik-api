@@ -16,12 +16,11 @@ class VaccineTrackingTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->admin = factory(User::class)->create();
     }
 
     public function testGetVaccineTracking()
     {
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-tracking', [
+        $response = $this->json('GET', '/api/v1/vaccine-tracking', [
             'search' => $this->faker->email
         ]);
         $response->assertStatus(Response::HTTP_OK);
@@ -30,7 +29,7 @@ class VaccineTrackingTest extends TestCase
     public function testGetVaccineTrackingDetail()
     {
         $vaccineRequest = VaccineRequest::first();
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-tracking/' . $vaccineRequest->id);
+        $response = $this->json('GET', '/api/v1/vaccine-tracking/' . $vaccineRequest->id);
 
         $response->assertStatus(Response::HTTP_OK);
     }
@@ -38,7 +37,7 @@ class VaccineTrackingTest extends TestCase
     public function testGetVaccineProductTracking()
     {
         $vaccineRequest = VaccineRequest::first();
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-tracking', [
+        $response = $this->json('GET', '/api/v1/vaccine-product-tracking', [
             'vaccine_request_id' => $vaccineRequest->id
         ]);
 
