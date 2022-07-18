@@ -114,6 +114,11 @@ class VaccineWmsJabar extends WmsJabar
     {
         try {
             $config = self::setStoreRequest($vaccineRequest);
+            $items = $config['param']['data']['finalization_items'];
+            // Validate if $items is empty
+            if (!(count($items) > 0)) {
+                return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, 'Maaf, tidak ada barang yang dapat dilanjutkan ke WMS Poslog di permohonan ini. Mohon dicek kembali kuantitas di tiap barangnya.', $items);
+            }
 
             // Validate Stock per item to API SOH
             $result = self::isValidStock($items);
