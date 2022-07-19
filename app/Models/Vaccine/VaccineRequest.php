@@ -119,15 +119,13 @@ class VaccineRequest extends Model
                     break;
 
                 case VaccineRequestStatusEnum::verified():
-                    $query
-                        ->where('status', '!=', VaccineRequestStatusEnum::not_verified())
-                        ->whereDoesntHave('vaccineRequestStatusNotes');
+                    $query->where('status', '!=', VaccineRequestStatusEnum::not_verified());
                     break;
 
 
                 case VaccineRequestStatusEnum::verified_with_note():
                     $query
-                        ->where('status', '!=', VaccineRequestStatusEnum::not_verified())
+                        ->whereNotIn('status', [VaccineRequestStatusEnum::not_verified(), VaccineRequestStatusEnum::rejected()])
                         ->whereHas('vaccineRequestStatusNotes');
                     break;
 

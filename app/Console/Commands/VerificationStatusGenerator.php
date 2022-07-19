@@ -43,6 +43,7 @@ class VerificationStatusGenerator extends Command
         VaccineRequest::where('status', VaccineRequestStatusEnum::not_verified())->update(['verification_status' => VerificationStatusEnum::not_verified()]);
         VaccineRequest::where('status', '!=', VaccineRequestStatusEnum::not_verified())->update(['verification_status' => VerificationStatusEnum::verified()]);
         VaccineRequest::where('status', '!=', VaccineRequestStatusEnum::not_verified())->whereHas('vaccineRequestStatusNotes')->update(['verification_status' => VerificationStatusEnum::verified_with_note()]);
+        VaccineRequest::where('status', VaccineRequestStatusEnum::rejected())->update(['verification_status' => VerificationStatusEnum::verified()]);
 
         VaccineRequest::where('status', VaccineRequestStatusEnum::not_verified())->update(['status_rank' => 0]);
         VaccineRequest::where('status', VaccineRequestStatusEnum::verified())->update(['status_rank' => 1]);
@@ -53,7 +54,7 @@ class VerificationStatusGenerator extends Command
         VaccineRequest::where('status', VaccineRequestStatusEnum::do())->update(['status_rank' => 6]);
         VaccineRequest::where('status', VaccineRequestStatusEnum::intransit())->update(['status_rank' => 7]);
         VaccineRequest::where('status', VaccineRequestStatusEnum::delivered())->update(['status_rank' => 8]);
-        VaccineRequest::where('status', VaccineRequestStatusEnum::rejected())->update(['status_rank' => 0, 'verification_status' => VerificationStatusEnum::not_verified()]);
+        VaccineRequest::where('status', VaccineRequestStatusEnum::rejected())->update(['status_rank' => 99, 'verification_status' => VerificationStatusEnum::verified()]);
 
         return 0;
     }
