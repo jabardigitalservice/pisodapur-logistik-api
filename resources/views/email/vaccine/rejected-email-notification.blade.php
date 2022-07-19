@@ -11,16 +11,12 @@
                 border-collapse: collapse;
                 width: 100%;
             }
-
             #customers td, #customers th {
                 border: 1px solid #ddd;
                 padding: 8px;
             }
-
             #customers tr:nth-child(even){background-color: #f2f2f2;}
-
             #customers tr:hover {background-color: #ddd;}
-
             #customers th {
                 padding-top: 12px;
                 padding-bottom: 12px;
@@ -28,7 +24,6 @@
                 background-color: #04AA6D;
                 color: white;
             }
-
             .card-box {
                 float: left;
                 border: 1px border rgb(56, 56, 56);
@@ -37,7 +32,6 @@
                 padding: 15px;
                 width: 100%;
             }
-
             .card-box-col-2 {
                 float: left;
                 border: 1px border rgb(56, 56, 56);
@@ -47,7 +41,6 @@
                 width: 40%;
                 margin: 5px;
             }
-
             /* Clear floats after the columns */
             .row:after {
                 content: "";

@@ -14,8 +14,6 @@ class VaccineTracking extends VaccineRequest
             $query->where(function($query) use ($request) {
                 $query->where('id', $request->search)
                     ->orWhere('applicant_primary_phone_number', $request->search);
-                    // ->orWhere('applicant_email', $request->search)
-                    // ->orWhere('applicant_primary_phone_number', $request->search);
             });
         }
         return $query;

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\API\v1\Vaccine;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\VaccineTrackingDetailResource;
-use App\Http\Resources\VaccineTrackingResource;
+use App\Http\Requests\VaccineRequest\GetVaccineTrackingRequest;
+use App\Http\Resources\Vaccine\VaccineTrackingDetailResource;
 use App\Models\Vaccine\VaccineRequest;
 use App\Models\Vaccine\VaccineTracking;
 use Illuminate\Http\Request;
@@ -12,13 +12,8 @@ use Illuminate\Http\Response;
 
 class VaccineTrackingController extends Controller
 {
-    public function index(Request $request)
+    public function index(GetVaccineTrackingRequest $request)
     {
-        $request->validate([
-            'search' => 'required',
-            'id' => 'nullable',
-        ]);
-
         $limit = $request->input('limit', 5);
         $data = VaccineTracking::tracking($request);
         $resource = VaccineTrackingDetailResource::collection($data->paginate($limit));
