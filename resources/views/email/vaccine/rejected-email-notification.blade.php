@@ -83,6 +83,9 @@
                 {!! $note !!}<br>
                 @endforeach
             </div>
+            <br>
+            <br>
+            <br>
             <div style="margin-top: 20px;">
                 Mohon Maaf atas ketidaknyamanan ini. Mohon ajukan permohonan kembali jika masih membutuhkan logistik untuk instansi Anda.
             </div>
