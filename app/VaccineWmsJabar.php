@@ -75,6 +75,7 @@ class VaccineWmsJabar extends WmsJabar
                 $vaccineProductRequests[] = [
                     'id' => $product->id,
                     'final_product_id' => $product->finalized_product_id,
+                    'final_product_name' => $product->finalized_product_name,
                     'final_quantity' => $product->finalized_quantity,
                     'final_soh_location' => $soh_location->soh_location ?? "",
                 ];
@@ -113,15 +114,24 @@ class VaccineWmsJabar extends WmsJabar
     {
         try {
             $config = self::setStoreRequest($vaccineRequest);
+            $items = $config['param']['data']['finalization_items'];
+
+            // Pre-Validating before Integrating to WMS Poslog
+            $isValidToIntegrate = self::isValidToIntegrate($items);
+            if (!$isValidToIntegrate['status'] == Response::HTTP_OK) {
+                return response()->format($isValidToIntegrate['status'], $isValidToIntegrate['message'], $isValidToIntegrate['data']);
+            }
+
+            // Integrating to WMS Poslog
             $config['apiFunction'] = '/api_vaksin/index.php?route=pingme_v2';
             $config['url_type'] = 'vaccine';
             $res = self::callAPI($config, 'post');
 
             $data = json_decode($res->getBody(), true);
 
+            // Handling Validation by WMS Poslog
             if (!isset($data['result'])) {
-                return response()->format($data['stt'], 'Failed at WMS Poslog: ' . $data['msg'],
-                [
+                return response()->format($data['stt'], 'Failed at WMS Poslog: ' . $data['msg'], [
                     'poslog_error' => $data,
                     'config_data' => $config
                 ]);
@@ -132,5 +142,75 @@ class VaccineWmsJabar extends WmsJabar
         } catch (\Exception $exception) {
             return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage(), $exception->getTrace());
         }
+    }
+
+    static function isValidToIntegrate($items)
+    {
+        $result = [
+            'status' => Response::HTTP_OK,
+            'message' => 'valid',
+            'data' => [],
+        ];
+
+        // Validate if $items is empty
+        if (!(count($items) > 0)) {
+            $result['status'] = Response::HTTP_INTERNAL_SERVER_ERROR;
+            $result['message'] = 'Maaf, tidak ada barang yang dapat dilanjutkan ke WMS Poslog di permohonan ini. Mohon dicek kembali kuantitas di tiap barangnya.';
+            $result['data'] = $items;
+        }
+
+        // Validate Stock per item to API SOH
+        $result = self::isValidStock($items);
+        if (!$result['is_valid']) {
+            $result['status'] = Response::HTTP_INTERNAL_SERVER_ERROR;
+            $result['message'] = $result['message'];
+            $result['data'] = $result['items'];
+        }
+
+        return $result;
+    }
+
+    static function isValidStock($items)
+    {
+        $result['is_valid'] = true;
+        $result['items'] = $items;
+        $result['message'] = '';
+
+        foreach ($items as $key => $item) {
+            // Get Current Stock from WMS Poslog
+            $config['apiFunction'] = '/api_vaksin/index.php?route=soh_fmaterial';
+            $config['url_type'] = 'vaccine';
+            $config['param']['material_id'] = $item['final_product_id'];
+            $config['method'] = $item['final_product_id'];
+            $res = self::callAPI($config, 'post');
+
+            $response = json_decode($res->getBody(), true);
+
+            // If Status (stt) Fail/Error.
+            if ($response['stt'] == 0) {
+                $result['message'] .= '['. $item['final_product_id'] . '] ' . $item['final_product_name'] . ' ' . $response['msg'] . '. ';
+                $result['is_valid'] = false;
+                continue;
+            }
+
+            $result['items'][$key]['final_soh_location'] = $response['msg'][0]['soh_location'];
+            $result['items'][$key]['final_soh_location_name'] = $response['msg'][0]['soh_location_name'];
+
+            $result = self::setValidatingStockResult($result, $response, $item);
+        }
+
+        return $result;
+    }
+
+    static function setValidatingStockResult($result, $response, $item)
+    {
+        // Validating Stock if stock below from request
+        $stock = $response['msg'][0]['stock_ok'] - $response['msg'][0]['stock_nok'] - $response['msg'][0]['booked_stock'];
+        if ($stock < $item['final_quantity']) {
+            $result['message'] .= '['. $item['final_product_id'] . '] ' . $item['final_product_name'] . ' stok kurang/tidak ada. (' . $stock . '<' . $item['final_quantity'] . ')';
+            $result['is_valid'] = false;
+        }
+
+        return $result;
     }
 }

@@ -25,6 +25,7 @@ class VerifiedEmailNotification extends Mailable implements ShouldQueue
     protected $vaccineRequest;
     protected $status;
     public $subject;
+    public $markdown;
     public $texts;
     public $table;
     public $notes;
@@ -33,6 +34,7 @@ class VerifiedEmailNotification extends Mailable implements ShouldQueue
     {
         $this->vaccineRequest = $vaccineRequest;
         $this->status = $status;
+        $this->markdown = 'email.vaccine.verified-email-notification';
         $this->texts[] = '';
         $this->texts[] = 'Terimakasih telah melakukan permohonan pada Aplikasi Vaksin Pikobar. Berikut merupakan ringkasan informasi permohonan Anda.';
         $this->texts[] = '';
@@ -60,6 +62,10 @@ class VerifiedEmailNotification extends Mailable implements ShouldQueue
         } elseif ($this->status == VaccineRequestStatusEnum::verified_with_note()) {
             $this->subject = '[INFO] Permohonan Logistik Vaksin - Diterima Dengan Catatan';
             $this->setMessageVerifiedWithNote();
+        } elseif ($this->status == VaccineRequestStatusEnum::rejected()) {
+            $this->subject = '[INFO] Permohonan Logistik Vaksin - Ditolak';
+            $this->setMessageRejectedWithNote();
+            $this->markdown = 'email.vaccine.rejected-email-notification';
         } elseif ($this->status == VaccineRequestStatusEnum::finalized()) {
             $this->subject = '[INFO] Permohonan Logistik Vaksin - Telah Realisasi';
             $this->setMessageFinalized();
@@ -77,7 +83,7 @@ class VerifiedEmailNotification extends Mailable implements ShouldQueue
 
     public function getContent()
     {
-        return $this->markdown('email.vaccine.verified-email-notification')
+        return $this->markdown($this->markdown)
                     ->subject($this->subject)
                     ->with([
                         'data' => $this->vaccineRequest,
@@ -86,7 +92,7 @@ class VerifiedEmailNotification extends Mailable implements ShouldQueue
                         'tables' => $this->table,
                         'from' => config('mail.from.name_vaccine'),
                         'hotLine' => config('app.hotline_vaccine'),
-                        'email' => config('mail.from.name_vaccine'),
+                        'email' => config('mail.from.address_vaccine'),
                     ]);
     }
 
@@ -120,6 +126,15 @@ class VerifiedEmailNotification extends Mailable implements ShouldQueue
         $this->texts[] = '';
         $this->texts[] = '<b>Lacak Permohonan</b>';
         $this->texts[] = 'Lacak permohonan Anda melalui nomor Whatsapp Admin Logistik Vaksin Pikobar <a href="bit.ly/AdmLogVaksin">bit.ly/AdmLogVaksin</a>';
+    }
+
+    public function setMessageRejectedWithNote()
+    {
+        $this->notes = [];
+        $verifiedNotes = VaccineRequestStatusNote::where('vaccine_request_id', $this->vaccineRequest->id)->get();
+        foreach($verifiedNotes as $key => $note) {
+            $this->notes[] = ($key + 1) . '. ' . $note->vaccine_status_note_name;
+        }
     }
 
     public function setMessageFinalized()
