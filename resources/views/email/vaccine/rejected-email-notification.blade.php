@@ -30,7 +30,8 @@
                 background-color: rgb(234, 234, 234);
                 border-radius: 15px;
                 padding: 15px;
-                width: 100%;
+                width: 80%;
+                margin: 5px;
             }
             .card-box-col-2 {
                 float: left;
@@ -40,6 +41,12 @@
                 padding: 15px;
                 width: 40%;
                 margin: 5px;
+            }
+            .col-12 {
+                float: left;
+                border-radius: 15px;
+                padding: 15px;
+                width: 100%;
             }
             /* Clear floats after the columns */
             .row:after {
@@ -51,15 +58,15 @@
     </head>
     <body>
 
-        <div>
+        <div class="row col-12">
             <div>Kepada Yth. {{ $data->applicant_fullname }}</div>
-        </div>
-        <div>
             <div>{{ $data->agency_name }}</div>
         </div>
         <div>
             <br>
-            Terimakasih telah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar Vaksin. Melalui email ini, kami mengabarkan hasil verifikasi permohonan Logistik Vaksin anda sebagai berikut:
+            <div class="row col-12">
+                Terimakasih telah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar Vaksin. Melalui email ini, kami mengabarkan hasil verifikasi permohonan Logistik Vaksin anda sebagai berikut:
+            </div>
             <br>
             <br>
             <div class="row">
@@ -86,13 +93,13 @@
             <br>
             <br>
             <br>
-            <div style="margin-top: 20px;">
-                Mohon Maaf atas ketidaknyamanan ini. Mohon ajukan permohonan kembali jika masih membutuhkan logistik untuk instansi Anda.
+            <div class="row col-12">
+                <p>Mohon Maaf atas ketidaknyamanan ini. Mohon ajukan permohonan kembali jika masih membutuhkan logistik untuk instansi Anda.</p>
             </div>
             <br>
         </div>
         <br>
-        <div>
+        <div class="row col-12">
             <div><b>Salam hormat kami,</b></div>
             <div>{{ $from }}</div>
             <div>Whatsapp Admin Logistik Vaksin Pikobar: {{ $hotLine }}</div>
