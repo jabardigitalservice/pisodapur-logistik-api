@@ -163,8 +163,8 @@ class VaccineWmsJabar extends WmsJabar
         $isStokValid = self::isValidStock($items);
         if (!$isStokValid['is_valid']) {
             $result['status'] = Response::HTTP_INTERNAL_SERVER_ERROR;
-            $result['message'] = $result['message'];
-            $result['data'] = $result['items'];
+            $result['message'] = $isStokValid['message'];
+            $result['data'] = $isStokValid['items'];
         }
 
         return $result;
