@@ -160,8 +160,8 @@ class VaccineWmsJabar extends WmsJabar
         }
 
         // Validate Stock per item to API SOH
-        $result = self::isValidStock($items);
-        if (!$result['is_valid']) {
+        $isStokValid = self::isValidStock($items);
+        if (!$isStokValid['is_valid']) {
             $result['status'] = Response::HTTP_INTERNAL_SERVER_ERROR;
             $result['message'] = $result['message'];
             $result['data'] = $result['items'];
