@@ -184,7 +184,7 @@ class VaccineWmsJabar extends WmsJabar
             $config['method'] = $item['final_product_id'];
             $res = self::callAPI($config, 'post');
 
-            $response = json_decode(optional($res)->getBody(), true);
+            $response = json_decode($res->getBody(), true);
 
             // If Status (stt) Fail/Error.
             if ($response['stt'] == 0) {
