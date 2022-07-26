@@ -193,8 +193,9 @@ class VaccineWmsJabar extends WmsJabar
                 continue;
             }
 
-            $result['items'][$key]['final_soh_location'] = $response['msg'][0]['soh_location'] ?? '-';
-            $result['items'][$key]['final_soh_location_name'] = $response['msg'][0]['soh_location_name'] ?? '-';
+            $result['items'][$key]['final_soh_location'] = $response['msg'][0]['soh_location'];
+            $result['items'][$key]['final_soh_location_name'] = $response['msg'][0]['soh_location_name'];
+            $result['items'][$key]['warehouse'] = $response['msg'][0];
 
             $result = self::setValidatingStockResult($result, $response, $item);
         }

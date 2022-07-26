@@ -788,6 +788,56 @@ class VaccineRequestTest extends TestCase
             ]);
     }
 
+    public function testCheckStock()
+    {
+        $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
+        $vaccineProductRequest = VaccineProductRequest::first();
+
+        $param = [
+            'vaccine_request_id' => $vaccineProductRequest->id
+        ];
+
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/check-stock', $param);
+        $response->assertSuccessful();
+    }
+
+    public function testCheckStockByMaterialId()
+    {
+        $id = 'MAT-N2NJG036';
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/check-stock/' . $id);
+        $response
+            ->assertSuccessful()
+            ->assertJsonStructure([
+            'status',
+            'message',
+            'data' => [
+                'warehouse',
+                'approved',
+                'finalized',
+                'current_stock',
+            ],
+        ]);
+    }
+
+
+    public function testCheckStockByMaterialIdFailed()
+    {
+        $id = 'MAT-' . $this->faker->name;
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/check-stock/' . $id);
+        $response
+            ->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR)
+            ->assertJsonStructure([
+            'status',
+            'message',
+            'data' => [
+                'warehouse',
+                'approved',
+                'finalized',
+                'current_stock',
+            ],
+        ]);
+    }
+
     public function testUpdateRecommendationProductRequest()
     {
         $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);

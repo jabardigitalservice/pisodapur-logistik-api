@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\API\v1\Vaccine;
 
+use App\Enums\VaccineRequestStatusEnum;
 use App\FileUpload;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VaccineRequest\GetVaccineProductRequest;
+use App\Http\Requests\VaccineRequest\GetVaccineStockRequest;
 use App\Http\Requests\VaccineRequest\StoreVaccineProductRequest;
 use App\Http\Requests\VaccineRequest\UpdateVaccineProductRequest;
 use App\Http\Resources\Vaccine\VaccineProductFinalizationResource;
@@ -93,12 +95,15 @@ class VaccineProductRequestController extends Controller
     public function checkStock(Request $request)
     {
         $data = VaccineProductRequest::select(
-            'finalized_product_id'
+            'finalized_product_id as final_product_id'
             , 'finalized_product_name as final_product_name'
-            , 'finalized_quantity as final_product_id'
+            , 'finalized_quantity as final_quantity'
         )
             ->where('vaccine_request_id', $request->vaccine_request_id)
-            ->get()->toArray();
+            ->where('finalized_quantity', '>', 0)
+            ->whereNotNull('finalized_product_id')
+            ->get()
+            ->toArray();
 
         $result = VaccineWmsJabar::isValidStock($data);
 
@@ -109,5 +114,70 @@ class VaccineProductRequestController extends Controller
             'data' => $result,
             'request' => $request->all(),
         ], $status);
+    }
+
+    public function checkStockByMaterialId($id, Request $request)
+    {
+        $status = Response::HTTP_INTERNAL_SERVER_ERROR;
+        $message = 'Error.';
+        $data = [
+            'warehouse' => 0,
+            'approved' => 0,
+            'finalized' => 0,
+            'current_stock' => 0,
+        ];
+
+        $param[] = [
+            'final_product_id' => $id,
+            'final_product_name' => '',
+            'final_quantity' => 0,
+        ];
+
+        try {
+            $result = VaccineWmsJabar::isValidStock($param);
+
+            $message .= $result['message'];
+            if ($result['is_valid'] && count($result['items']) > 0) {
+                $status = Response::HTTP_OK;
+                $message = 'success';
+                $data['warehouse'] = $result['items'][0]['warehouse']['stock_ok'] - $result['items'][0]['warehouse']['stock_nok'] - $result['items'][0]['warehouse']['booked_stock'];
+                $data['approved'] = $this->getFinalizationPhaseStockRequest($id);
+                $data['finalized'] = $this->getDeliveryPlanPhaseStockRequest($id);
+                $data['current_stock'] = $data['warehouse'] - ($data['approved'] + $data['finalized']);
+            }
+        } catch (\Throwable $th) {
+            $message = $th->getMessage();
+        }
+
+        return response()->json([
+            'status' => $status,
+            'message' => $message,
+            'data' => $data,
+            'result' => $result
+        ], $status);
+    }
+
+    function getFinalizationPhaseStockRequest($id)
+    {
+        $result = VaccineProductRequest::query()
+            ->join('vaccine_requests as vr', 'vr.id', '=', 'vaccine_request_id')
+            ->where([
+                'vr.status' => VaccineRequestStatusEnum::approved(),
+                'finalized_product_id' => $id,
+            ])
+            ->sum('finalized_quantity');
+        return $result;
+    }
+
+    function getDeliveryPlanPhaseStockRequest($id)
+    {
+        $result = VaccineProductRequest::query()
+            ->join('vaccine_requests as vr', 'vr.id', '=', 'vaccine_request_id')
+            ->where([
+                'vr.status' => VaccineRequestStatusEnum::finalized(),
+                'finalized_product_id' => $id,
+            ])
+            ->sum('finalized_quantity');
+        return $result;
     }
 }

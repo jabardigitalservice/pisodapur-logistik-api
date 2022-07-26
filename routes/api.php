@@ -201,6 +201,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
             Route::get('/vaccine-status-note', 'VaccineStatusNoteController');
             Route::apiResource('/vaccine-product-request', 'VaccineProductRequestController');
             Route::get('/check-stock', 'VaccineProductRequestController@checkStock');
+            Route::get('/check-stock/{id}', 'VaccineProductRequestController@checkStockByMaterialId');
         });
 
         Route::post('/auth-key/register', 'AuthKeysController@register');
