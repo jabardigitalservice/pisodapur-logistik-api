@@ -18,6 +18,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
+use DB;
 
 class VaccineProductRequestController extends Controller
 {
@@ -68,9 +69,25 @@ class VaccineProductRequestController extends Controller
 
     public function update(VaccineProductRequest $vaccineProductRequest, UpdateVaccineProductRequest $request)
     {
-        $vaccineProductRequest->fill($request->validated());
-        $vaccineProductRequest->save();
-        return response()->format(Response::HTTP_OK, 'Vaccine Product Request Updated');
+        $status = Response::HTTP_INTERNAL_SERVER_ERROR;
+        $message = 'Error';
+
+        DB::beginTransaction();
+        try {
+            $vaccineProductRequest->fill($request->validated());
+            $vaccineProductRequest->save();
+
+            $status = Response::HTTP_OK;
+            $message = 'Vaccine Product Request Updated';
+            $data = $vaccineProductRequest;
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            $message = $th->getMessage();
+            $data = $th->getTrace();
+        }
+        return response()->format($status, $message, $data);
     }
 
     public function checkStock(Request $request)

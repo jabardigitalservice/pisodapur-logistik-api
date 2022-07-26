@@ -788,14 +788,39 @@ class VaccineRequestTest extends TestCase
             ]);
     }
 
-    public function testUpdateProductRequest()
+    public function testUpdateRecommendationProductRequest()
     {
         $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
 
+        $allocationMaterial = AllocationMaterial::first();
         $vaccineProductRequest = VaccineProductRequest::first()->toArray();
-        $vaccineProductRequest['quantity'] = rand(100, 1000);
-        $vaccineProductRequest['recommendaton_note'] = $this->faker->text();
-        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-product-request/' . $vaccineProductRequest['id'], $vaccineProductRequest);
+        $param['recommendation_product_id'] = $allocationMaterial->material_id;
+        $param['recommendation_product_name'] = $allocationMaterial->material_name;
+        $param['recommendation_date'] = date('Y-m-d');
+        $param['recommendation_quantity'] = rand(1, 1000);
+        $param['recommendation_UoM'] = $allocationMaterial->UoM;
+        $param['recommendation_status'] = 'approved';
+        $param['phase'] = 'recommendation';
+
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-product-request/' . $vaccineProductRequest['id'], $param);
+        $response->assertSuccessful();
+    }
+
+    public function testUpdateFinalizedProductRequest()
+    {
+        $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
+
+        $allocationMaterial = AllocationMaterial::first();
+        $vaccineProductRequest = VaccineProductRequest::first()->toArray();
+        $param['finalized_product_id'] = $allocationMaterial->material_id;
+        $param['finalized_product_name'] = $allocationMaterial->material_name;
+        $param['finalized_date'] = date('Y-m-d');
+        $param['finalized_quantity'] = rand(1, 1000);
+        $param['finalized_UoM'] = $allocationMaterial->UoM;
+        $param['finalized_status'] = 'approved';
+        $param['phase'] = 'finalized';
+
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-product-request/' . $vaccineProductRequest['id'], $param);
         $response->assertSuccessful();
     }
 
