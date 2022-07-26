@@ -11,7 +11,9 @@ use App\Http\Resources\Vaccine\VaccineProductFinalizationResource;
 use App\Http\Resources\Vaccine\VaccineProductDeliveryPlanResource;
 use App\Http\Resources\Vaccine\VaccineProductRecommendationResource;
 use App\Http\Resources\Vaccine\VaccineProductRequestResource;
+use App\Models\Vaccine\VaccineProduct;
 use App\VaccineProductRequest;
+use App\VaccineWmsJabar;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -69,5 +71,26 @@ class VaccineProductRequestController extends Controller
         $vaccineProductRequest->fill($request->validated());
         $vaccineProductRequest->save();
         return response()->format(Response::HTTP_OK, 'Vaccine Product Request Updated');
+    }
+
+    public function checkStock(Request $request)
+    {
+        $data = VaccineProductRequest::select(
+            'finalized_product_id'
+            , 'finalized_product_name as final_product_name'
+            , 'finalized_quantity as final_product_id'
+        )
+            ->where('vaccine_request_id', $request->vaccine_request_id)
+            ->get()->toArray();
+
+        $result = VaccineWmsJabar::isValidStock($data);
+
+        $status = $result['is_valid'] ? Response::HTTP_OK : Response::HTTP_INTERNAL_SERVER_ERROR;
+        return response()->json([
+            'status' => $status,
+            'message' => $result['message'],
+            'data' => $result,
+            'request' => $request->all(),
+        ], $status);
     }
 }

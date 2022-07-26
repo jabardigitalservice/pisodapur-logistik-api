@@ -200,6 +200,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
             Route::apiResource('/delivery-plan', 'DeliveryPlanController')->only('index');
             Route::get('/vaccine-status-note', 'VaccineStatusNoteController');
             Route::apiResource('/vaccine-product-request', 'VaccineProductRequestController');
+            Route::get('/check-stock', 'VaccineProductRequestController@checkStock');
         });
 
         Route::post('/auth-key/register', 'AuthKeysController@register');
