@@ -118,7 +118,7 @@ class VaccineWmsJabar extends WmsJabar
 
             // Pre-Validating before Integrating to WMS Poslog
             $isValidToIntegrate = self::isValidToIntegrate($items);
-            if (!$isValidToIntegrate['status'] == Response::HTTP_OK) {
+            if (!$isValidToIntegrate['status'] == Response::HTTP_INTERNAL_SERVER_ERROR) {
                 return response()->format($isValidToIntegrate['status'], $isValidToIntegrate['message'], $isValidToIntegrate['data']);
             }
 
