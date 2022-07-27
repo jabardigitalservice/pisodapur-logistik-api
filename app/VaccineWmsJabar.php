@@ -118,7 +118,7 @@ class VaccineWmsJabar extends WmsJabar
 
             // Pre-Validating before Integrating to WMS Poslog
             $isValidToIntegrate = self::isValidToIntegrate($items);
-            if (!$isValidToIntegrate['status'] == Response::HTTP_OK) {
+            if (!($isValidToIntegrate['status'] == Response::HTTP_OK)) {
                 return response()->format($isValidToIntegrate['status'], $isValidToIntegrate['message'], $isValidToIntegrate['data']);
             }
 
@@ -133,7 +133,8 @@ class VaccineWmsJabar extends WmsJabar
             if (!isset($data['result'])) {
                 return response()->format($data['stt'], 'Failed at WMS Poslog: ' . $data['msg'], [
                     'poslog_error' => $data,
-                    'config_data' => $config
+                    'config_data' => $config,
+                    'is_valid_to_integrate' => $isValidToIntegrate
                 ]);
             }
 
