@@ -122,6 +122,7 @@ class VaccineProductRequestController extends Controller
         $message = 'Error.';
         $data = [
             'warehouse' => 0,
+            'verified' => 0,
             'approved' => 0,
             'finalized' => 0,
             'current_stock' => 0,
@@ -141,43 +142,36 @@ class VaccineProductRequestController extends Controller
                 $status = Response::HTTP_OK;
                 $message = 'success';
                 $data['warehouse'] = $result['items'][0]['warehouse']['stock_ok'] - $result['items'][0]['warehouse']['stock_nok'] - $result['items'][0]['warehouse']['booked_stock'];
-                $data['approved'] = $this->getFinalizationPhaseStockRequest($id);
-                $data['finalized'] = $this->getDeliveryPlanPhaseStockRequest($id);
+                $data['verified'] = $this->getPhaseStockRequest($id, [VaccineRequestStatusEnum::verified(), VaccineRequestStatusEnum::verified_with_note()]);
+                $data['approved'] = $this->getPhaseStockRequest($id, [VaccineRequestStatusEnum::approved()]);
+                $data['finalized'] = $this->getPhaseStockRequest($id, [VaccineRequestStatusEnum::finalized()]);
                 $data['current_stock'] = $data['warehouse'] - ($data['approved'] + $data['finalized']);
             }
         } catch (\Throwable $th) {
             $message = $th->getMessage();
         }
 
-        return response()->json([
-            'status' => $status,
-            'message' => $message,
-            'data' => $data,
-            'result' => $result
-        ], $status);
+        return response()->json(['status' => $status, 'message' => $message, 'data' => $data, 'result' => $result], $status);
     }
 
-    function getFinalizationPhaseStockRequest($id)
+    function getPhaseStockRequest($id, $status)
     {
-        $result = VaccineProductRequest::query()
+        $recommendation = VaccineProductRequest::query()
             ->join('vaccine_requests as vr', 'vr.id', '=', 'vaccine_request_id')
+            ->whereIn('vr.status', $status)
             ->where([
-                'vr.status' => VaccineRequestStatusEnum::approved(),
-                'finalized_product_id' => $id,
+                'recommendation_product_id' => $id,
+                'finalized_status' => null,
             ])
-            ->sum('finalized_quantity');
-        return $result;
-    }
+            ->sum('recommendation_quantity');
 
-    function getDeliveryPlanPhaseStockRequest($id)
-    {
-        $result = VaccineProductRequest::query()
+        $finalized = VaccineProductRequest::query()
             ->join('vaccine_requests as vr', 'vr.id', '=', 'vaccine_request_id')
-            ->where([
-                'vr.status' => VaccineRequestStatusEnum::finalized(),
-                'finalized_product_id' => $id,
-            ])
+            ->whereIn('vr.status', $status)
+            ->where('finalized_product_id', $id)
             ->sum('finalized_quantity');
+
+        $result = $recommendation + $finalized;
         return $result;
     }
 }
