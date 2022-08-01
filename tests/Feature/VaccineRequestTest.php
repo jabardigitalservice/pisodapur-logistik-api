@@ -798,7 +798,15 @@ class VaccineRequestTest extends TestCase
         ];
 
         $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/check-stock', $param);
-        $response->assertSuccessful();
+        $response->assertJsonStructure([
+            'status',
+            'message',
+            'data' => [
+                'is_valid',
+                'items',
+                'message',
+            ],
+        ]);
     }
 
     public function testCheckStockByMaterialId()
@@ -806,7 +814,6 @@ class VaccineRequestTest extends TestCase
         $id = 'MAT-N2NJG036';
         $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/check-stock/' . $id);
         $response
-            ->assertSuccessful()
             ->assertJsonStructure([
             'status',
             'message',

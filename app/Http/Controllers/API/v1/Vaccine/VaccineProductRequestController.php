@@ -133,7 +133,7 @@ class VaccineProductRequestController extends Controller
             'final_product_name' => '',
             'final_quantity' => 0,
         ];
-
+        $result = [];
         try {
             $result = VaccineWmsJabar::isValidStock($param);
 
