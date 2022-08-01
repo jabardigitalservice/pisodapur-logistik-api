@@ -118,8 +118,6 @@ class VaccineProductRequestController extends Controller
 
     public function checkStockByMaterialId($id, Request $request)
     {
-        $status = Response::HTTP_INTERNAL_SERVER_ERROR;
-        $message = 'Error.';
         $data = [
             'warehouse' => 0,
             'verified' => 0,
@@ -133,15 +131,24 @@ class VaccineProductRequestController extends Controller
             'final_product_name' => '',
             'final_quantity' => 0,
         ];
-        $result = [];
-        try {
-            $result = VaccineWmsJabar::isValidStock($param);
 
-            $message .= $result['message'];
-            if ($result['is_valid'] && count($result['items']) > 0) {
+        $result = $this->setDataStock($id, $param, $data);
+        return response()->json($result, $result['status']);
+    }
+
+    function setDataStock($id, $param, $data)
+    {
+        $status = Response::HTTP_INTERNAL_SERVER_ERROR;
+        $message = 'Error.';
+        $validStock = [];
+        try {
+            $validStock = VaccineWmsJabar::isValidStock($param);
+            $message .= $validStock['message'];
+
+            if ($validStock['is_valid'] && count($validStock['items']) > 0) {
                 $status = Response::HTTP_OK;
                 $message = 'success';
-                $data['warehouse'] = $result['items'][0]['warehouse']['stock_ok'] - $result['items'][0]['warehouse']['stock_nok'] - $result['items'][0]['warehouse']['booked_stock'];
+                $data['warehouse'] = $validStock['items'][0]['warehouse']['stock_ok'] - $validStock['items'][0]['warehouse']['stock_nok'] - $validStock['items'][0]['warehouse']['booked_stock'];
                 $data['verified'] = $this->getPhaseStockRequest($id, [VaccineRequestStatusEnum::verified(), VaccineRequestStatusEnum::verified_with_note()]);
                 $data['approved'] = $this->getPhaseStockRequest($id, [VaccineRequestStatusEnum::approved()]);
                 $data['finalized'] = $this->getPhaseStockRequest($id, [VaccineRequestStatusEnum::finalized()]);
@@ -151,7 +158,12 @@ class VaccineProductRequestController extends Controller
             $message = $th->getMessage();
         }
 
-        return response()->json(['status' => $status, 'message' => $message, 'data' => $data, 'result' => $result], $status);
+        return [
+            'status' => $status,
+            'message' => $message,
+            'data' => $data,
+            'result' => $validStock
+        ];
     }
 
     function getPhaseStockRequest($id, $status)
