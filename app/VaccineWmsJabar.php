@@ -117,9 +117,9 @@ class VaccineWmsJabar extends WmsJabar
             $items = $config['param']['data']['finalization_items'];
 
             // Pre-Validating before Integrating to WMS Poslog
-            $isValidToIntegrate = self::isValidToIntegrate($items);
-            if (!($isValidToIntegrate['status'] == Response::HTTP_OK)) {
-                return response()->format($isValidToIntegrate['status'], $isValidToIntegrate['message'], $isValidToIntegrate['data']);
+            $dataToIntegrate = self::validatingDataToIntegrate($items);
+            if (!($dataToIntegrate['status'] == Response::HTTP_OK)) {
+                return response()->format($dataToIntegrate['status'], $dataToIntegrate['message'], $dataToIntegrate['data']);
             }
 
             // Integrating to WMS Poslog
@@ -134,7 +134,7 @@ class VaccineWmsJabar extends WmsJabar
                 return response()->format($data['stt'], 'Failed at WMS Poslog: ' . $data['msg'], [
                     'poslog_error' => $data,
                     'config_data' => $config,
-                    'is_valid_to_integrate' => $isValidToIntegrate
+                    'is_valid_to_integrate' => $dataToIntegrate
                 ]);
             }
 
@@ -145,7 +145,7 @@ class VaccineWmsJabar extends WmsJabar
         }
     }
 
-    static function isValidToIntegrate($items)
+    static function validatingDataToIntegrate($items)
     {
         $result = [
             'status' => Response::HTTP_OK,
