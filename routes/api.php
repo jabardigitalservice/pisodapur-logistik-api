@@ -24,6 +24,12 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     Route::post('/login', 'UsersController@authenticate');
     Route::post('/authenticate', 'UsersController@authenticate');
 
+    Route::namespace('Vaccine')->group(function () {
+        Route::get('/vaccine-tracking', 'VaccineTrackingController@index');
+        Route::get('/vaccine-tracking/{id}', 'VaccineTrackingController@show');
+        Route::get('/vaccine-product-tracking', 'VaccineProductRequestController@index');
+    });
+
     Route::get('/ping', function() {
         $response = Response::make(gethostname(), 200);
         $response->header('Content-Type', 'text/plain');
@@ -194,6 +200,8 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
             Route::apiResource('/delivery-plan', 'DeliveryPlanController')->only('index');
             Route::get('/vaccine-status-note', 'VaccineStatusNoteController');
             Route::apiResource('/vaccine-product-request', 'VaccineProductRequestController');
+            Route::get('/check-stock', 'VaccineProductRequestController@checkStock');
+            Route::get('/check-stock/{id}', 'VaccineProductRequestController@checkStockByMaterialId');
         });
 
         Route::post('/auth-key/register', 'AuthKeysController@register');

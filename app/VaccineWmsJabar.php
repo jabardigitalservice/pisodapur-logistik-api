@@ -117,9 +117,9 @@ class VaccineWmsJabar extends WmsJabar
             $items = $config['param']['data']['finalization_items'];
 
             // Pre-Validating before Integrating to WMS Poslog
-            $isValidToIntegrate = self::isValidToIntegrate($items);
-            if (!$isValidToIntegrate['status'] == Response::HTTP_OK) {
-                return response()->format($isValidToIntegrate['status'], $isValidToIntegrate['message'], $isValidToIntegrate['data']);
+            $dataToIntegrate = self::validatingDataToIntegrate($items);
+            if (!($dataToIntegrate['status'] == Response::HTTP_OK)) {
+                return response()->format($dataToIntegrate['status'], $dataToIntegrate['message'], $dataToIntegrate['data']);
             }
 
             // Integrating to WMS Poslog
@@ -133,7 +133,8 @@ class VaccineWmsJabar extends WmsJabar
             if (!isset($data['result'])) {
                 return response()->format($data['stt'], 'Failed at WMS Poslog: ' . $data['msg'], [
                     'poslog_error' => $data,
-                    'config_data' => $config
+                    'config_data' => $config,
+                    'is_valid_to_integrate' => $dataToIntegrate
                 ]);
             }
 
@@ -144,7 +145,7 @@ class VaccineWmsJabar extends WmsJabar
         }
     }
 
-    static function isValidToIntegrate($items)
+    static function validatingDataToIntegrate($items)
     {
         $result = [
             'status' => Response::HTTP_OK,
@@ -160,11 +161,11 @@ class VaccineWmsJabar extends WmsJabar
         }
 
         // Validate Stock per item to API SOH
-        $result = self::isValidStock($items);
-        if (!$result['is_valid']) {
+        $isStokValid = self::isValidStock($items);
+        if (!$isStokValid['is_valid']) {
             $result['status'] = Response::HTTP_INTERNAL_SERVER_ERROR;
-            $result['message'] = $result['message'];
-            $result['data'] = $result['items'];
+            $result['message'] = $isStokValid['message'];
+            $result['data'] = $isStokValid['items'];
         }
 
         return $result;
@@ -195,6 +196,7 @@ class VaccineWmsJabar extends WmsJabar
 
             $result['items'][$key]['final_soh_location'] = $response['msg'][0]['soh_location'];
             $result['items'][$key]['final_soh_location_name'] = $response['msg'][0]['soh_location_name'];
+            $result['items'][$key]['warehouse'] = $response['msg'][0];
 
             $result = self::setValidatingStockResult($result, $response, $item);
         }
