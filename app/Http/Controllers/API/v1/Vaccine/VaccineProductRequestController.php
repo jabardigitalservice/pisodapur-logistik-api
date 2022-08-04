@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\v1\Vaccine;
 use App\Enums\VaccineRequestStatusEnum;
 use App\FileUpload;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\VaccineRequest\CheckStockRequest;
 use App\Http\Requests\VaccineRequest\GetVaccineProductRequest;
 use App\Http\Requests\VaccineRequest\GetVaccineStockRequest;
 use App\Http\Requests\VaccineRequest\StoreVaccineProductRequest;
@@ -92,7 +93,7 @@ class VaccineProductRequestController extends Controller
         return response()->format($status, $message, $data);
     }
 
-    public function checkStock(Request $request)
+    public function checkStock(CheckStockRequest $request)
     {
         $data = VaccineProductRequest::select(
             'finalized_product_id as final_product_id'
@@ -116,7 +117,7 @@ class VaccineProductRequestController extends Controller
         ], $status);
     }
 
-    public function checkStockByMaterialId($id, Request $request)
+    public function checkStockByMaterialId($id, CheckStockRequest $request)
     {
         $data = [
             'warehouse' => 0,
@@ -127,6 +128,7 @@ class VaccineProductRequestController extends Controller
         ];
 
         $param[] = [
+            'vaccine_request_id' => $request->vaccine_request_id,
             'final_product_id' => $id,
             'final_product_name' => '',
             'final_quantity' => 0,
@@ -149,9 +151,9 @@ class VaccineProductRequestController extends Controller
                 $status = Response::HTTP_OK;
                 $message = 'success';
                 $data['warehouse'] = $validStock['items'][0]['warehouse']['stock_ok'] - $validStock['items'][0]['warehouse']['stock_nok'] - $validStock['items'][0]['warehouse']['booked_stock'];
-                $data['verified'] = $this->getPhaseStockRequest($id, [VaccineRequestStatusEnum::verified(), VaccineRequestStatusEnum::verified_with_note()]);
-                $data['approved'] = $this->getPhaseStockRequest($id, [VaccineRequestStatusEnum::approved()]);
-                $data['finalized'] = $this->getPhaseStockRequest($id, [VaccineRequestStatusEnum::finalized()]);
+                $data['verified'] = $this->getPhaseStockRequest($param['vaccine_request_id'], $id, [VaccineRequestStatusEnum::verified(), VaccineRequestStatusEnum::verified_with_note()]);
+                $data['approved'] = $this->getPhaseStockRequest($param['vaccine_request_id'], $id, [VaccineRequestStatusEnum::approved()]);
+                $data['finalized'] = $this->getPhaseStockRequest($param['vaccine_request_id'], $id, [VaccineRequestStatusEnum::finalized()]);
                 $data['current_stock'] = $data['warehouse'] - ($data['approved'] + $data['finalized']);
             }
         } catch (\Throwable $th) {
@@ -166,7 +168,7 @@ class VaccineProductRequestController extends Controller
         ];
     }
 
-    function getPhaseStockRequest($id, $status)
+    function getPhaseStockRequest($vaccine_request_id, $id, $status)
     {
         $recommendation = VaccineProductRequest::query()
             ->join('vaccine_requests as vr', 'vr.id', '=', 'vaccine_request_id')
@@ -175,12 +177,14 @@ class VaccineProductRequestController extends Controller
                 'recommendation_product_id' => $id,
                 'finalized_status' => null,
             ])
+            ->where('vaccine_request_id', '!=', $vaccine_request_id)
             ->sum('recommendation_quantity');
 
         $finalized = VaccineProductRequest::query()
             ->join('vaccine_requests as vr', 'vr.id', '=', 'vaccine_request_id')
             ->whereIn('vr.status', $status)
             ->where('finalized_product_id', $id)
+            ->where('vaccine_request_id', '!=', $vaccine_request_id)
             ->sum('finalized_quantity');
 
         $result = $recommendation + $finalized;
