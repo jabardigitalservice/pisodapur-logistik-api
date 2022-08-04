@@ -125,10 +125,10 @@ class VaccineProductRequestController extends Controller
             'approved' => 0,
             'finalized' => 0,
             'current_stock' => 0,
+            'vaccine_request_id' => $request->vaccine_request_id,
         ];
 
         $param[] = [
-            'vaccine_request_id' => $request->vaccine_request_id,
             'final_product_id' => $id,
             'final_product_name' => '',
             'final_quantity' => 0,
@@ -151,9 +151,9 @@ class VaccineProductRequestController extends Controller
                 $status = Response::HTTP_OK;
                 $message = 'success';
                 $data['warehouse'] = $validStock['items'][0]['warehouse']['stock_ok'] - $validStock['items'][0]['warehouse']['stock_nok'] - $validStock['items'][0]['warehouse']['booked_stock'];
-                $data['verified'] = $this->getPhaseStockRequest($param['vaccine_request_id'], $id, [VaccineRequestStatusEnum::verified(), VaccineRequestStatusEnum::verified_with_note()]);
-                $data['approved'] = $this->getPhaseStockRequest($param['vaccine_request_id'], $id, [VaccineRequestStatusEnum::approved()]);
-                $data['finalized'] = $this->getPhaseStockRequest($param['vaccine_request_id'], $id, [VaccineRequestStatusEnum::finalized()]);
+                $data['verified'] = $this->getPhaseStockRequest($data['vaccine_request_id'], $id, [VaccineRequestStatusEnum::verified(), VaccineRequestStatusEnum::verified_with_note()]);
+                $data['approved'] = $this->getPhaseStockRequest($data['vaccine_request_id'], $id, [VaccineRequestStatusEnum::approved()]);
+                $data['finalized'] = $this->getPhaseStockRequest($data['vaccine_request_id'], $id, [VaccineRequestStatusEnum::finalized()]);
                 $data['current_stock'] = $data['warehouse'] - ($data['approved'] + $data['finalized']);
             }
         } catch (\Throwable $th) {

@@ -812,7 +812,9 @@ class VaccineRequestTest extends TestCase
     public function testCheckStockByMaterialId()
     {
         $id = 'MAT-N2NJG036';
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/check-stock/' . $id);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/check-stock/' . $id, [
+            'vaccine_request_id' => $this->vaccineRequest->id
+        ]);
         $response
             ->assertJsonStructure([
             'status',
@@ -830,7 +832,9 @@ class VaccineRequestTest extends TestCase
     public function testCheckStockByMaterialIdFailed()
     {
         $id = 'MAT-' . $this->faker->name;
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/check-stock/' . $id);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/check-stock/' . $id, [
+            'vaccine_request_id' => $this->vaccineRequest->id
+        ]);
         $response
             ->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR)
             ->assertJsonStructure([
