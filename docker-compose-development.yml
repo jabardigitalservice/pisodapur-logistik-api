@@ -7,10 +7,10 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: api-logistik-development
-    env_file: 
-      - .env.development
-    depends_on:
-      - database
+    env_file:
+      - .env
+    # depends_on:
+    #   - database
     volumes:
       - vendor_data:/var/www/html/vendor
     ports:
@@ -25,19 +25,19 @@ services:
            awslogs-stream: "backend-staging"
 
   #MySQL Service
-  database:
-    image: mysql:5.7
-    container_name: database-logistik-development
-    command: --max_allowed_packet=32505856
-    restart: always
-    ports:
-      - "3306:3306"
-    env_file:
-      - .env.development
-    volumes:
-      - vol_mysql_data:/var/lib/mysql/
-    networks:
-      - internal
+  # database:
+  #   image: mysql:5.7
+  #   container_name: database-logistik-development
+  #   command: --max_allowed_packet=32505856
+  #   restart: always
+  #   ports:
+  #     - "3306:3306"
+  #   env_file:
+  #     - .env.development
+  #   volumes:
+  #     - vol_mysql_data:/var/lib/mysql/
+  #   networks:
+  #     - internal
 
 #Docker Networks
 networks:
@@ -47,7 +47,7 @@ networks:
 
 #Volumes
 volumes:
-  vol_mysql_data:
-    driver: local
+  # vol_mysql_data:
+  #   driver: local
   vendor_data:
     driver: local

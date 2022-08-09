@@ -23,7 +23,7 @@ class VaccineRequest extends Model
         'applicant_email', 'applicant_primary_phone_number', 'applicant_secondary_phone_number',
         'letter_number', 'letter_file_url',
         'applicant_file_url', 'is_letter_file_final',
-        'is_completed', 'is_urgency',
+        'is_completed', 'is_urgency', 'is_cito', 'cito_at', 'cito_by',
         'status', 'verification_status', 'note',
         'delivery_plan_date',
         'verified_at', 'verified_by', 'approved_at', 'approved_by',

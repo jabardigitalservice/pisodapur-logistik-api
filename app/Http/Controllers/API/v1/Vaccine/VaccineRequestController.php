@@ -137,4 +137,17 @@ class VaccineRequestController extends Controller
         $status = $status ?? $vaccineRequest->status;
         Mail::to($vaccineRequest->applicant_email)->send(new VerifiedEmailNotification($vaccineRequest, $status));
     }
+
+    public function cito(VaccineRequest $vaccineRequest, Request $request)
+    {
+        $isCITO = !$vaccineRequest->is_cito;
+        $vaccineRequest->is_cito = $isCITO;
+        if ($isCITO) {
+            $vaccineRequest->cito_by = auth()->user()->id;
+            $vaccineRequest->cito_at = Carbon::now();
+        }
+        $vaccineRequest->save();
+
+        return response()->format(Response::HTTP_OK, 'success', $vaccineRequest);
+    }
 }

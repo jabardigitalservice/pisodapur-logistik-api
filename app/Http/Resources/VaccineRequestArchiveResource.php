@@ -24,6 +24,8 @@ class VaccineRequestArchiveResource extends JsonResource
         'status_rank' => $this->status_rank,
         'vaccine_request_status_notes' => VaccineRequestStatusNoteResource::collection($this->vaccineRequestStatusNotes),
         'status' => $this->status,
+        'is_cito' => $this->is_cito,
+        'is_urgency' => $this->is_urgency,
       ];
   }
 }

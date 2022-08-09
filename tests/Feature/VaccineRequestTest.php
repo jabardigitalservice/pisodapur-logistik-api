@@ -189,7 +189,8 @@ class VaccineRequestTest extends TestCase
                         'finalized_at',
                         'finalized_by',
                         'is_completed',
-                        'is_urgency'
+                        'is_urgency',
+                        'is_cito',
                     ]
                 ],
                 'links' => [
@@ -283,7 +284,8 @@ class VaccineRequestTest extends TestCase
                     'finalized_at',
                     'finalized_by',
                     'is_completed',
-                    'is_urgency'
+                    'is_urgency',
+                    'is_cito',
                 ]
               ]);
     }
@@ -905,5 +907,11 @@ class VaccineRequestTest extends TestCase
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-product-request', $vaccineSupport);
         $response
             ->assertSuccessful();
+    }
+
+    public function testChangeCitoByVaccineRequestId()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/cito/' . $this->vaccineRequest->id);
+        $response->assertSuccessful();
     }
 }
