@@ -197,6 +197,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         // API Store Vaccine Request
         Route::namespace('Vaccine')->group(function () {
             Route::apiResource('/vaccine-request', 'VaccineRequestController')->except('store');
+            Route::put('/cito/{vaccineRequest}', 'VaccineRequestController@cito');
             Route::apiResource('/delivery-plan', 'DeliveryPlanController')->only('index');
             Route::get('/vaccine-status-note', 'VaccineStatusNoteController');
             Route::apiResource('/vaccine-product-request', 'VaccineProductRequestController');
