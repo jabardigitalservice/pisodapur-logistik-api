@@ -54,7 +54,7 @@ class VaccineRequestRatingTest extends TestCase
     {
         $response = $this->json('POST', '/api/v1/vaccine-rating', [
             'vaccine_request_id' => $this->vaccineRequest->id,
-            'phase' => VaccineRequestRatingEnum::verification(),
+            'phase' => VaccineRequestRatingEnum::request(),
             'score' => rand(1, 5),
         ]);
         $response->assertSuccessful();
