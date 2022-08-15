@@ -200,6 +200,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
             Route::put('/cito/{vaccineRequest}', 'VaccineRequestController@cito');
             Route::apiResource('/delivery-plan', 'DeliveryPlanController')->only('index');
             Route::get('/vaccine-status-note', 'VaccineStatusNoteController');
+            Route::post('/vaccine-rating', 'VaccineRequestRatingController@store');
             Route::apiResource('/vaccine-product-request', 'VaccineProductRequestController');
             Route::get('/check-stock', 'VaccineProductRequestController@checkStock');
             Route::get('/check-stock/{id}', 'VaccineProductRequestController@checkStockByMaterialId');
