@@ -52,8 +52,12 @@ class VaccineRequestRatingTest extends TestCase
 
     public function testPostNoAuth()
     {
-        $response = $this->json('POST', '/api/v1/vaccine-rating');
-        $response->assertUnauthorized();
+        $response = $this->json('POST', '/api/v1/vaccine-rating', [
+            'vaccine_request_id' => $this->vaccineRequest->id,
+            'phase' => VaccineRequestRatingEnum::verification(),
+            'score' => rand(1, 5),
+        ]);
+        $response->assertSuccessful();
     }
 
     public function testPostFailed()

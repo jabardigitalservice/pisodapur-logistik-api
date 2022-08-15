@@ -82,6 +82,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     Route::namespace('Vaccine')->group(function () {
         Route::get('/vaccine-product', 'VaccineProductController');
         Route::post('/vaccine-request', 'VaccineRequestController@store');
+        Route::post('/vaccine-rating', 'VaccineRequestRatingController@store');
 
         // API Vaccine Tracking
         Route::get('/vaccine-tracking', 'VaccineTrackingController@index');
@@ -200,7 +201,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
             Route::put('/cito/{vaccineRequest}', 'VaccineRequestController@cito');
             Route::apiResource('/delivery-plan', 'DeliveryPlanController')->only('index');
             Route::get('/vaccine-status-note', 'VaccineStatusNoteController');
-            Route::post('/vaccine-rating', 'VaccineRequestRatingController@store');
             Route::apiResource('/vaccine-product-request', 'VaccineProductRequestController');
             Route::get('/check-stock', 'VaccineProductRequestController@checkStock');
             Route::get('/check-stock/{id}', 'VaccineProductRequestController@checkStockByMaterialId');

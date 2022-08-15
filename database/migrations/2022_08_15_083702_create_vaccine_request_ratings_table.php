@@ -18,7 +18,7 @@ class CreateVaccineRequestRatingsTable extends Migration
             $table->bigInteger('vaccine_request_id')->index();
             $table->string('phase', 20)->index();
             $table->tinyInteger('score');
-            $table->bigInteger('created_by')->index();
+            $table->bigInteger('created_by')->nullable();
             $table->timestamps();
         });
     }

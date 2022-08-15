@@ -16,7 +16,7 @@ class VaccineRequestRatingController extends Controller
         try {
             $vaccineRequestRating = new VaccineRequestRating;
             $vaccineRequestRating->fill($request->validated());
-            $vaccineRequestRating->created_by = auth()->user()->id;
+            $vaccineRequestRating->created_by = auth()->user()->id ?? null;
             $vaccineRequestRating->save();
             DB::commit();
             return response()->format(Response::HTTP_OK, 'success', ['request' => $request->all(), 'vaccine_request_rating' => $vaccineRequestRating]);
