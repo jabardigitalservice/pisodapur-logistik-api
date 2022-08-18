@@ -68,6 +68,9 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
     //Insert New Logistic Request Public
     Route::post('/logistic-request', 'LogisticRequestController@store');
 
+    // Insert New Rating for Medical Logistic
+    Route::post('/rating', 'LogisticRatingController@store');
+
     //Master Faskes
     Route::apiResource('/master-faskes', 'MasterFaskesController');
     Route::post('/verify-master-faskes/{id}', 'MasterFaskesController@verify');
