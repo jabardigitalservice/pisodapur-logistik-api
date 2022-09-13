@@ -27,6 +27,7 @@ class LogisticRequestResource extends JsonResource
     }
 
     return [
+      'id' => $this['agency']->id,
       'agency_type' => $this['agency']->agency_type,
       'agency_name' => $this['agency']->agency_name,
       'phone_number' => $this['agency']->phone_number,
