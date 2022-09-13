@@ -16,6 +16,6 @@ class LogisticRatingController extends Controller
         $logisticRating->fill($request->validated());
         $logisticRating->created_by = auth()->user()->id ?? null;
         $logisticRating->save();
-        return response()->format(Response::HTTP_OK, 'success', ['request' => $request->all(), 'logistic_rating' => $logisticRating]);
+        return response()->format(Response::HTTP_OK, 'success', ['logistic_rating' => $logisticRating]);
     }
 }
