@@ -12,17 +12,10 @@ class LogisticRatingController extends Controller
 {
     public function store(StoreLogisticRatingRequest $request)
     {
-        DB::beginTransaction();
-        try {
-            $logisticRating = new LogisticRating;
-            $logisticRating->fill($request->validated());
-            $logisticRating->created_by = auth()->user()->id ?? null;
-            $logisticRating->save();
-            DB::commit();
-            return response()->format(Response::HTTP_OK, 'success', ['request' => $request->all(), 'logistic_rating' => $logisticRating]);
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            return response()->format(Response::HTTP_INTERNAL_SERVER_ERROR, $th->getMessage(), $th->getTrace());
-        }
+        $logisticRating = new LogisticRating;
+        $logisticRating->fill($request->validated());
+        $logisticRating->created_by = auth()->user()->id ?? null;
+        $logisticRating->save();
+        return response()->format(Response::HTTP_OK, 'success', ['request' => $request->all(), 'logistic_rating' => $logisticRating]);
     }
 }
