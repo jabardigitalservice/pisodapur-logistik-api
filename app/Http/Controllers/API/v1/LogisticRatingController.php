@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\API\v1;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreLogisticRatingRequest;
+use App\Http\Controllers\Controller;
 use App\LogisticRating;
 use Illuminate\Http\Response;
 use DB;
