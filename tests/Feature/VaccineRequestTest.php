@@ -238,9 +238,9 @@ class VaccineRequestTest extends TestCase
             ->assertJsonStructure([
                 "message",
                 "errors" => [
-                  "is_letter_file_final" => []
+                    "is_letter_file_final" => []
                 ]
-              ]);
+            ]);
     }
 
     public function testGetVaccineRequestById()
@@ -287,7 +287,7 @@ class VaccineRequestTest extends TestCase
                     'is_urgency',
                     'is_cito',
                 ]
-              ]);
+            ]);
     }
 
     public function testCreateVaccineRequestFailed()
@@ -366,11 +366,11 @@ class VaccineRequestTest extends TestCase
                 "status",
                 "message",
                 "data" => [
-                "need" => [
-                    [
-                        "note",
+                    "need" => [
+                        [
+                            "note",
+                        ]
                     ]
-                ]
                 ]
             ]);
     }
@@ -497,8 +497,8 @@ class VaccineRequestTest extends TestCase
         $token = $responseData['data']['token'];
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
             ->json('PUT', '/api/v1/vaccine-poslog/' . $this->vaccineRequest->id, [
-            'status' => VaccineRequestStatusEnum::do()
-        ]);
+                'status' => VaccineRequestStatusEnum::do()
+            ]);
         $response->assertSuccessful();
     }
 
@@ -518,8 +518,8 @@ class VaccineRequestTest extends TestCase
         $token = $responseData['data']['token'];
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
             ->json('PUT', '/api/v1/vaccine-poslog/' . $this->vaccineRequest->id, [
-            'status' => VaccineRequestStatusEnum::intransit()
-        ]);
+                'status' => VaccineRequestStatusEnum::intransit()
+            ]);
         $response->assertSuccessful();
     }
 
@@ -607,7 +607,7 @@ class VaccineRequestTest extends TestCase
                     'to',
                     'total'
                 ],
-              ]);
+            ]);
     }
 
     public function testGetProductRequestFilterByStatusRecommendation()
@@ -673,7 +673,7 @@ class VaccineRequestTest extends TestCase
                     'to',
                     'total'
                 ],
-              ]);
+            ]);
     }
 
     public function testGetProductRequestFilterByStatusFinalization()
@@ -739,7 +739,7 @@ class VaccineRequestTest extends TestCase
                     'to',
                     'total'
                 ],
-              ]);
+            ]);
     }
 
     public function testGetVaccineProductRequestById()
@@ -753,7 +753,7 @@ class VaccineRequestTest extends TestCase
             'description' => $this->faker->text,
             'usage' => $this->faker->text,
         ]);
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request/'. $vaccine->id);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request/' . $vaccine->id);
         $response
             ->assertSuccessful()
             ->assertJsonStructure([
@@ -777,7 +777,7 @@ class VaccineRequestTest extends TestCase
             'description' => $this->faker->text,
             'usage' => $this->faker->text,
         ]);
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request/'. $vaccineSupport->id);
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/vaccine-product-request/' . $vaccineSupport->id);
         $response
             ->assertSuccessful()
             ->assertJsonStructure([
@@ -819,15 +819,15 @@ class VaccineRequestTest extends TestCase
         ]);
         $response
             ->assertJsonStructure([
-            'status',
-            'message',
-            'data' => [
-                'warehouse',
-                'approved',
-                'finalized',
-                'current_stock',
-            ],
-        ]);
+                'status',
+                'message',
+                'data' => [
+                    'warehouse',
+                    'approved',
+                    'finalized',
+                    'current_stock',
+                ],
+            ]);
     }
 
 
@@ -840,15 +840,15 @@ class VaccineRequestTest extends TestCase
         $response
             ->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR)
             ->assertJsonStructure([
-            'status',
-            'message',
-            'data' => [
-                'warehouse',
-                'approved',
-                'finalized',
-                'current_stock',
-            ],
-        ]);
+                'status',
+                'message',
+                'data' => [
+                    'warehouse',
+                    'approved',
+                    'finalized',
+                    'current_stock',
+                ],
+            ]);
     }
 
     public function testUpdateRecommendationProductRequest()
@@ -912,6 +912,42 @@ class VaccineRequestTest extends TestCase
     public function testChangeCitoByVaccineRequestId()
     {
         $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/cito/' . $this->vaccineRequest->id);
+        $response->assertSuccessful();
+    }
+
+    public function testUpdateRecommendationProductRequestByStatusNotAvailable()
+    {
+        $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
+
+        $vaccineProductRequest = VaccineProductRequest::first()->toArray();
+
+        $param['recommendation_product_id'] = null;
+        $param['recommendation_product_name'] = null;
+        $param['recommendation_date'] = date('Y-m-d');
+        $param['recommendation_quantity'] = 0;
+        $param['recommendation_UoM'] = null;
+        $param['recommendation_status'] = 'not_available';
+        $param['phase'] = 'recommendation';
+
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-product-request/' . $vaccineProductRequest['id'], $param);
+        $response->assertSuccessful();
+    }
+
+    public function testUpdateFinalizedProductRequestByStatusNotAvailable()
+    {
+        $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/vaccine-request', $this->vaccineRequestPayload);
+
+        $vaccineProductRequest = VaccineProductRequest::first()->toArray();
+
+        $param['finalized_product_id'] = null;
+        $param['finalized_product_name'] = null;
+        $param['finalized_date'] = date('Y-m-d');
+        $param['finalized_quantity'] = 0;
+        $param['finalized_UoM'] = null;
+        $param['finalized_status'] = 'not_available';
+        $param['phase'] = 'finalized';
+
+        $response = $this->actingAs($this->admin, 'api')->json('PUT', '/api/v1/vaccine-product-request/' . $vaccineProductRequest['id'], $param);
         $response->assertSuccessful();
     }
 }
