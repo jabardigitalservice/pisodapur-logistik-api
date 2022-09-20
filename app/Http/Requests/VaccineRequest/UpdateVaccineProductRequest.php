@@ -34,7 +34,6 @@ class UpdateVaccineProductRequest extends FormRequest
             'finalized_UoM' => ['required_if:phase,finalized'],
             'finalized_status' => ['required_if:phase,finalized', new EnumRule(VaccineProductRequestStatusEnum::class)]
         ];
-
         if ($this->phase == 'recommendation') {
             $rule = [
                 'phase' => 'required',
@@ -47,8 +46,12 @@ class UpdateVaccineProductRequest extends FormRequest
                 'recommendation_note' => 'nullable',
             ];
         }
+        $rule = $this->ruleStatusNotAvailable($rule);
+        return $rule;
+    }
 
-        //penambahan kondisi jika value `recommendation_status` atau `finalized_status` = `not_available`
+    public function ruleStatusNotAvailable($rule)
+    {
         if (in_array(VaccineProductRequestStatusEnum::not_available(), [
             $this->recommendation_status, $this->finalized_status
         ])) {
@@ -66,7 +69,6 @@ class UpdateVaccineProductRequest extends FormRequest
                 new EnumRule(VaccineProductRequestStatusEnum::class)
             ];
         }
-
         return $rule;
     }
 }
