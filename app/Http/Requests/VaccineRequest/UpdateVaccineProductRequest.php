@@ -34,7 +34,6 @@ class UpdateVaccineProductRequest extends FormRequest
             'finalized_UoM' => ['required_if:phase,finalized'],
             'finalized_status' => ['required_if:phase,finalized', new EnumRule(VaccineProductRequestStatusEnum::class)]
         ];
-
         if ($this->phase == 'recommendation') {
             $rule = [
                 'phase' => 'required',
@@ -45,6 +44,29 @@ class UpdateVaccineProductRequest extends FormRequest
                 'recommendation_UoM' => ['required_if:phase,recommendation'],
                 'recommendation_status' => ['required_if:phase,recommendation', new EnumRule(VaccineProductRequestStatusEnum::class)],
                 'recommendation_note' => 'nullable',
+            ];
+        }
+        $rule = $this->ruleStatusNotAvailable($rule);
+        return $rule;
+    }
+
+    public function ruleStatusNotAvailable($rule)
+    {
+        if (in_array(VaccineProductRequestStatusEnum::not_available(), [
+            $this->recommendation_status, $this->finalized_status
+        ])) {
+            $rule['recommendation_product_id'] = ['nullable'];
+            $rule['recommendation_product_name'] = ['nullable'];
+            $rule['recommendation_UoM'] = ['nullable'];
+            $rule['recommendation_quantity'] = ['nullable', 'numeric'];
+            $rule['finalized_product_id'] = ['nullable'];
+            $rule['finalized_product_name'] = ['nullable'];
+            $rule['finalized_UoM'] = ['nullable'];
+            $rule['finalized_quantity'] = ['nullable', 'numeric'];
+            $rule['finalized_date'] = ['nullable', 'date'];
+            $rule['finalized_status'] = [
+                'nullable',
+                new EnumRule(VaccineProductRequestStatusEnum::class)
             ];
         }
         return $rule;
