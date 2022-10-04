@@ -30,10 +30,10 @@ class LogisticRequestDetailResource extends JsonResource
     {
         $approvedBy = $this->applicant->finalizedBy->name ?? null;
 
-        if (in_array($status, [TrackingStatusEnum::verified(), TrackingStatusEnum::verification_rejected()])) {
-            $approvedBy = $$this->applicant->verifiedBy->name ?? null;
-        } elseif (in_array($status, [TrackingStatusEnum::approved(), TrackingStatusEnum::approval_rejected()])) {
-            $approvedBy = $$this->applicant->approvedBy->name ?? null;
+        if (in_array($status, [TrackingStatusEnum::verified()->getName(), TrackingStatusEnum::verification_rejected()->getName()])) {
+            $approvedBy = $this->applicant->verifiedBy->name ?? null;
+        } elseif (in_array($status, [TrackingStatusEnum::approved()->getName(), TrackingStatusEnum::approval_rejected()->getName()])) {
+            $approvedBy = $this->applicant->approvedBy->name ?? null;
         }
 
         return [
