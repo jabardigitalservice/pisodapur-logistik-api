@@ -11,6 +11,7 @@ use App\Applicant;
 use App\Enums\ApplicantStatusEnum;
 use App\LogisticRequest;
 use App\FileUpload;
+use App\Http\Resources\LogisticRequestDetailResource;
 use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
@@ -80,9 +81,9 @@ class LogisticRequestController extends Controller
     public function show(Request $request, $id)
     {
         $data = Agency::getList($request, false)
-                        ->with('letter:id,agency_id,letter')
-                        ->where('agency.id', $id)
-                        ->firstOrFail();
+            ->with('letter:id,agency_id,letter')
+            ->where('agency.id', $id)
+            ->firstOrFail();
 
         $response = response()->format(Response::HTTP_OK, 'success', $data);
 
@@ -92,6 +93,18 @@ class LogisticRequestController extends Controller
             $response = response()->format(Response::HTTP_UNAUTHORIZED, 'Permohonan anda salah, Anda tidak dapat membuka alamat URL tersebut');
         }
         return $response;
+    }
+
+    public function detail($id)
+    {
+        $data = Agency::select('agency.*')
+            ->with('applicant')
+            ->where('agency.id', $id)
+            ->firstOrFail()
+            ->makeHidden('applicant', 'letter');
+
+        $response = new LogisticRequestDetailResource($data);
+        return response()->format(Response::HTTP_OK, 'success', $response);
     }
 
     public function listNeed(Request $request)
