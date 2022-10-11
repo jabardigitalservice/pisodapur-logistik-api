@@ -16,13 +16,17 @@ class LogisticRequestDetailResource extends JsonResource
     public function toArray($request)
     {
         $status = $this->applicant->tracking_status->getName();
+        $integrated = $this->applicant->finalized_at;
+
         return [
             'is_urgency' => $this->applicant->is_urgency,
             'status' => $status,
+            'previous_status' => $this->previousStatus($status, $integrated),
             'info' => $this->getInfo($status),
             'agency' => $this->getAgency(),
             'applicant' => $this->applicant,
-            'letter' => $this->letter
+            'letter' => $this->letter,
+            'master_faskes' => $this->masterFaskes,
         ];
     }
 
@@ -47,6 +51,7 @@ class LogisticRequestDetailResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'master_faskes_id' => $this->master_faskes_id,
             'agency_name' => $this->agency_name,
             'phone_number' => $this->phone_number,
             'agency_type_id' => $this->agency_type,
@@ -62,5 +67,20 @@ class LogisticRequestDetailResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+
+    public function previousStatus($status, $integrated)
+    {
+        $prevStatus = 'administrasi';
+
+        if ($integrated && $status == TrackingStatusEnum::finalized()->getName()) {
+            $prevStatus = 'final';
+        } elseif ($status == TrackingStatusEnum::finalized()->getName()) {
+            $prevStatus = 'realisasi';
+        } elseif ($status == TrackingStatusEnum::approval_rejected()->getName()) {
+            $prevStatus = 'ditolak rekomendasi';
+        }
+
+        return $prevStatus;
     }
 }
