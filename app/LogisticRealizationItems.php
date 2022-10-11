@@ -2,12 +2,14 @@
 
 namespace App;
 
+use App\Traits\JoinTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LogisticRealizationItems extends Model
 {
     use SoftDeletes;
+    use JoinTrait;
 
     const STATUS = [
         'delivered',
@@ -161,9 +163,9 @@ class LogisticRealizationItems extends Model
         $data = self::selectList();
         $data = self::withPICData($data);
         $data = $data->whereNotNull('created_by')
-                     ->orderBy('logistic_realization_items.id')
-                     ->where('logistic_realization_items.agency_id', $request->agency_id)
-                     ->paginate($limit);
+            ->orderBy('logistic_realization_items.id')
+            ->where('logistic_realization_items.agency_id', $request->agency_id)
+            ->paginate($limit);
 
         $logisticItemSummary = self::where('agency_id', $request->agency_id)->sum('realization_quantity');
         $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
@@ -171,7 +173,6 @@ class LogisticRealizationItems extends Model
             $item->logistic_item_summary = (int)$logisticItemSummary;
             return $item;
         });
-
         return $data;
     }
 

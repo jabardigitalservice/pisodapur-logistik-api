@@ -7,6 +7,7 @@ use App\LogisticRealizationItems;
 use App\Http\Requests\LogisticRealizationItem\AddRequest;
 use App\Http\Requests\LogisticRealizationItem\GetRequest;
 use App\Http\Requests\LogisticRealizationItem\StoreRequest;
+use App\Http\Resources\LogisticAdminRealizationResource;
 use App\PoslogProduct;
 use Illuminate\Http\Response;
 use Log;
@@ -48,6 +49,16 @@ class LogisticRealizationItemController extends Controller
         $data = LogisticRealizationItems::getList($request);
         $response = response()->format(Response::HTTP_OK, 'success', $data);
         return $response;
+    }
+
+    public function list(GetRequest $request)
+    {
+        $data = LogisticRealizationItems::joinProduct('logistic_realization_items', 'product_id')
+            ->whereNotNull('logistic_realization_items.created_by')
+            ->where('agency_id', $request->agency_id);
+
+        $response = new LogisticAdminRealizationResource($data, $request);
+        return response()->format(Response::HTTP_OK, 'success', $response);
     }
 
     /**
