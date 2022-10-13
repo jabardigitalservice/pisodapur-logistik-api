@@ -14,8 +14,8 @@ trait JoinTrait
         return $query->leftjoin('logistic_realization_items', 'logistic_realization_items.need_id', 'needs.id');
     }
 
-    public function scopeJoinUser($query, $alias, $foreignKey)
+    public function scopeJoinUnit($query)
     {
-        return $query->leftjoin('users as ' . $alias, $alias . '.id', 'logistic_realization_items.' . $foreignKey);
+        return $query->leftjoin('master_unit', 'master_unit.id', 'needs.unit');
     }
 }
