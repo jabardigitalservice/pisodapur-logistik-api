@@ -32,6 +32,7 @@ trait SelectTrait
             'logistic_realization_items.realization_unit as unit',
             'logistic_realization_items.status as status',
             'recommendation.brand',
+            'recommendation.quantity as request_quantity',
             'logistic_realization_items.realization_date as date',
         ];
 
@@ -49,6 +50,7 @@ trait SelectTrait
             'logistic_realization_items.final_unit as unit',
             'logistic_realization_items.final_status as status',
             'realization.brand',
+            'realization.quantity as request_quantity',
             'logistic_realization_items.final_date as date',
         ];
 
