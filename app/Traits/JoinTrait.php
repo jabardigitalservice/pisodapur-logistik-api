@@ -18,4 +18,9 @@ trait JoinTrait
     {
         return $query->leftjoin('master_unit', 'master_unit.id', 'needs.unit');
     }
+
+    public function scopeJoinNeed($query, $alias)
+    {
+        return $query->leftjoin('needs as ' . $alias, $alias . '.id', 'logistic_realization_items.need_id');
+    }
 }

@@ -36,10 +36,12 @@ class LogisticAdminRealizationResource extends JsonResource
         $data = array();
 
         $recommendation = $this->data
+            ->joinNeed('recommendation')
             ->select($this->selectRecommendation())
             ->paginate($this->limit);
 
         $realization = $this->data
+            ->joinNeed('realization')
             ->select($this->selectRealization())
             ->paginate($this->limit);
 

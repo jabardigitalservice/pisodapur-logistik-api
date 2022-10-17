@@ -16,6 +16,7 @@ trait SelectTrait
             'needs.brand',
             'products.category',
             'logistic_realization_items.status',
+            'needs.created_at as date',
         ];
         return $data;
     }
@@ -30,6 +31,8 @@ trait SelectTrait
             'logistic_realization_items.realization_quantity as quantity',
             'logistic_realization_items.realization_unit as unit',
             'logistic_realization_items.status as status',
+            'recommendation.brand',
+            'logistic_realization_items.realization_date as date',
         ];
 
         return $data;
@@ -45,6 +48,8 @@ trait SelectTrait
             'logistic_realization_items.final_quantity as quantity',
             'logistic_realization_items.final_unit as unit',
             'logistic_realization_items.final_status as status',
+            'realization.brand',
+            'logistic_realization_items.final_date as date',
         ];
 
         return $data;
