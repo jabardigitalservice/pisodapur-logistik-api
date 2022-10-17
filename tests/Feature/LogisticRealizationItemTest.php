@@ -235,7 +235,7 @@ class LogisticRealizationItemTest extends TestCase
         $param['recommendation_date'] = date('Y-m-d');
         $param['recommendation_unit'] = 'PCS';
         $param['realization_quantity'] = null;
-        $param['realization_date'] =null;
+        $param['realization_date'] = null;
         $param['realization_unit'] = null;
 
         $update = $this
@@ -265,5 +265,40 @@ class LogisticRealizationItemTest extends TestCase
         $update = $this
             ->actingAs($this->admin, 'api')->json('PUT', '/api/v1/logistic-admin-realization/' . $realizationItem->id, $param)
             ->assertSuccessful();
+    }
+
+    public function testNewGetByAgencyId()
+    {
+        $param = $this->param;
+        $param['store_type'] = 'recommendation';
+        $param['recommendation_quantity'] = rand(1, 1000);
+        $param['recommendation_date'] = date('Y-m-d');
+        $param['recommendation_unit'] = 'PCS';
+
+        $this
+            ->actingAs($this->admin, 'api')
+            ->json('POST', '/api/v1/logistic-admin-realization', $param);
+
+        $this
+            ->actingAs($this->admin, 'api')->json('GET', '/api/v1/logistic-admin-realization', ['agency_id' => $this->agency->id])
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'status',
+                'message',
+                'data' => [
+                    'current_page',
+                    'data' => [],
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total',
+                ]
+            ]);
     }
 }

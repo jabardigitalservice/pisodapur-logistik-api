@@ -167,9 +167,9 @@ class LogisticRequestTest extends TestCase
         $logisticItems[] = [
             'usage' => $this->faker->text,
             'priority' => 'Menengah',
-            'product_id' => rand(1,200),
+            'product_id' => rand(1, 200),
             'description' => $this->faker->text,
-            'quantity' => rand(1,99999),
+            'quantity' => rand(1, 99999),
             'unit' => 'PCS'
         ];
 
@@ -207,9 +207,9 @@ class LogisticRequestTest extends TestCase
         $logisticItems[] = [
             'usage' => $this->faker->text,
             'priority' => 'Menengah',
-            'product_id' => rand(1,200),
+            'product_id' => rand(1, 200),
             'description' => $this->faker->text,
-            'quantity' => rand(1,99999),
+            'quantity' => rand(1, 99999),
             'unit' => 'PCS'
         ];
 
@@ -470,6 +470,37 @@ class LogisticRequestTest extends TestCase
             'applicant_file' => UploadedFile::fake()->image('applicant_file_update.jpg'),
             'update_type' => 2
         ]);
+        $response->assertSuccessful();
+    }
+
+    public function testLogisticRequestNewGetListNeeds()
+    {
+        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/logistic-request/need/new-list', [
+            'page' => 1,
+            'limit' => 10,
+            'agency_id' => $this->agency->id,
+        ]);
+        $response->assertSuccessful();
+    }
+
+    public function testDetailLogisticRequestByAgencyId()
+    {
+        $admin = factory(User::class)->create([
+            'username'    => 'username@example.net',
+            'password' => bcrypt('secret'),
+        ]);
+
+        $login = $this->post('/api/v1/login', [
+            'username'    => 'username@example.net',
+            'password' => 'secret',
+        ]);
+
+        $responseData = $login->json();
+        $token = $responseData['data']['token'];
+
+        $agency = Agency::first();
+        $agencyId = $agency->id;
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)->get('/api/v1/logistic-request/detail/' . $agencyId);
         $response->assertSuccessful();
     }
 }
