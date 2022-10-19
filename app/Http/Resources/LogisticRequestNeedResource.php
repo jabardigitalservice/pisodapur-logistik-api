@@ -16,7 +16,7 @@ class LogisticRequestNeedResource extends JsonResource
 
     function __construct($data, $request)
     {
-        $this->limit = $request->input('limit', 3);
+        $this->limit = $request->input('limit', 10);
         $this->data = $data;
     }
     /**
