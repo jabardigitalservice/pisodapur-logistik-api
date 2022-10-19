@@ -35,20 +35,19 @@ class LogisticAdminRealizationResource extends JsonResource
     {
         $data = array();
 
-        $realization = $this->data
+        $query = $this->data->select($this->selectRecommendationSalur());
+
+        $realization = $query
             ->joinNeed('realization')
-            ->select($this->selectRealization())
             ->paginate($this->limit);
 
-        $recommendation = $this->data
+        $recommendation = $query
             ->joinNeed('recommendation')
-            ->select($this->selectRecommendation())
             ->whereNotNull('logistic_realization_items.product_id')
             ->paginate($this->limit);
 
-
-        array_push($data, $this->getDataTransform($recommendation, 'recommendation', true));
-        array_push($data, $this->getDataTransform($realization, 'realiazation', true));
+        array_push($data, $this->getDataTransform($recommendation, 'recommendation'));
+        array_push($data, $this->getDataTransform($realization, 'realization'));
 
         return $data;
     }
