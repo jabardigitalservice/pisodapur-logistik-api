@@ -4,18 +4,27 @@ namespace App\Traits;
 
 trait SelectTrait
 {
+
+    public function selectRequestNeed()
+    {
+        return array_merge($this->selectNeed(), $this->selectRecommendationSalur());
+    }
+
+    public function selectRecommendationSalur()
+    {
+        return array_merge($this->selectRecommendation(), $this->selectRealization());
+    }
+
     public function selectNeed()
     {
         $data = [
-            'logistic_realization_items.id',
-            'needs.id as need_id',
             'needs.product_id',
             'products.name as product_name',
             'needs.quantity',
+            'needs.quantity as request_quantity',
             'master_unit.unit',
             'needs.brand',
             'products.category',
-            'logistic_realization_items.status',
             'needs.created_at as date',
         ];
         return $data;
@@ -24,16 +33,12 @@ trait SelectTrait
     public function selectRecommendation()
     {
         $data = [
-            'logistic_realization_items.id as id',
-            'logistic_realization_items.need_id',
-            'logistic_realization_items.product_id as product_id',
-            'logistic_realization_items.product_name as product_name',
-            'logistic_realization_items.realization_quantity as quantity',
-            'logistic_realization_items.realization_unit as unit',
-            'logistic_realization_items.status as status',
-            'recommendation.brand',
-            'recommendation.quantity as request_quantity',
-            'logistic_realization_items.realization_date as date',
+            'logistic_realization_items.status',
+            'logistic_realization_items.product_id as recommendation_product_id',
+            'logistic_realization_items.product_name as recommendation_product_name',
+            'logistic_realization_items.realization_quantity as recommendation_quantity',
+            'logistic_realization_items.realization_unit as recommendation_unit',
+            'logistic_realization_items.realization_date as recommendation_date',
         ];
 
         return $data;
@@ -42,16 +47,12 @@ trait SelectTrait
     public function selectRealization()
     {
         $data = [
-            'logistic_realization_items.id',
-            'logistic_realization_items.need_id',
-            'logistic_realization_items.final_product_id as product_id',
-            'logistic_realization_items.final_product_name as product_name',
-            'logistic_realization_items.final_quantity as quantity',
-            'logistic_realization_items.final_unit as unit',
-            'logistic_realization_items.final_status as status',
-            'realization.brand',
-            'realization.quantity as request_quantity',
-            'logistic_realization_items.final_date as date',
+            'logistic_realization_items.final_product_id',
+            'logistic_realization_items.final_product_name',
+            'logistic_realization_items.final_quantity',
+            'logistic_realization_items.final_unit',
+            'logistic_realization_items.final_status',
+            'logistic_realization_items.final_date',
         ];
 
         return $data;
