@@ -34,24 +34,17 @@ class LogisticRequestNeedResource extends JsonResource
     {
         $data = array();
 
-        $administration = $this->data
+        $payload = $this->data
             ->joinUnit()
-            ->select($this->selectNeed())
-            ->paginate($this->limit);
+            ->select($this->selectRequestNeed());
 
-        $recommendation = $this->data
-            ->joinNeed('recommendation')
-            ->select($this->selectRecommendation())
-            ->paginate($this->limit);
+        $administration = $this->getDataTransform($payload->paginate($this->limit));
+        $recommendation = $this->getDataTransform($payload->paginate($this->limit), 'recommendation');
+        $realization = $this->getDataTransform($payload->paginate($this->limit), 'realization');
 
-        $realization = $this->data
-            ->joinNeed('realization')
-            ->select($this->selectRealization())
-            ->paginate($this->limit);
-
-        array_push($data, $this->getDataTransform($administration));
-        array_push($data, $this->getDataTransform($recommendation, 'recommendation'));
-        array_push($data, $this->getDataTransform($realization, 'realization'));
+        array_push($data, $administration);
+        array_push($data, $recommendation);
+        array_push($data, $realization);
 
         return $data;
     }
