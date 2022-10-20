@@ -18,6 +18,7 @@ trait SelectTrait
     public function selectNeed()
     {
         $data = [
+            'needs.id as need_id',
             'needs.product_id',
             'products.name as product_name',
             'needs.quantity',
@@ -33,6 +34,7 @@ trait SelectTrait
     public function selectRecommendation()
     {
         $data = [
+            'logistic_realization_items.id',
             'logistic_realization_items.status',
             'logistic_realization_items.product_id as recommendation_product_id',
             'logistic_realization_items.product_name as recommendation_product_name',

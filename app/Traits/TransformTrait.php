@@ -65,6 +65,8 @@ trait TransformTrait
                     break;
             }
             return $response + [
+                'id' => $item->id,
+                'need_id' => $item->need_id,
                 'brand' => $item->brand,
                 'category' => $item->category,
                 'request_quantity' => $item->request_quantity,
