@@ -51,7 +51,7 @@ class WmsJabar extends Usage
         try {
             // Send Notification to WMS Jabar Poslog
             $config['param'] = [];
-            $config['apiFunction'] = '/api/pingme';
+            $config['apiFunction'] = '/index.php?route=pingme_v2';
             $config['url_type'] = 'medical';
             $res = self::callAPI($config);
 
@@ -104,8 +104,8 @@ class WmsJabar extends Usage
     {
         try {
             // Send Notification to WMS Jabar Poslog
-            $config['param']['request_id'] = $request->input('request_id');
-            $config['apiFunction'] = '/api/outbound_fReqID';
+            $config['param']['req_id'] = $request->input('request_id');
+            $config['apiFunction'] = '/index.php?route=LO_freqid';
             $config['url_type'] = 'medical';
             $res = self::callAPI($config);
 
@@ -121,7 +121,7 @@ class WmsJabar extends Usage
         $update = [];
         DB::beginTransaction();
         try {
-            $outbounds = collect($outboundPlans['msg'])->map(function($outboundPlan) {
+            $outbounds = collect($outboundPlans['msg'])->map(function ($outboundPlan) {
                 if (isset($outboundPlan['lo_detil'])) {
                     $lo = $outboundPlan;
                     $lo_detil = $lo['lo_detil'];
@@ -131,10 +131,10 @@ class WmsJabar extends Usage
 
                     self::updateFaskes($outboundPlan);
 
-                    $outboundDetail = collect($lo_detil)->map(function($detil) {
+                    $outboundDetail = collect($lo_detil)->map(function ($detil) {
                         OutboundDetail::where('lo_id', $detil['lo_id'])
-                                        ->where('material_id', $detil['material_id'])
-                                        ->update($detil);
+                            ->where('material_id', $detil['material_id'])
+                            ->update($detil);
                     });
                 }
             });
