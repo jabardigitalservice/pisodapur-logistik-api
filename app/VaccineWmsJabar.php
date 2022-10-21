@@ -18,7 +18,7 @@ class VaccineWmsJabar extends WmsJabar
     {
         try {
             $config['param']['soh_location'] = 'WHS_VAKSIN';
-            $config['apiFunction'] = '/api_vaksin/index.php?route=soh_flocation';
+            $config['apiFunction'] = '/index.php?route=soh_flocation';
             $config['url_type'] = 'vaccine';
             $res = self::callAPI($config);
 
@@ -26,7 +26,7 @@ class VaccineWmsJabar extends WmsJabar
             self::storeAllocationMaterialVaccine($data['msg']);
 
             $config['param']['soh_location'] = 'WHS_PENUNJANG_IF';
-            $config['apiFunction'] = '/api_vaksin/index.php?route=soh_flocation';
+            $config['apiFunction'] = '/index.php?route=soh_flocation';
             $res = self::callAPI($config);
 
             $data = json_decode($res->getBody(), true);
@@ -42,7 +42,7 @@ class VaccineWmsJabar extends WmsJabar
         $param['material_id'] = $id;
         try {
             $config['param'] = $param;
-            $config['apiFunction'] = '/api_vaksin/index.php?route=soh_fmaterial';
+            $config['apiFunction'] = '/index.php?route=soh_fmaterial';
             $config['url_type'] = 'vaccine';
             $res = self::callAPI($config);
 
@@ -123,7 +123,7 @@ class VaccineWmsJabar extends WmsJabar
             }
 
             // Integrating to WMS Poslog
-            $config['apiFunction'] = '/api_vaksin/index.php?route=pingme_v2';
+            $config['apiFunction'] = '/index.php?route=pingme_v2';
             $config['url_type'] = 'vaccine';
             $res = self::callAPI($config, 'post');
 
@@ -179,7 +179,7 @@ class VaccineWmsJabar extends WmsJabar
 
         foreach ($items as $key => $item) {
             // Get Current Stock from WMS Poslog
-            $config['apiFunction'] = '/api_vaksin/index.php?route=soh_fmaterial';
+            $config['apiFunction'] = '/index.php?route=soh_fmaterial';
             $config['url_type'] = 'vaccine';
             $config['param']['material_id'] = $item['final_product_id'];
             $config['method'] = $item['final_product_id'];
@@ -189,7 +189,7 @@ class VaccineWmsJabar extends WmsJabar
 
             // If Status (stt) Fail/Error.
             if ($response['stt'] == 0) {
-                $result['message'] .= '['. $item['final_product_id'] . '] ' . $item['final_product_name'] . ' ' . $response['msg'] . '. ';
+                $result['message'] .= '[' . $item['final_product_id'] . '] ' . $item['final_product_name'] . ' ' . $response['msg'] . '. ';
                 $result['is_valid'] = false;
                 continue;
             }
@@ -209,7 +209,7 @@ class VaccineWmsJabar extends WmsJabar
         // Validating Stock if stock below from request
         $stock = $response['msg'][0]['stock_ok'] - $response['msg'][0]['stock_nok'] - $response['msg'][0]['booked_stock'];
         if ($stock < $item['final_quantity']) {
-            $result['message'] .= '['. $item['final_product_id'] . '] ' . $item['final_product_name'] . ' stok kurang/tidak ada. (' . $stock . '<' . $item['final_quantity'] . ')';
+            $result['message'] .= '[' . $item['final_product_id'] . '] ' . $item['final_product_name'] . ' stok kurang/tidak ada. (' . $stock . '<' . $item['final_quantity'] . ')';
             $result['is_valid'] = false;
         }
 
