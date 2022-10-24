@@ -21,7 +21,7 @@ class LogisticRequestDetailResource extends JsonResource
         return [
             'is_urgency' => $this->applicant->is_urgency,
             'status' => $status,
-            'previous_status' => $this->previousStatus($status, $integrated),
+            'step' => $this->getStep($status, $integrated),
             'info' => $this->getInfo($status),
             'agency' => $this->getAgency(),
             'applicant' => $this->applicant,
@@ -69,18 +69,18 @@ class LogisticRequestDetailResource extends JsonResource
         ];
     }
 
-    public function previousStatus($status, $integrated)
+    public function getStep($status, $integrated)
     {
-        $prevStatus = 'administrasi';
+        $step = 'administrasi';
 
         if ($integrated && $status == TrackingStatusEnum::finalized()->getName()) {
-            $prevStatus = 'final';
-        } elseif ($status == TrackingStatusEnum::finalized()->getName()) {
-            $prevStatus = 'realisasi';
+            $step = 'final';
+        } elseif (in_array($status, [TrackingStatusEnum::approved()->getName(), TrackingStatusEnum::finalized()->getName()])) {
+            $step = 'realisasi';
         } elseif ($status == TrackingStatusEnum::approval_rejected()->getName()) {
-            $prevStatus = 'ditolak rekomendasi';
+            $step = 'ditolak rekomendasi';
         }
 
-        return $prevStatus;
+        return $step;
     }
 }
