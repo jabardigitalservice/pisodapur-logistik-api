@@ -20,6 +20,7 @@ trait SelectTrait
         $data = [
             'needs.id as need_id',
             'needs.product_id',
+            'needs.product_id as need_product_id',
             'products.name as product_name',
             'needs.quantity',
             'needs.quantity as request_quantity',

@@ -67,6 +67,7 @@ trait TransformTrait
             return $response + [
                 'id' => $item->id,
                 'need_id' => $item->need_id,
+                'need_product_id' => $item->need_product_id,
                 'brand' => $item->brand,
                 'category' => $item->category,
                 'request_quantity' => $item->request_quantity,
