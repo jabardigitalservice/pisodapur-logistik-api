@@ -20,7 +20,7 @@ class StockController extends Controller
     public function index(Request $request)
     {
         $result = $this->getParam($request);
-        // $this->syncDatabase($result['field_poslog'], $result['field_poslog']); Ada perubahan URL API integrasi dari poslog.
+        $this->syncDatabase($result['field_poslog'], $result['field_poslog']);
         $data = Usage::getPoslogItem($result['field_poslog'], $result['value_poslog'], $result['material_name']);
         return response()->format(200, 'success', $data);
     }
