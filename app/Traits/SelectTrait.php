@@ -7,10 +7,10 @@ trait SelectTrait
 
     public function selectRequestNeed()
     {
-        return array_merge($this->selectNeed(), $this->selectRecommendationSalur());
+        return array_merge($this->selectNeed(), $this->selectChannelReccomendation());
     }
 
-    public function selectRecommendationSalur()
+    public function selectChannelReccomendation()
     {
         return array_merge($this->selectRecommendation(), $this->selectRealization());
     }

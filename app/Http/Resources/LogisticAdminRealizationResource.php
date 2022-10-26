@@ -35,7 +35,7 @@ class LogisticAdminRealizationResource extends JsonResource
     {
         $data = array();
 
-        $query = $this->data->select($this->selectRecommendationSalur());
+        $query = $this->data->select($this->selectChannelReccomendation());
 
         $realization = $query
             ->joinNeed('realization')
