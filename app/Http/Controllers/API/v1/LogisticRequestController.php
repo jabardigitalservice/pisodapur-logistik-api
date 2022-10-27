@@ -78,24 +78,7 @@ class LogisticRequestController extends Controller
         return $response;
     }
 
-    public function show(Request $request, $id)
-    {
-        $data = Agency::getList($request, false)
-            ->with('letter:id,agency_id,letter')
-            ->where('agency.id', $id)
-            ->firstOrFail();
-
-        $response = response()->format(Response::HTTP_OK, 'success', $data);
-
-        $isNotAdmin = !in_array(auth()->user()->roles, User::ADMIN_ROLE);
-        $isDifferentDistrict = $data->location_district_code != auth()->user()->code_district_city;
-        if ($isNotAdmin && $isDifferentDistrict) {
-            $response = response()->format(Response::HTTP_UNAUTHORIZED, 'Permohonan anda salah, Anda tidak dapat membuka alamat URL tersebut');
-        }
-        return $response;
-    }
-
-    public function detail($id)
+    public function show($id)
     {
         $data = Agency::select('agency.*')
             ->with('applicant')
@@ -103,8 +86,16 @@ class LogisticRequestController extends Controller
             ->firstOrFail()
             ->makeHidden('applicant', 'letter');
 
-        $response = new LogisticRequestDetailResource($data);
-        return response()->format(Response::HTTP_OK, 'success', $response);
+        $data = new LogisticRequestDetailResource($data);
+        $response = response()->format(Response::HTTP_OK, 'success', $data);
+
+        $isNotAdmin = !in_array(auth()->user()->roles, User::ADMIN_ROLE);
+        $isDifferentDistrict = $data->location_district_code != auth()->user()->code_district_city;
+        if ($isNotAdmin && $isDifferentDistrict) {
+            $response = response()->format(Response::HTTP_UNAUTHORIZED, 'Permohonan anda salah, Anda tidak dapat membuka alamat URL tersebut');
+        }
+
+        return $response;
     }
 
     public function listNeed(Request $request)
