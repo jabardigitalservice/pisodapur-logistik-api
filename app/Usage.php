@@ -35,7 +35,7 @@ class Usage
     {
         $apiKey = PoslogProduct::isDashboardAPI($baseApi) ? config('dashboardexecutive.key') : config('wmsjabar.key');
         $apiLink = PoslogProduct::isDashboardAPI($baseApi) ? config('dashboardexecutive.url') : config('wmsjabar.url');
-        $apiFunction = $api ? $api : '/index.php?route=soh_fmaterialgroup';
+        $apiFunction = $api ? $api : '?route=soh_fmaterialgroup';
         $url = $apiLink . $apiFunction;
         $res = static::getClient()->get($url, [
             'headers' => [
@@ -63,7 +63,7 @@ class Usage
         $param = '{"soh_location":"' . $id . '"}';
         $apiKey = config('wmsjabar.key');
         $apiLink = config('wmsjabar.url');
-        $apiFunction = '/index.php?route=soh_flocation';
+        $apiFunction = '?route=soh_flocation';
         $url = $apiLink . $apiFunction;
         $res = static::getClient()->get($url, [
             'headers' => [
