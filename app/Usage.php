@@ -35,7 +35,7 @@ class Usage
     {
         $apiKey = PoslogProduct::isDashboardAPI($baseApi) ? config('dashboardexecutive.key') : config('wmsjabar.key');
         $apiLink = PoslogProduct::isDashboardAPI($baseApi) ? config('dashboardexecutive.url') : config('wmsjabar.url');
-        $apiFunction = $api ? $api : '/api/soh_fmaterialgroup';
+        $apiFunction = $api ? $api : '/index.php?route=soh_fmaterialgroup';
         $url = $apiLink . $apiFunction;
         $res = static::getClient()->get($url, [
             'headers' => [
@@ -46,8 +46,8 @@ class Usage
             'body' => $param
         ]);
         if ($res->getStatusCode() != 200) {
-            error_log("Error: WMS Jabar API returning status code ".$res->getStatusCode());
-            return [ response()->format(500, 'Internal server error'), null ];
+            error_log("Error: WMS Jabar API returning status code " . $res->getStatusCode());
+            return [response()->format(500, 'Internal server error'), null];
         } else {
             return PoslogProduct::isDashboardAPI($baseApi) ? json_decode($res->getBody())->data : json_decode($res->getBody())->msg;
         }
@@ -63,7 +63,7 @@ class Usage
         $param = '{"soh_location":"' . $id . '"}';
         $apiKey = config('wmsjabar.key');
         $apiLink = config('wmsjabar.url');
-        $apiFunction = '/api/soh_flocation';
+        $apiFunction = '/index.php?route=soh_flocation';
         $url = $apiLink . $apiFunction;
         $res = static::getClient()->get($url, [
             'headers' => [
@@ -73,10 +73,9 @@ class Usage
             ],
             'body' => $param
         ]);
-
         if ($res->getStatusCode() != 200) {
-            error_log("Error: WMS Jabar API returning status code ".$res->getStatusCode());
-            return [ response()->format(500, 'Internal server error'), null ];
+            error_log("Error: WMS Jabar API returning status code " . $res->getStatusCode());
+            return [response()->format(500, 'Internal server error'), null];
         } else {
             return json_decode($res->getBody())->msg;
         }
@@ -87,16 +86,16 @@ class Usage
         $poslogProduct = [];
         try {
             $poslogProduct = PoslogProduct::select(DB::raw('CONCAT("(", material_id, ") ", material_name) as name'), 'material_id', 'material_name', 'soh_location', 'soh_location_name', 'uom', 'matg_id', 'stock_ok', 'stock_nok')
-            ->where(function ($query) use ($fieldPoslog, $valuePoslog, $materialName) {
-                $query->where('stock_ok', '>', 0);
-                if ($valuePoslog) {
-                    $query->where($fieldPoslog, '=', $valuePoslog);
-                }
+                ->where(function ($query) use ($fieldPoslog, $valuePoslog, $materialName) {
+                    $query->where('stock_ok', '>', 0);
+                    if ($valuePoslog) {
+                        $query->where($fieldPoslog, '=', $valuePoslog);
+                    }
 
-                if ($materialName) {
-                    $query->where(DB::raw('CONCAT("(", material_id, ") ", material_name)'), 'LIKE', '%' . $materialName . '%');
-                }
-            })->orderBy('material_name','asc')->orderBy('soh_location','asc')->orderBy('stock_ok','desc')->get();
+                    if ($materialName) {
+                        $query->where(DB::raw('CONCAT("(", material_id, ") ", material_name)'), 'LIKE', '%' . $materialName . '%');
+                    }
+                })->orderBy('material_name', 'asc')->orderBy('soh_location', 'asc')->orderBy('stock_ok', 'desc')->get();
         } catch (\Exception $exception) {
             return response()->format(400, $exception->getMessage());
         }
@@ -169,7 +168,7 @@ class Usage
 
     static function getKeyIndex($material)
     {
-        return $material->material_id .'-'. static::getLocationId($material);
+        return $material->material_id . '-' . static::getLocationId($material);
     }
 
     static function getStockOk($material)
