@@ -6,14 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use DB;
 use App\Product;
-use App\Traits\JoinTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class Needs extends Model
 {
     use SoftDeletes;
-    use JoinTrait;
 
     const STATUS = [
         'Rendah',

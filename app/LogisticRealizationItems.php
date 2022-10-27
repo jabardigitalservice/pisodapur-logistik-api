@@ -2,14 +2,12 @@
 
 namespace App;
 
-use App\Traits\JoinTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LogisticRealizationItems extends Model
 {
     use SoftDeletes;
-    use JoinTrait;
 
     const STATUS = [
         'delivered',
