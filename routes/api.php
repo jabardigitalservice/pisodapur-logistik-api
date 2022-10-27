@@ -129,10 +129,8 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
         Route::get('/logistic-request', 'LogisticRequestController@index');
         Route::get('/logistic-request/{id}', 'LogisticRequestController@show');
-        Route::get('/logistic-request/detail/{id}', 'LogisticRequestController@detail');
         Route::post('/logistic-request/verification', 'LogisticRequestController@changeStatus')->name('verification');
-        Route::get('/logistic-request/need/list', 'LogisticRequestController@listNeed');
-        Route::get('/logistic-request/need/new-list', 'NeedController@index');
+        Route::get('/logistic-request/need/list', 'NeedController@index');
         Route::post('/logistic-request/import', 'LogisticRequestController@import');
         Route::post('/logistic-request/realization', 'LogisticRealizationItemController@store');
         Route::get('/logistic-request/data/export', 'ExportLogisticRequestController@export');
@@ -149,7 +147,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
 
         // Logistic Realization Items by Admin
         Route::get('/logistic-admin-realization', 'LogisticRealizationItemController@index');
-        Route::get('/logistic-admin-realization/list', 'LogisticRealizationItemController@list');
         Route::post('/logistic-admin-realization', 'LogisticRealizationItemController@add');
         Route::put('/logistic-admin-realization/{id}', 'LogisticRealizationItemController@update');
         Route::delete('/logistic-admin-realization/{id}', 'LogisticRealizationItemController@destroy');
