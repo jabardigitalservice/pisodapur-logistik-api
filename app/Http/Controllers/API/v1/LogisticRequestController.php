@@ -11,6 +11,7 @@ use App\Applicant;
 use App\Enums\ApplicantStatusEnum;
 use App\LogisticRequest;
 use App\FileUpload;
+use App\Http\Resources\LogisticRequestDetailResource;
 use App\Imports\LogisticImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\MasterFaskes;
@@ -77,13 +78,15 @@ class LogisticRequestController extends Controller
         return $response;
     }
 
-    public function show(Request $request, $id)
+    public function show($id)
     {
-        $data = Agency::getList($request, false)
-                        ->with('letter:id,agency_id,letter')
-                        ->where('agency.id', $id)
-                        ->firstOrFail();
+        $data = Agency::select('agency.*')
+            ->with('applicant')
+            ->where('agency.id', $id)
+            ->firstOrFail()
+            ->makeHidden('applicant', 'letter');
 
+        $data = new LogisticRequestDetailResource($data);
         $response = response()->format(Response::HTTP_OK, 'success', $data);
 
         $isNotAdmin = !in_array(auth()->user()->roles, User::ADMIN_ROLE);
@@ -91,6 +94,7 @@ class LogisticRequestController extends Controller
         if ($isNotAdmin && $isDifferentDistrict) {
             $response = response()->format(Response::HTTP_UNAUTHORIZED, 'Permohonan anda salah, Anda tidak dapat membuka alamat URL tersebut');
         }
+
         return $response;
     }
 

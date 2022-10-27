@@ -41,26 +41,18 @@ class Needs extends Model
     static function needFields()
     {
         $data = [
-            'needs.id',
-            'needs.agency_id',
-            'needs.applicant_id',
+            'needs.id as need_id',
             'needs.product_id',
-            'needs.item',
-            'needs.brand',
+            'needs.product_id as need_product_id',
+            'products.name as product_name',
             'needs.quantity',
-            'needs.unit',
-            'needs.unit as unit_id',
-            'needs.usage',
-            'needs.priority',
-            'needs.created_at',
-            'needs.updated_at',
-
-            'logistic_realization_items.need_id',
-            'logistic_realization_items.material_group',
+            'needs.quantity as request_quantity',
+            'master_unit.unit',
+            'needs.brand',
+            'products.category',
+            'needs.created_at as date',
+            'logistic_realization_items.id',
             'logistic_realization_items.status',
-            'logistic_realization_items.created_by',
-            'logistic_realization_items.final_by',
-            'logistic_realization_items.updated_by'
         ];
         return $data;
     }
@@ -73,10 +65,6 @@ class Needs extends Model
             'logistic_realization_items.realization_quantity as recommendation_quantity',
             'logistic_realization_items.realization_unit as recommendation_unit',
             'logistic_realization_items.realization_date as recommendation_date',
-            'logistic_realization_items.status as recommendation_status', 
-            'logistic_realization_items.realization_unit as recommendation_unit_id',
-            'logistic_realization_items.recommendation_by',
-            'logistic_realization_items.recommendation_at'
         ];
 
         return $data;
@@ -85,15 +73,12 @@ class Needs extends Model
     static function realizationFields()
     {
         $data = [
-            'logistic_realization_items.final_product_id as realization_product_id',
-            'logistic_realization_items.final_product_name as realization_product_name',
-            'logistic_realization_items.final_quantity as realization_quantity',
-            'logistic_realization_items.final_unit as realization_unit',
-            'logistic_realization_items.final_date as realization_date',
-            'logistic_realization_items.final_status as realization_status',
-            'logistic_realization_items.final_unit_id as realization_unit_id',
-            'logistic_realization_items.final_by as realization_by',
-            'logistic_realization_items.final_at as realization_at'
+            'logistic_realization_items.final_product_id',
+            'logistic_realization_items.final_product_name',
+            'logistic_realization_items.final_quantity',
+            'logistic_realization_items.final_unit',
+            'logistic_realization_items.final_status',
+            'logistic_realization_items.final_date',
         ];
 
         return $data;
@@ -118,9 +103,9 @@ class Needs extends Model
                 return $query->select(['id', 'name', 'agency_name', 'handphone']);
             }
         ])
-        ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
-        ->orderBy('needs.id')
-        ->where('needs.agency_id', $request->agency_id);
+            ->join(DB::raw('(select * from logistic_realization_items where deleted_at is null) logistic_realization_items'), 'logistic_realization_items.need_id', '=', 'needs.id', 'left')
+            ->orderBy('needs.id')
+            ->where('needs.agency_id', $request->agency_id);
     }
 
     public function agency()
@@ -163,13 +148,28 @@ class Needs extends Model
         return $this->belongsTo('App\Applicant');
     }
 
+    public function scopeJoinUnit($query)
+    {
+        return $query->leftjoin('master_unit', 'master_unit.id', 'needs.unit');
+    }
+
+    public function scopeJoinLogisticRealizationItem($query)
+    {
+        return $query->leftjoin('logistic_realization_items', 'logistic_realization_items.need_id', 'needs.id');
+    }
+
+    public function scopeJoinProduct($query)
+    {
+        return $query->leftjoin('products', 'products.id', 'needs.product_id');
+    }
+
     static function listNeed(Request $request)
-    {        
+    {
         $limit = $request->input('limit', 3);
         $data = Needs::getFields();
         $data = Needs::getListNeed($data, $request)->paginate($limit);
         $logisticItemSummary = Needs::where('needs.agency_id', $request->agency_id)->sum('quantity');
-        $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) { 
+        $data->getCollection()->transform(function ($item, $key) use ($logisticItemSummary) {
             if (!$item->realization_product_name) {
                 $product = Product::where('id', $item->realization_product_id)->first();
                 $item->realization_product_name = $product ? $product->name : '';
@@ -184,7 +184,7 @@ class Needs extends Model
 
     public function scopeFilterByApplicant($query, $request)
     {
-        return $query->whereHas('applicant', function($query) use ($request) {
+        return $query->whereHas('applicant', function ($query) use ($request) {
             $query->active()
                 ->createdBetween($request)
                 ->where('verification_status', Applicant::STATUS_VERIFIED)

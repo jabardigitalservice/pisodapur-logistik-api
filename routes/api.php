@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 
 // Landing Page Registration
 Route::namespace('API\v1')->prefix('v1')->group(function () {
-    Route::get('/log-test', function() {
+    Route::get('/log-test', function () {
         Log::channel('dblogging')->debug('/v1/log-test', ['my-string' => 'log me', "run"]);
         return ["result" => true];
     });
@@ -30,7 +30,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/vaccine-product-tracking', 'VaccineProductRequestController@index');
     });
 
-    Route::get('/ping', function() {
+    Route::get('/ping', function () {
         $response = Response::make(gethostname(), 200);
         $response->header('Content-Type', 'text/plain');
         return $response;
@@ -130,7 +130,7 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/logistic-request', 'LogisticRequestController@index');
         Route::get('/logistic-request/{id}', 'LogisticRequestController@show');
         Route::post('/logistic-request/verification', 'LogisticRequestController@changeStatus')->name('verification');
-        Route::get('/logistic-request/need/list', 'LogisticRequestController@listNeed');
+        Route::get('/logistic-request/need/list', 'NeedController@index');
         Route::post('/logistic-request/import', 'LogisticRequestController@import');
         Route::post('/logistic-request/realization', 'LogisticRealizationItemController@store');
         Route::get('/logistic-request/data/export', 'ExportLogisticRequestController@export');

@@ -15,6 +15,9 @@ class Letter extends Model
         'letter'
     ];
 
+    protected $appends = ['application_letter_number'];
+    protected $hidden = ['applicant'];
+
     public function getLetterAttribute($value)
     {
         $letter = '';
@@ -26,5 +29,15 @@ class Letter extends Model
             }
         }
         return $letter;
+    }
+
+    public function getApplicationLetterNumberAttribute()
+    {
+        return $this->applicant->application_letter_number ?? null;
+    }
+
+    public function applicant()
+    {
+        return $this->belongsTo(Applicant::class, 'applicant_id', 'id');
     }
 }

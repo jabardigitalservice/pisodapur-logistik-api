@@ -167,9 +167,9 @@ class LogisticRequestTest extends TestCase
         $logisticItems[] = [
             'usage' => $this->faker->text,
             'priority' => 'Menengah',
-            'product_id' => rand(1,200),
+            'product_id' => rand(1, 200),
             'description' => $this->faker->text,
-            'quantity' => rand(1,99999),
+            'quantity' => rand(1, 99999),
             'unit' => 'PCS'
         ];
 
@@ -207,9 +207,9 @@ class LogisticRequestTest extends TestCase
         $logisticItems[] = [
             'usage' => $this->faker->text,
             'priority' => 'Menengah',
-            'product_id' => rand(1,200),
+            'product_id' => rand(1, 200),
             'description' => $this->faker->text,
-            'quantity' => rand(1,99999),
+            'quantity' => rand(1, 99999),
             'unit' => 'PCS'
         ];
 
