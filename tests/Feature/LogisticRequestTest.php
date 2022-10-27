@@ -472,35 +472,4 @@ class LogisticRequestTest extends TestCase
         ]);
         $response->assertSuccessful();
     }
-
-    public function testLogisticRequestNewGetListNeeds()
-    {
-        $response = $this->actingAs($this->admin, 'api')->json('GET', '/api/v1/logistic-request/need/new-list', [
-            'page' => 1,
-            'limit' => 10,
-            'agency_id' => $this->agency->id,
-        ]);
-        $response->assertSuccessful();
-    }
-
-    public function testDetailLogisticRequestByAgencyId()
-    {
-        $admin = factory(User::class)->create([
-            'username'    => 'username@example.net',
-            'password' => bcrypt('secret'),
-        ]);
-
-        $login = $this->post('/api/v1/login', [
-            'username'    => 'username@example.net',
-            'password' => 'secret',
-        ]);
-
-        $responseData = $login->json();
-        $token = $responseData['data']['token'];
-
-        $agency = Agency::first();
-        $agencyId = $agency->id;
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)->get('/api/v1/logistic-request/detail/' . $agencyId);
-        $response->assertSuccessful();
-    }
 }
