@@ -136,57 +136,35 @@ class LogisticRealizationItemTest extends TestCase
                 'status',
                 'message',
                 'data' => [
-                    'current_page',
-                    'data' => [
-                        [
-                            'id',
-                            'realization_ref_id',
-                            'agency_id',
-                            'applicant_id',
-                            'created_at',
-                            'created_by',
-                            'need_id',
-                            'product_id',
-                            'unit_id',
-                            'updated_at',
-                            'updated_by',
-                            'final_at',
-                            'final_by',
-                            'recommendation_product_id',
-                            'recommendation_product_name',
-                            'recommendation_ref_id',
-                            'recommendation_date',
-                            'recommendation_quantity',
-                            'recommendation_unit',
-                            'recommendation_status',
-                            'recommendation_by',
-                            'recommendation_at',
-                            'realization_product_id',
-                            'realization_product_name',
-                            'realization_date',
-                            'realization_quantity',
-                            'realization_unit',
-                            'realization_status',
-                            'realization_unit_id',
-                            'realization_at',
-                            'realization_by',
-                            'status',
-                            'logistic_item_summary',
-                            'recommend_by',
-                            'verified_by',
-                            'realized_by',
-                        ]
-                    ],
-                    'first_page_url',
-                    'from',
-                    'last_page',
-                    'last_page_url',
-                    'next_page_url',
-                    'path',
-                    'per_page',
-                    'prev_page_url',
-                    'to',
-                    'total',
+                    [
+                        'current_page',
+                        'data' => [
+                            [
+                                "product_id",
+                                "product_name",
+                                "unit",
+                                "date",
+                                "quantity",
+                                "status",
+                                "id",
+                                "need_id",
+                                "need_product_id",
+                                "brand",
+                                "category",
+                                "request_quantity",
+                            ]
+                        ],
+                        'first_page_url',
+                        'from',
+                        'last_page',
+                        'last_page_url',
+                        'next_page_url',
+                        'path',
+                        'per_page',
+                        'prev_page_url',
+                        'to',
+                        'total',
+                    ]
                 ]
             ]);
     }
@@ -265,40 +243,5 @@ class LogisticRealizationItemTest extends TestCase
         $update = $this
             ->actingAs($this->admin, 'api')->json('PUT', '/api/v1/logistic-admin-realization/' . $realizationItem->id, $param)
             ->assertSuccessful();
-    }
-
-    public function testNewGetByAgencyId()
-    {
-        $param = $this->param;
-        $param['store_type'] = 'recommendation';
-        $param['recommendation_quantity'] = rand(1, 1000);
-        $param['recommendation_date'] = date('Y-m-d');
-        $param['recommendation_unit'] = 'PCS';
-
-        $this
-            ->actingAs($this->admin, 'api')
-            ->json('POST', '/api/v1/logistic-admin-realization', $param);
-
-        $this
-            ->actingAs($this->admin, 'api')->json('GET', '/api/v1/logistic-admin-realization', ['agency_id' => $this->agency->id])
-            ->assertSuccessful()
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'current_page',
-                    'data' => [],
-                    'first_page_url',
-                    'from',
-                    'last_page',
-                    'last_page_url',
-                    'next_page_url',
-                    'path',
-                    'per_page',
-                    'prev_page_url',
-                    'to',
-                    'total',
-                ]
-            ]);
     }
 }

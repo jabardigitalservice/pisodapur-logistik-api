@@ -7,13 +7,15 @@ use App\LogisticRealizationItems;
 use App\Http\Requests\LogisticRealizationItem\AddRequest;
 use App\Http\Requests\LogisticRealizationItem\GetRequest;
 use App\Http\Requests\LogisticRealizationItem\StoreRequest;
-use App\Http\Resources\LogisticAdminRealizationResource;
 use App\PoslogProduct;
+use App\Traits\TransformTrait;
 use Illuminate\Http\Response;
 use Log;
 
 class LogisticRealizationItemController extends Controller
 {
+    use TransformTrait;
+
     public function store(StoreRequest $request)
     {
         $model = new LogisticRealizationItems();
@@ -45,20 +47,26 @@ class LogisticRealizationItemController extends Controller
      */
     public function index(GetRequest $request)
     {
+        $data = array();
         $limit = $request->input('limit', 3);
-        $data = LogisticRealizationItems::getList($request);
-        $response = response()->format(Response::HTTP_OK, 'success', $data);
-        return $response;
-    }
 
-    public function list(GetRequest $request)
-    {
-        $data = LogisticRealizationItems::joinProduct('logistic_realization_items', 'product_id')
+        $query = LogisticRealizationItems::selectList()
+            ->joinProduct()
+            ->joinNeed()
+            ->joinUnit()
             ->whereNotNull('logistic_realization_items.created_by')
             ->where('logistic_realization_items.agency_id', $request->agency_id);
 
-        $response = new LogisticAdminRealizationResource($data, $request);
-        return response()->format(Response::HTTP_OK, 'success', $response);
+        $realization = $query->paginate($limit);
+
+        $recommendation = $query
+            ->whereNotNull('logistic_realization_items.product_id')
+            ->paginate($limit);
+
+        array_push($data, $this->getDataTransform($recommendation, 'recommendation'));
+        array_push($data, $this->getDataTransform($realization, 'realization'));
+
+        return response()->format(Response::HTTP_OK, 'success', $data);
     }
 
     /**

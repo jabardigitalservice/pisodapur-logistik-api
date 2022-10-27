@@ -93,6 +93,22 @@ class LogisticRealizationItems extends Model
         return $this->hasOne('App\User', 'id', 'realization_by');
     }
 
+    public function scopeJoinProduct($query)
+    {
+        return $query->leftjoin('products', 'products.id', 'logistic_realization_items.product_id');
+    }
+
+    public function scopeJoinNeed($query)
+    {
+        return $query->leftjoin('needs', 'needs.id', 'logistic_realization_items.need_id');
+    }
+
+    public function scopeJoinUnit($query)
+    {
+        return $query->leftjoin('master_unit', 'master_unit.id', 'needs.unit');
+    }
+
+
     public function getFinalUnitAttribute($value)
     {
         return $value ? $value : 'PCS';
@@ -186,47 +202,41 @@ class LogisticRealizationItems extends Model
 
     static function fieldRealizations($fields)
     {
-        $fields[] = 'final_product_id as realization_product_id';
-        $fields[] = 'final_product_name as realization_product_name';
-        $fields[] = 'final_date as realization_date';
-        $fields[] = 'final_quantity as realization_quantity';
-        $fields[] = 'final_unit as realization_unit';
-        $fields[] = 'final_status as realization_status';
-        $fields[] = 'final_unit_id as realization_unit_id';
-        $fields[] = 'final_at as realization_at';
-        $fields[] = 'final_by as realization_by';
+        $fields[] = 'final_product_id';
+        $fields[] = 'final_product_name';
+        $fields[] = 'final_date';
+        $fields[] = 'final_quantity';
+        $fields[] = 'final_unit';
+        $fields[] = 'final_status';
+
         return $fields;
     }
 
     static function fieldRecommendations($fields)
     {
-        $fields[] = 'product_id as recommendation_product_id';
-        $fields[] = 'product_name as recommendation_product_name';
-        $fields[] = 'realization_ref_id as recommendation_ref_id';
-        $fields[] = 'realization_date as recommendation_date';
-        $fields[] = 'realization_quantity as recommendation_quantity';
-        $fields[] = 'realization_unit as recommendation_unit';
-        $fields[] = 'status as recommendation_status';
-        $fields[] = 'recommendation_by';
-        $fields[] = 'recommendation_at';
+        $fields[] = 'logistic_realization_items.product_id as recommendation_product_id';
+        $fields[] = 'logistic_realization_items.product_name as recommendation_product_name';
+        $fields[] = 'logistic_realization_items.realization_date as recommendation_date';
+        $fields[] = 'logistic_realization_items.realization_quantity as recommendation_quantity';
+        $fields[] = 'logistic_realization_items.realization_unit as recommendation_unit';
+
         return $fields;
     }
 
     static function fieldNeeds($fields)
     {
-        $fields[] = 'id';
-        $fields[] = 'realization_ref_id';
-        $fields[] = 'agency_id';
-        $fields[] = 'applicant_id';
-        $fields[] = 'created_at';
-        $fields[] = 'created_by';
-        $fields[] = 'need_id';
-        $fields[] = 'product_id';
-        $fields[] = 'unit_id';
-        $fields[] = 'updated_at';
-        $fields[] = 'updated_by';
-        $fields[] = 'final_at';
-        $fields[] = 'final_by';
+        $fields[] = 'logistic_realization_items.id';
+        $fields[] = 'logistic_realization_items.status';
+        $fields[] = 'needs.id as need_id';
+        $fields[] = 'needs.product_id';
+        $fields[] = 'needs.product_id as need_product_id';
+        $fields[] = 'products.name as product_name';
+        $fields[] = 'needs.quantity';
+        $fields[] = 'needs.quantity as request_quantity';
+        $fields[] = 'master_unit.unit';
+        $fields[] = 'needs.brand';
+        $fields[] = 'products.category';
+        $fields[] = 'needs.created_at as date';
         return $fields;
     }
 
