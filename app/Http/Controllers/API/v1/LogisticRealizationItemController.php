@@ -62,7 +62,7 @@ class LogisticRealizationItemController extends Controller
         $recommendation = $query
             ->whereNotNull('logistic_realization_items.product_id')
             ->paginate($limit);
-
+            
         array_push($data, $this->getDataTransform($recommendation, 'recommendation'));
         array_push($data, $this->getDataTransform($realization, 'realization'));
 
@@ -148,6 +148,8 @@ class LogisticRealizationItemController extends Controller
         $store_type['final_unit'] = $request->input('realization_unit');
         $store_type['final_date'] = $request->input('realization_date');
         $store_type['final_status'] = $request->input('status');
+        $store_type['final_soh_location'] = $request->input('final_soh_location');
+        $store_type['final_soh_location_name'] = $request->input('final_soh_location_name');
         $store_type['final_by'] = auth()->user()->id;
         $store_type['final_at'] = date('Y-m-d H:i:s');
         return $store_type;
@@ -160,6 +162,8 @@ class LogisticRealizationItemController extends Controller
             $request['product_name'] = $material->material_name;
             $request['realization_unit'] = $material->uom;
             $request['material_group'] = $material->matg_id;
+            $request['final_soh_location'] = $material->soh_location;
+            $request['final_soh_location_name'] = $material->soh_location_name;
         }
         return $request;
     }

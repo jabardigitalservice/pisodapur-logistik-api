@@ -45,7 +45,18 @@ class Applicant extends Model
         'application_letter_number',
         'finalized_by',
         'finalized_at',
-        'is_integrated'
+        'is_integrated',
+        'status',
+        'integrated_by',
+        'integrated_at',
+        'booked_by',
+        'booked_at',
+        'do_by',
+        'do_at',
+        'intransit_by',
+        'intransit_at',
+        'delivered_by',
+        'delivered_at',
     ];
 
     protected $appends = ['tracking_status'];
@@ -281,7 +292,7 @@ class Applicant extends Model
 
     public function scopeFilter($query, $request)
     {
-        return $query->whereHas('agency', function($query) use ($request) {
+        return $query->whereHas('agency', function ($query) use ($request) {
             if ($request->has('city_code')) {
                 $query->where('location_district_code', $request->input('city_code'));
             }

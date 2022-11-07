@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LogisticEmailNotification;
 use App\Notifications\ChangeStatusNotification;
-use JWTAuth;
 use App\Applicant;
 use App\LogisticRealizationItems;
 use App\Validation;
@@ -60,7 +59,7 @@ class LogisticRequest extends Model
         $response = Validation::defaultError();
         DB::beginTransaction();
         try {
-            $responseData['agency'] = self::agencyStore($request);
+            $responseData['agency'] = LogisticRequest::agencyStore($request);
             $request->merge(['agency_id' => $responseData['agency']->id]);
 
             $responseData['applicant'] = Applicant::applicantStore($request);
@@ -71,13 +70,13 @@ class LogisticRequest extends Model
                 $responseData['applicant']->file = $responseData['applicant_file']->id;
                 $updateFile = Applicant::where('id', '=', $responseData['applicant']->id)->update(['file' => $responseData['applicant_file']->id]);
             }
-            $responseData['need'] = self::needStore($request);
+            $responseData['need'] = LogisticRequest::needStore($request);
 
             if ($request->hasFile('letter_file')) {
                 $responseData['letter'] = FileUpload::storeLetterFile($request);
             }
-            $email = self::sendEmailNotification($responseData['agency']->id, Applicant::STATUS_NOT_VERIFIED);
-            $whatsapp = self::sendWhatsappNotification($request, 'surat');
+            $email = LogisticRequest::sendEmailNotification($responseData['agency']->id, Applicant::STATUS_NOT_VERIFIED);
+            $whatsapp = LogisticRequest::sendWhatsappNotification($request, 'surat');
             DB::commit();
             $response = response()->format(Response::HTTP_OK, 'success', new LogisticRequestResource($responseData));
         } catch (\Exception $exception) {
@@ -119,7 +118,7 @@ class LogisticRequest extends Model
             $agency = Agency::with(['applicant' => function ($query) {
                 return $query->select([
                     'id', 'agency_id', 'applicant_name', 'applicants_office', 'file', 'email', 'primary_phone_number', 'secondary_phone_number', 'verification_status', 'note', 'approval_status', 'approval_note', 'stock_checking_status', 'application_letter_number'
-                ])->where('is_deleted', '!=' , 1);
+                ])->where('is_deleted', '!=', 1);
             }])->findOrFail($agencyId);
             Mail::to($agency->applicant['email'])->send(new LogisticEmailNotification($agency, $status));
         } catch (\Exception $exception) {
@@ -153,7 +152,7 @@ class LogisticRequest extends Model
 
     static function setRequestEditLetter(Request $request)
     {
-        if ($request->hasFile('letter_file')) { //20
+        if ($request->hasFile('letter_file')) {
             $response = FileUpload::storeLetterFile($request);
         }
         return $request;
@@ -168,11 +167,11 @@ class LogisticRequest extends Model
                 break;
             case 2:
                 $model = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->firstOrFail();
-                $request = self::setRequestApplicant($request);
+                $request = LogisticRequest::setRequestApplicant($request);
                 break;
             case 3:
                 $model = Applicant::where('id', $request->applicant_id)->where('agency_id', $request->agency_id)->firstOrFail();
-                $request = self::setRequestEditLetter($request);
+                $request = LogisticRequest::setRequestEditLetter($request);
                 break;
         }
         unset($request['id']);
@@ -188,10 +187,12 @@ class LogisticRequest extends Model
                 $response = LogisticRequest::verificationProcess($request, $dataUpdate);
                 break;
             case 'approval':
-                $response = LogisticRequest::approvalProcess($request, $dataUpdate);
+                $param = LogisticRequest::setParam($request, $processType);
+                $response = LogisticRequest::getResponseApproval($request, $param, $dataUpdate);
                 break;
             case 'final':
-                $response = LogisticRequest::finalProcess($request);
+                $param = LogisticRequest::setParam($request, $processType);
+                $response = LogisticRequest::finalProcess($request, $param);
                 break;
         }
         return $response;
@@ -203,48 +204,21 @@ class LogisticRequest extends Model
         $dataUpdate['verified_by'] = auth()->user()->id;
         $dataUpdate['verified_at'] = date('Y-m-d H:i:s');
         $applicant = Applicant::updateApplicant($request, $dataUpdate);
-        $email = self::sendEmailNotification($applicant->agency_id, $request->verification_status);
+        $email = LogisticRequest::sendEmailNotification($applicant->agency_id, $request->verification_status);
         if ($request->verification_status !== Applicant::STATUS_REJECTED) {
-            $whatsapp = self::sendEmailNotification($request, 'rekomendasi');
+            $whatsapp = LogisticRequest::sendWhatsappNotification($request, 'rekomendasi');
         }
         $response = response()->format(Response::HTTP_OK, 'success', $applicant);
         return $response;
     }
 
-    static function approvalProcess(Request $request, $dataUpdate)
+    static function finalProcess(Request $request, $param)
     {
-        $param['needsSum'] = Needs::where('applicant_id', $request->applicant_id)->count();
-        $param['applicantStatus'] = $request->approval_status;
-        $param['realizationSum'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNull('created_by')->count();
-        $param['checkAllItemsStatus'] = $param['realizationSum'] != $param['needsSum'] && $request->approval_status === Applicant::STATUS_APPROVED;
-        $param['notReadyItemsTotal'] = $param['needsSum'] - $param['realizationSum'];
-        $param['failMessage'] = 'Sebelum melakukan persetujuan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . $param['notReadyItemsTotal'] .' item';
-        $param['step'] = 'approved';
-        $param['phase'] = 'realisasi';
-        return self::getResponseApproval($request, $param, $dataUpdate);
-    }
-
-    static function finalProcess(Request $request)
-    {
-        $param['applicantStatus'] = Applicant::STATUS_FINALIZED;
-        $param['needsSum'] = Needs::where('applicant_id', $request->applicant_id)->count(); // total item from user request
-        $param['realizationSum'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->count(); // total item from admin recommendation
-        $param['recommendationItemsTotal'] = $param['needsSum'] + $param['realizationSum'];
-
-        $param['finalSumByNeeds'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('need_id')->whereNotNull('final_by')->count(); // total final item from user Request
-        $param['finalSumByAdmin'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->whereNotNull('final_by')->count(); // total final item from Admin Recommendation
-        $param['finalSum'] = $param['finalSumByNeeds'] + $param['finalSumByAdmin'];
-
-        $param['checkAllItemsStatus'] = $param['finalSum'] != $param['recommendationItemsTotal'] && $request->approval_status === Applicant::STATUS_APPROVED;
-        $param['notReadyItemsTotal'] = $param['recommendationItemsTotal'] - $param['finalSum'];
-        $param['failMessage'] = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . $param['notReadyItemsTotal'] .' item';
-        $param['step'] = 'finalized';
-        $param['phase'] = 'final';
-        $response = self::getResponseApproval($request, $param);
+        $response = LogisticRequest::getResponseApproval($request, $param);
         // handling integration to poslog
-        // if ($response->getStatusCode() == Response::HTTP_OK) {
-        //     WmsJabar::sendPing();
-        // }
+        if ($response->getStatusCode() == Response::HTTP_OK) {
+            $response = WmsJabar::sendRequest($request);
+        }
         return $response;
     }
 
@@ -254,19 +228,52 @@ class LogisticRequest extends Model
             'status' => 422,
             'error' => true,
             'message' => $param['failMessage'],
-            'total_item_need_update' => $param['notReadyItemsTotal']
+            'total_item_need_update' => $param['notReadyItemsTotal'],
+            'param' => $param,
         ], 422);
         if (!$param['checkAllItemsStatus']) {
-            $dataUpdate[$param['step'] . '_by'] = auth()->user()->id;
-            $dataUpdate[$param['step'] . '_at'] = date('Y-m-d H:i:s');
+            if ($param['step'] != 'finalized') {
+                $dataUpdate[$param['step'] . '_by'] = auth()->user()->id;
+                $dataUpdate[$param['step'] . '_at'] = date('Y-m-d H:i:s');
+            }
             $applicant = Applicant::updateApplicant($request, $dataUpdate);
-            $email = self::sendEmailNotification($applicant->agency_id, $param['applicantStatus']);
-            if ($request->approval_status === Applicant::STATUS_APPROVED && $param['step'] == 'approved') {
+            // Send Notification Email
+            $email = LogisticRequest::sendEmailNotification($applicant->agency_id, $param['applicantStatus']);
+            // Send Whatsapp Notification to PIC
+            $isApproved = $request->approval_status === Applicant::STATUS_APPROVED;
+            $isStepApproved = $param['step'] == 'approved';
+            if ($isApproved && $isStepApproved) {
                 $request['agency_id'] = $applicant->agency_id;
-                $whatsapp = self::sendWhatsappNotification($request, $param['phase']);
+                $whatsapp = LogisticRequest::sendWhatsappNotification($request, $param['phase']);
             }
             $response = response()->format(Response::HTTP_OK, 'success', $applicant);
         }
         return $response;
+    }
+
+    static function setParam($request, $phase)
+    {
+        $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id);
+        $param['needsSum'] = Needs::where('applicant_id', $request->applicant_id)->count(); // total item from user request
+        $param['realizationSum'] = $realizationSum->count(); // total item from admin recommendation
+        $param['applicantStatus'] = $request->approval_status;
+        $param['checkAllItemsStatus'] = $param['realizationSum'] != $param['needsSum'] && $request->approval_status === Applicant::STATUS_APPROVED;
+        $param['notReadyItemsTotal'] = $param['needsSum'] - $param['realizationSum'];
+        $param['step'] = 'approved';
+        $param['phase'] = 'realisasi';
+        if ($phase == 'final') {
+            $param['applicantStatus'] = Applicant::STATUS_FINALIZED;
+            $param['recommendationItemsTotal'] = $param['needsSum'] + $realizationSum->whereNotNull('created_by')->count();
+            $param['finalSumByNeeds'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('need_id')->whereNotNull('final_by')->count(); // total final item from user Request
+            $param['finalSumByAdmin'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->whereNotNull('final_by')->count(); // total final item from Admin Recommendation
+            $param['finalSum'] = $param['finalSumByNeeds'] + $param['finalSumByAdmin'];
+            $param['checkAllItemsStatus'] = ($param['finalSum'] != $param['recommendationItemsTotal']) && ($request->approval_status === Applicant::STATUS_APPROVED);
+            $param['notReadyItemsTotal'] = $param['recommendationItemsTotal'] - $param['finalSum'];
+            $param['step'] = 'finalized';
+            $param['phase'] = 'final';
+        }
+        $param['failMessage'] = 'Sebelum menyelesaikan permohonan, pastikan item barang sudah diupdate terlebih dahulu. Jumlah barang yang belum diupdate sebanyak ' . $param['notReadyItemsTotal'] . ' item';
+
+        return $param;
     }
 }
