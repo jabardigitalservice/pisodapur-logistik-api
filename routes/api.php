@@ -105,7 +105,6 @@ Route::namespace('API\v1')->prefix('v1')->group(function () {
         Route::get('/logistic-request-list', 'LogisticRequestController@finalList');
         Route::apiResource('/outbound', 'OutboundController');
         Route::get('/outbound-notification', 'OutboundController@notification');
-        Route::get('/sendping', 'OutboundController@sendPing');
         Route::get('/poslog-notify', 'OutboundController@getNotification');
         Route::get('/update-all-lo', 'OutboundController@updateAll');
 
