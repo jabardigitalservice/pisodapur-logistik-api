@@ -7,7 +7,9 @@ use App\Agency;
 use App\Applicant;
 use App\AuthKey;
 use App\Enums\ApplicantStatusEnum;
+use App\LogisticRealizationItems;
 use App\MasterFaskes;
+use App\Needs;
 use App\User;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -326,9 +328,8 @@ class LogisticRequestTest extends TestCase
         $response->assertSuccessful();
     }
 
-    public function testPostRequestFinal()
+    public function testPostRequestFinalNoItemSend()
     {
-        Storage::fake('photos');
         Notification::fake();
 
         $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/logistic-request/final', [
@@ -337,6 +338,206 @@ class LogisticRequestTest extends TestCase
             'approval_status' => ApplicantStatusEnum::approved(),
             'url' => 'http:://localhost/#',
         ]);
+        // This should assert successful but failed beause need integration API
+        $response
+            ->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR)
+            ->assertExactJson([
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR,
+                'message' => 'Maaf, tidak ada barang yang dapat dilanjutkan ke WMS Poslog di permohonan ini. Mohon dicek kembali kuantitas di tiap barangnya.',
+                'data' => [
+                    'item' => []
+                ],
+            ]);
+    }
+
+    public function testPostRequestFinalMaterialIDNotRegistered()
+    {
+        Notification::fake();
+
+        // Request Set Ready to Finalized First
+        Applicant::where([
+            'agency_id' => $this->applicant->agency_id,
+            'id' => $this->applicant->id,
+        ])
+            ->update([
+                'verification_status' => 'verified',
+                'verified_by' => rand(),
+                'verified_at' => date('Y-m-d'),
+                'approval_status' => 'approved',
+                'approved_by' => rand(),
+                'approved_at' => date('Y-m-d'),
+            ]);
+
+        // Create Real User Item
+        Needs::create([
+            'agency_id' => $this->applicant->agency_id,
+            'applicant_id' => $this->applicant->id,
+            'product_id' => rand(400, 460),
+            'brand' => $this->faker->text,
+            'quantity' => rand(1, 1000),
+            'unit' => 1,
+            'usage' => $this->faker->text,
+            'priority' => 'Menengah',
+        ]);
+
+        // Create Real User Item
+        LogisticRealizationItems::create([
+            'need_id' => rand(),
+            'agency_id' => $this->applicant->agency_id,
+            'applicant_id' => $this->applicant->id,
+            'final_product_id' => 'MAT-1AC4YX31',
+            'final_product_name' => 'APD HAZMAT COVER ALL DINAMIKA UKURAN L (DBHCHT)',
+            'final_quantity' => 1,
+            'final_soh_location' => 'PCS',
+            'final_date' => date('Y-m-d'),
+            'final_by' => rand()
+        ]);
+
+        // Create Real Admin Item
+
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/logistic-request/final', [
+            'agency_id' => $this->applicant->id,
+            'applicant_id' => $this->applicant->agency_id,
+            'approval_status' => ApplicantStatusEnum::approved(),
+            'url' => 'http:://localhost/#',
+        ]);
+        // This should assert successful but failed beause need integration API
+        $response
+            ->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR)
+            ->assertJsonStructure([
+                'status',
+                'message',
+                'data' => [
+                    'poslog_error' => [
+                        'error' => [
+                            'error_material' => [
+                                'msg',
+                                'material_data' => []
+                            ]
+                        ]
+                    ],
+                    'config_data',
+                    'is_valid_to_integrate',
+                ],
+            ]);
+    }
+
+    public function testPostRequestFinalErrorStock()
+    {
+        Notification::fake();
+
+        // Request Set Ready to Finalized First
+        Applicant::where([
+            'agency_id' => $this->applicant->agency_id,
+            'id' => $this->applicant->id,
+        ])
+            ->update([
+                'verification_status' => 'verified',
+                'verified_by' => rand(),
+                'verified_at' => date('Y-m-d'),
+                'approval_status' => 'approved',
+                'approved_by' => rand(),
+                'approved_at' => date('Y-m-d'),
+            ]);
+
+        // Create Real User Item
+        Needs::create([
+            'agency_id' => $this->applicant->agency_id,
+            'applicant_id' => $this->applicant->id,
+            'product_id' => rand(400, 460),
+            'brand' => $this->faker->text,
+            'quantity' => rand(1, 1000),
+            'unit' => 1,
+            'usage' => $this->faker->text,
+            'priority' => 'Menengah',
+        ]);
+
+        // Create Real User Item
+        LogisticRealizationItems::create([
+            'need_id' => rand(),
+            'agency_id' => $this->applicant->agency_id,
+            'applicant_id' => $this->applicant->id,
+            'final_product_id' => 'MAT-1S4CPW44',
+            'final_product_name' => 'SHOES CAP (JABAR BERGERAK)',
+            'final_quantity' => 1000000,
+            'final_soh_location' => 'PCS',
+            'final_date' => date('Y-m-d'),
+            'final_by' => rand()
+        ]);
+
+        // Create Real Admin Item
+
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/logistic-request/final', [
+            'agency_id' => $this->applicant->id,
+            'applicant_id' => $this->applicant->agency_id,
+            'approval_status' => ApplicantStatusEnum::approved(),
+            'url' => 'http:://localhost/#',
+        ]);
+        // This should assert successful but failed beause need integration API
+        $response
+            ->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR)
+            ->assertJsonStructure([
+                'status',
+                'message',
+                'data' => [
+                    'item' => [],
+                    'stock_info'
+                ]
+            ]);
+    }
+
+    public function testPostRequestFinal()
+    {
+        Notification::fake();
+
+        // Request Set Ready to Finalized First
+        Applicant::where([
+            'agency_id' => $this->applicant->agency_id,
+            'id' => $this->applicant->id,
+        ])
+            ->update([
+                'verification_status' => 'verified',
+                'verified_by' => rand(),
+                'verified_at' => date('Y-m-d'),
+                'approval_status' => 'approved',
+                'approved_by' => rand(),
+                'approved_at' => date('Y-m-d'),
+            ]);
+
+        // Create Real User Item
+        Needs::create([
+            'agency_id' => $this->applicant->agency_id,
+            'applicant_id' => $this->applicant->id,
+            'product_id' => rand(400, 460),
+            'brand' => $this->faker->text,
+            'quantity' => rand(1, 1000),
+            'unit' => 1,
+            'usage' => $this->faker->text,
+            'priority' => 'Menengah',
+        ]);
+
+        // Create Real User Item
+        LogisticRealizationItems::create([
+            'need_id' => rand(),
+            'agency_id' => $this->applicant->agency_id,
+            'applicant_id' => $this->applicant->id,
+            'final_product_id' => 'MAT-JPECZZ20',
+            'final_product_name' => 'VTM DAN SWAB DACRON CITODIA (KEMENTERIAN KESEHATAN PROG SURVEILANS)',
+            'final_quantity' => 1,
+            'final_soh_location' => 'WHS_PAKUAN_A',
+            'final_date' => date('Y-m-d'),
+            'final_by' => rand()
+        ]);
+
+        // Create Real Admin Item
+
+        $response = $this->actingAs($this->admin, 'api')->json('POST', '/api/v1/logistic-request/final', [
+            'agency_id' => $this->applicant->id,
+            'applicant_id' => $this->applicant->agency_id,
+            'approval_status' => ApplicantStatusEnum::approved(),
+            'url' => 'http:://localhost/#',
+        ]);
+
         // This should assert successful but failed beause need integration API
         $response->assertSuccessful();
     }

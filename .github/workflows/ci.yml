@@ -78,6 +78,10 @@ jobs:
         DB_DATABASE: pikobar
         DB_PORT: 33306
         DB_USERNAME: root
+        WMS_JABAR_BASE_URL: ${{ secrets.WMS_JABAR_BASE_URL }}
+        WMS_JABAR_API_KEY: ${{ secrets.WMS_JABAR_API_KEY }}
+        WMS_POSLOG_VACCINE_BASE_URL: ${{ secrets.WMS_POSLOG_VACCINE_BASE_URL }}
+        WMS_POSLOG_VACCINE_API_KEY: ${{ secrets.WMS_POSLOG_VACCINE_API_KEY }}
 
       run: vendor/bin/phpunit --testdox --coverage-clover=report/clover.xml
 # Code Climate Coverage

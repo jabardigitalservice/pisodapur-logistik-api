@@ -110,6 +110,8 @@ class LogisticRealizationItemTest extends TestCase
         $param['realization_quantity'] = rand(1, 1000);
         $param['realization_date'] = date('Y-m-d');
         $param['realization_unit'] = 'PCS';
+        $param['final_soh_location'] = 'WHS_PAKUAN_B';
+        $param['final_soh_location_name'] = 'GUDANG BIZPARK B';
 
         $response = $this
             ->actingAs($this->admin, 'api')
@@ -228,6 +230,8 @@ class LogisticRealizationItemTest extends TestCase
         $param['recommendation_quantity'] = rand(1, 1000);
         $param['recommendation_date'] = date('Y-m-d');
         $param['recommendation_unit'] = 'PCS';
+        $param['final_soh_location'] = 'WHS_PAKUAN_B';
+        $param['final_soh_location_name'] = 'GUDANG BIZPARK B';
 
         $this
             ->actingAs($this->admin, 'api')
@@ -240,6 +244,8 @@ class LogisticRealizationItemTest extends TestCase
         $param['realization_quantity'] = rand(1, 1000);
         $param['realization_date'] = date('Y-m-d');
         $param['realization_unit'] = 'PCS';
+        $param['final_soh_location'] = 'WHS_PAKUAN_B';
+        $param['final_soh_location_name'] = 'GUDANG BIZPARK B';
         $update = $this
             ->actingAs($this->admin, 'api')->json('PUT', '/api/v1/logistic-admin-realization/' . $realizationItem->id, $param)
             ->assertSuccessful();

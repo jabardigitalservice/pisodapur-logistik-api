@@ -29,7 +29,7 @@ class Validation
         return $response;
     }
 
-    public static function setCompleteness($request)
+    public static function setCompleteness()
     {
         $updateCompleteness = Agency::where('agency_name', '')
             ->orWhereNull('agency_name')
@@ -44,7 +44,7 @@ class Validation
             ->orWhereNull('primary_phone_number')
             ->orWhere('file', '')
             ->orWhereNull('file')
-            ->get();
+            ->pluck('agency_id');
 
         $upcateCompleteness = Agency::whereIn('id', $applicants)
             ->update(['completeness' => 0]);

@@ -19,8 +19,6 @@ $factory->define(App\MasterFaskes::class, function (Faker $faker) {
         'id_tipe_faskes' => rand(1, 3),
         'verification_status' => 'verified',
         'nama_faskes' => $faskesName,
-        'poslog_id' => $faker->numerify('219000####'),
-        'poslog_name' => $faskesName,
         'is_reference' => rand(0, 1),
         'nomor_izin_sarana' => $faker->numerify('####-####-##'),
         'nama_atasan' => $faker->name,
