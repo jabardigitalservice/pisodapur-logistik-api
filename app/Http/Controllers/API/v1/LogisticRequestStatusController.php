@@ -25,7 +25,7 @@ class LogisticRequestStatusController extends Controller
             $request = $this->undoStepCondition($request);
             $email = LogisticRequest::sendEmailNotification($request, $request['status']);
             $response = response()->format(Response::HTTP_OK, 'success', $request->all());
-            Validation::setCompleteness($request);
+            Validation::setCompleteness();
         }
         Log::channel('dblogging')->debug('post:v1/logistic-request/return', $request->all());
         return $response;
