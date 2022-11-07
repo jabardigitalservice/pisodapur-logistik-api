@@ -81,15 +81,14 @@ trait TransformTrait
             'quantity' => $item->final_quantity,
             'status' => $item->final_status,
         ];
-
         if ($item->final_status == 'not_approved') {
             $response = [
-                'product_id' => $item->final_product_id ?? $item->recommendation_product_id,
-                'product_name' => $item->final_product_name ?? $item->recommendation_product_name,
-                'unit' => $item->final_unit ?? $item->recommendation_unit,
-                'date' => $item->final_date ?? $item->recommendation_date,
-                'quantity' => null,
-                'status' => $item->final_status ?? $item->status,
+                'product_id' => $item->recommendation_product_id,
+                'product_name' => $item->recommendation_product_name,
+                'unit' => $item->recommendation_unit,
+                'date' => $item->recommendation_date,
+                'quantity' => $item->recommendation_quantity,
+                'status' => $item->final_status,
             ];
         }
 
