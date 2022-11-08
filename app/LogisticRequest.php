@@ -255,7 +255,7 @@ class LogisticRequest extends Model
     {
         $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id);
         $param['needsSum'] = Needs::where('applicant_id', $request->applicant_id)->count(); // total item from user request
-        $param['realizationSum'] = $realizationSum->count(); // total item from admin recommendation
+        $param['realizationSum'] = $realizationSum->whereNull('created_by')->count(); // total item from admin recommendation
         $param['applicantStatus'] = $request->approval_status;
         $param['checkAllItemsStatus'] = $param['realizationSum'] != $param['needsSum'] && $request->approval_status === Applicant::STATUS_APPROVED;
         $param['notReadyItemsTotal'] = $param['needsSum'] - $param['realizationSum'];

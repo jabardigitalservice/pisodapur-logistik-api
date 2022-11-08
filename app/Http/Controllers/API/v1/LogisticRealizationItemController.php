@@ -48,7 +48,7 @@ class LogisticRealizationItemController extends Controller
     public function index(GetRequest $request)
     {
         $data = array();
-        $limit = $request->input('limit', 3);
+        $limit = $request->input('limit', 10);
 
         $query = LogisticRealizationItems::selectList()
             ->joinProduct()
@@ -62,7 +62,7 @@ class LogisticRealizationItemController extends Controller
         $recommendation = $query
             ->whereNotNull('logistic_realization_items.product_id')
             ->paginate($limit);
-            
+
         array_push($data, $this->getDataTransform($recommendation, 'recommendation'));
         array_push($data, $this->getDataTransform($realization, 'realization'));
 
