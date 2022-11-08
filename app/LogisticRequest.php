@@ -253,9 +253,8 @@ class LogisticRequest extends Model
 
     static function setParam($request, $phase)
     {
-        $realizationSum = LogisticRealizationItems::where('applicant_id', $request->applicant_id);
         $param['needsSum'] = Needs::where('applicant_id', $request->applicant_id)->count(); // total item from user request
-        $param['realizationSum'] = $realizationSum->whereNull('created_by')->count(); // total item from admin recommendation
+        $param['realizationSum'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('need_id')->count(); // total item from admin recommendation
         $param['applicantStatus'] = $request->approval_status;
         $param['checkAllItemsStatus'] = $param['realizationSum'] != $param['needsSum'] && $request->approval_status === Applicant::STATUS_APPROVED;
         $param['notReadyItemsTotal'] = $param['needsSum'] - $param['realizationSum'];
@@ -263,7 +262,8 @@ class LogisticRequest extends Model
         $param['phase'] = 'realisasi';
         if ($phase == 'final') {
             $param['applicantStatus'] = Applicant::STATUS_FINALIZED;
-            $param['recommendationItemsTotal'] = $param['needsSum'] + $realizationSum->whereNotNull('created_by')->count();
+            $param['realizationSumFinal'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->count();
+            $param['recommendationItemsTotal'] = $param['needsSum'] + $param['realizationSumFinal'];
             $param['finalSumByNeeds'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('need_id')->whereNotNull('final_by')->count(); // total final item from user Request
             $param['finalSumByAdmin'] = LogisticRealizationItems::where('applicant_id', $request->applicant_id)->whereNotNull('created_by')->whereNotNull('final_by')->count(); // total final item from Admin Recommendation
             $param['finalSum'] = $param['finalSumByNeeds'] + $param['finalSumByAdmin'];
