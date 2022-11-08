@@ -63,7 +63,7 @@ trait TransformTrait
                 'product_name' => $item->recommendation_product_name ?? $item->product_name,
                 'unit' => $item->recommendation_unit ?? $item->unit,
                 'date' => null,
-                'quantity' => null,
+                'quantity' => $item->quantity,
                 'status' => $item->status,
             ];
         }
