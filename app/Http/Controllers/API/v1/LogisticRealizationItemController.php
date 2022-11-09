@@ -102,10 +102,12 @@ class LogisticRealizationItemController extends Controller
     public function realizationStore($request)
     {
         $store_type = $this->setFinalData($request);
+
         if ($request->input('store_type') === 'recommendation') {
             $store_type = $this->setRecommendationData($request);
         }
         $store_type['agency_id'] = $request->input('agency_id');
+        $store_type['applicant_id'] = $request->input('applicant_id');
         $store_type['created_by'] = auth()->user()->id;
         return LogisticRealizationItems::create($store_type);
     }
