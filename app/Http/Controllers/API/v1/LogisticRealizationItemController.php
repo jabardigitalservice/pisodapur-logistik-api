@@ -48,7 +48,7 @@ class LogisticRealizationItemController extends Controller
     public function index(GetRequest $request)
     {
         $data = array();
-        $limit = $request->input('limit', 3);
+        $limit = $request->input('limit', 10);
 
         $query = LogisticRealizationItems::selectList()
             ->joinProduct()
@@ -62,7 +62,7 @@ class LogisticRealizationItemController extends Controller
         $recommendation = $query
             ->whereNotNull('logistic_realization_items.product_id')
             ->paginate($limit);
-            
+
         array_push($data, $this->getDataTransform($recommendation, 'recommendation'));
         array_push($data, $this->getDataTransform($realization, 'realization'));
 
@@ -102,10 +102,12 @@ class LogisticRealizationItemController extends Controller
     public function realizationStore($request)
     {
         $store_type = $this->setFinalData($request);
+
         if ($request->input('store_type') === 'recommendation') {
             $store_type = $this->setRecommendationData($request);
         }
         $store_type['agency_id'] = $request->input('agency_id');
+        $store_type['applicant_id'] = $request->input('applicant_id');
         $store_type['created_by'] = auth()->user()->id;
         return LogisticRealizationItems::create($store_type);
     }

@@ -265,7 +265,8 @@ class WmsJabar extends Usage
             ->whereNotNull('final_by')
             ->get()->toArray();
 
-        $items = $userItems + $adminItems;
+        $items = array_merge($userItems, $adminItems);
+
         return $items;
     }
 
