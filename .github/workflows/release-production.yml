@@ -1,33 +1,62 @@
-name: Release Production
+name: Build Pisodapur API Production
 
 on:
   push:
-    branches: [master]
-  workflow_dispatch:
+    branches:
+    - master
+    paths:
+    - /**
+    - .github/workflows/release-production.yml
 
 jobs:
-  create-sentry:
+  deploy:
+    name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Github short-commit
-        uses: benjlevesque/short-sha@v1.2
-        id: short-sha
-        with:
-          length: 6
-      - run: echo $SHA
-        env:
-          SHA: ${{ steps.short-sha.outputs.sha }}
-      - run: echo $SHA
-        env:
-          SHA: ${{ env.SHA }}
-      - name: Create Sentry release
-        uses: getsentry/action-release@v1
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-        with:
-          environment: production
-          version: ${{ steps.short-sha.outputs.sha }}
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Configure Docker
+      run: |
+        docker login ${{ secrets.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} -p "${{ secrets.REGISTRY_PASSWORD }}"
+
+    - name: Set version tag
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+    - name: Build and push
+      id: docker_build
+      uses: docker/build-push-action@v2
+      with:
+        file: Dockerfile
+        push: true
+        tags: ${{ secrets.PISODAPUR_SERVICE_IMAGENAME }}:${{ steps.vars.outputs.sha_short }}
+
+    # GitOps
+    - name: GitOps ArgoCD Setup
+      run: |
+        echo "${{ secrets.GITLAB_ARGOCD_KEY }}" > /tmp/gitlab-deploy-ssh-key
+        chmod 600 /tmp/gitlab-deploy-ssh-key
+        export GIT_SSH_COMMAND="ssh -i /tmp/gitlab-deploy-ssh-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+        git clone ${{ secrets.GITLAB_ARGOCD_REPOSITORY }}
+    - name: GitOps ArgoCD Update Image for Production
+      uses: mikefarah/yq@master
+      with:
+        cmd: yq -i '.spec.template.spec.containers[0].image = "${{ secrets.PISODAPUR_SERVICE_IMAGENAME }}:${{ steps.vars.outputs.sha_short }}"' 'jds-terraform-gke/k8s/pisodapur-logistik-api/production/deployment.yaml'
+
+    - name: GitOps ArgoCD Create Branch, Commit, Push
+      run: |
+        export GIT_SSH_COMMAND="ssh -i /tmp/gitlab-deploy-ssh-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+        cd jds-terraform-gke/k8s/pisodapur-logistik-api/production
+        git config user.email "github-action@github.com"
+        git config user.name "Github Action"
+        git checkout -b pisodapur-logistik-release-${{ steps.vars.outputs.sha_short }}-production
+        git add deployment.yaml
+        git commit -m "[release]: Pisodapur Logistik Release ${{ steps.vars.outputs.sha_short }} to production"
+        git push origin pisodapur-logistik-release-${{ steps.vars.outputs.sha_short }}-production -o merge_request.description="# Overview \n\n - Pisodapur Release ${{ steps.vars.outputs.sha_short }} to production \n\n ## Evidence \n\n - title: Release Pisodapur API ${{ steps.vars.outputs.sha_short }} to production \n - project: Piso Dapur \n - participants:  " -o merge_request.create
