@@ -29,7 +29,7 @@ class LogisticEmailNotification extends Mailable implements ShouldQueue
     {
         $this->agency = $agency;
         $this->status = $status;
-        $this->subject = '[Pikobar] Persetujuan Permohonan Logistik';
+        $this->subject = '[Pisodapur] Persetujuan Permohonan Logistik';
         $this->texts = [];
         $this->notes = [];
     }
@@ -41,7 +41,7 @@ class LogisticEmailNotification extends Mailable implements ShouldQueue
      */
     public function build()
     {
-        switch($this->status) {
+        switch ($this->status) {
             case Applicant::STATUS_NOT_VERIFIED:
                 $this->textNotVerified();
                 break;
@@ -63,16 +63,16 @@ class LogisticEmailNotification extends Mailable implements ShouldQueue
 
     public function textNotVerified()
     {
-        $this->subject = '[Pikobar] Permohonan Logistik Diterima';
-        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
+        $this->subject = '[Pisodapur] Permohonan Logistik Diterima';
+        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pisodapur.';
         $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' sudah kami terima.';
         $this->notes[] = 'Silahkan anda dapat menghubungi nomor kontak hotline atau email untuk melakukan pengecekan terhadap permohonan tersebut.';
     }
 
     public function textRejected()
     {
-        $this->subject = '[Pikobar] Penolakan Permohonan Logistik';
-        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
+        $this->subject = '[Pisodapur] Penolakan Permohonan Logistik';
+        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pisodapur.';
         $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' tidak bisa kami penuhi.';
         $this->texts[] = 'Dengan alasan penolakan sebagai berikut:';
         $this->notes[] = $this->agency->applicant->note;
@@ -81,25 +81,25 @@ class LogisticEmailNotification extends Mailable implements ShouldQueue
 
     public function textVerified()
     {
-        $this->subject = '[Pikobar] Permohonan Logistik Terverifikasi';
-        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
+        $this->subject = '[Pisodapur] Permohonan Logistik Terverifikasi';
+        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pisodapur.';
         $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . '  sudah dalam status terverifikasi dan sedang dalam tahap rekomendasi salur. Selanjutnya kami akan melakukan pengecekan ketersediaan barang pada gudang logistik untuk permohonan Anda.';
-        $this->notes[] = 'Silahkan hubungi nomor kontak hotline atau email di bawah ini atau gunakan Fitur Lacak Pengajuan Logistik pada https://logistik.pikobar.jabarprov.go.id/#/landing-page jika diperlukan pengecekan terhadap permohonan tersebut.';
+        $this->notes[] = 'Silahkan hubungi nomor kontak hotline atau email di bawah ini atau gunakan Fitur Lacak Pengajuan Logistik pada https://logistis-pisodapur.jabarprov.go.id/#/landing-page jika diperlukan pengecekan terhadap permohonan tersebut.';
     }
 
     public function textApproved()
     {
-        $this->subject = '[Pikobar] Permohonan Logistik Sudah Rekomendasi';
-        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
+        $this->subject = '[Pisodapur] Permohonan Logistik Sudah Rekomendasi';
+        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pisodapur.';
         $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . '  sudah dalam status rekomendasi dan sedang dalam tahap realisasi salur. Selanjutnya kami akan melakukan pengecekan ketersediaan barang pada gudang logistik untuk permohonan Anda.';
-        $this->notes[] = 'Silahkan hubungi nomor kontak hotline atau email di bawah ini atau gunakan Fitur Lacak Pengajuan Logistik pada https://logistik.pikobar.jabarprov.go.id/#/landing-page jika diperlukan pengecekan terhadap permohonan tersebut.';
+        $this->notes[] = 'Silahkan hubungi nomor kontak hotline atau email di bawah ini atau gunakan Fitur Lacak Pengajuan Logistik pada https://logistis-pisodapur.jabarprov.go.id/#/landing-page jika diperlukan pengecekan terhadap permohonan tersebut.';
     }
 
     public function textFinalized()
     {
-        $this->subject = '[Pikobar] Permohonan Logistik Sudah Realisasi Salur';
-        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pikobar.';
-        $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' sudah selesai ditindaklanjuti. Silakan buka Fitur Lacak Pengajuan Logistik untuk mengetahui hasil tindaklanjut atas permohonan Anda pada laman https://logistik.pikobar.jabarprov.go.id/#/landing-page. Diharapkan untuk menunggu konfirmasi via telepon dari tim terkait untuk pengambilan barang di gudang jika terdapat barang yang disetujui.';
+        $this->subject = '[Pisodapur] Permohonan Logistik Sudah Realisasi Salur';
+        $this->texts[] = 'Terima kasih Anda sudah melakukan permohonan pada Aplikasi Permohonan Logistik Pisodapur.';
+        $this->texts[] = 'Melalui surat elektronik ini, kami bermaksud untuk menyampaikan bahwa permohonan logistik dengan kode permohonan #' . $this->agency->id . ' sudah selesai ditindaklanjuti. Silakan buka Fitur Lacak Pengajuan Logistik untuk mengetahui hasil tindaklanjut atas permohonan Anda pada laman https://logistis-pisodapur.jabarprov.go.id/#/landing-page. Diharapkan untuk menunggu konfirmasi via telepon dari tim terkait untuk pengambilan barang di gudang jika terdapat barang yang disetujui.';
         $this->texts[] = '';
         $this->texts[] = 'Jika barang sudah diterima oleh pemohon, silahkan untuk melaporkan penggunaan logistik dengan ketentuan berikut:';
         $this->texts[] = '';
@@ -122,14 +122,14 @@ class LogisticEmailNotification extends Mailable implements ShouldQueue
     public function getContent()
     {
         return $this->view('email.logisticemailnotification')
-                    ->subject($this->subject)
-                    ->with([
-                        'applicantName' => $this->agency->applicant->applicant_name,
-                        'notes' => $this->notes,
-                        'agency' => $this->agency->agency_name,
-                        'texts' => $this->texts,
-                        'from' => config('mail.from.name'),
-                        'hotLine' => config('app.hotline')
-                    ]);
+            ->subject($this->subject)
+            ->with([
+                'applicantName' => $this->agency->applicant->applicant_name,
+                'notes' => $this->notes,
+                'agency' => $this->agency->agency_name,
+                'texts' => $this->texts,
+                'from' => config('mail.from.name'),
+                'hotLine' => config('app.hotline')
+            ]);
     }
 }

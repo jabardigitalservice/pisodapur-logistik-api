@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>E-Mail PIKOBAR</title>
+    <title>E-Mail PISODAPUR</title>
 </head>
 <body>
     <div>
@@ -26,7 +26,7 @@
     <div>
         <div>Salam,</div>
         <div>{{ $from }}</div>
-        <div>Hotline Pikobar: {{ $hotLine }}</div>
+        <div>Hotline Pisodapur: {{ $hotLine }}</div>
     </div>
 </body>
 </html>
