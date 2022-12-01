@@ -24,7 +24,7 @@ class TokenEmailNotification extends Mailable implements ShouldQueue
 
     public function __construct($token)
     {
-        $this->subject = '[Pikobar] Kode Verifikasi Pelaporan Penerimaan Logistik';
+        $this->subject = '[Pisodapur] Kode Verifikasi Pelaporan Penerimaan Logistik';
         $this->texts[] = 'Kode verifikasi digunakan untuk melakukan pelaporan penerimaan logistik Pemdaprov Jawa Barat';
         $this->texts[] = 'Silahkan memasukkan kode verifikasi ini untuk melakukan pengisian form pelaporan penerimaan logistik. Kode verifikasi anda:';
         $this->token = $token;
